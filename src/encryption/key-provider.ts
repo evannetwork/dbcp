@@ -14,10 +14,13 @@
  */
 
 import { CryptoInfo } from './envelope';
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
 import { KeyProviderInterface } from './key-provider-interface';
 import { obfuscate } from '../common/utils';
 
+export class KeyProviderOptions extends LoggerOptions {
+  keys: any;
+}
 
 export class KeyProvider extends Logger implements KeyProviderInterface {
   currentAccount: any;
@@ -25,9 +28,9 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
   keys: any;
   profile: any;
 
-  constructor(_keys) {
-    super();
-    this.keys = _keys;
+  constructor(options: KeyProviderOptions) {
+    super(options);
+    this.keys = options.keys;
   }
 
   init(_profile: any) {

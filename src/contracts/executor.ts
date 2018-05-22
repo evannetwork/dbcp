@@ -15,13 +15,15 @@
 
 import { createExceptionLogger } from './../common/utils';
 import { EventHub } from './../event-hub';
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
 import { SignerInterface } from './signer-interface';
 
 
-export interface ExecutorOptions {
+/**
+ * options for executor instance
+ */
+export interface ExecutorOptions extends LoggerOptions {
   config?: any,
-  log?: Function,
   signer?: SignerInterface,
   web3?: any,
 }

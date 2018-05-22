@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
+// require babel-polyfill for deployment using browserify
+require('babel-polyfill');
+
 export { AccountStore } from './account-store'
 export { config } from './config'
-export { ContractLoader } from './contracts/contract-loader'
+export { ContractLoader, ContractLoaderOptions } from './contracts/contract-loader'
 export { CryptoInfo } from './encryption/envelope'
 export { createDefaultRuntime, Runtime } from './runtime'
 export { CryptoProvider } from './encryption/crypto-provider'
@@ -23,16 +26,16 @@ export { Cryptor } from './encryption/cryptor'
 export { Description, DescriptionOptions } from './description'
 export { DfsInterface } from './dfs/dfs-interface'
 export { Envelope } from './encryption/envelope'
-export { EventHub } from './event-hub'
-export { Executor } from './contracts/executor'
-export { Ipfs } from './dfs/ipfs'
-export { KeyProvider } from './encryption/key-provider'
+export { EventHub, EventHubOptions } from './event-hub'
+export { Executor, ExecutorOptions } from './contracts/executor'
+export { Ipfs, IpfsOptions } from './dfs/ipfs'
+export { KeyProvider, KeyProviderOptions } from './encryption/key-provider'
 export { KeyProviderInterface } from './encryption/key-provider-interface'
 export { Logger } from './common/logger'
-export { NameResolver } from './name-resolver'
+export { NameResolver, NameResolverOptions } from './name-resolver'
 export { obfuscate } from './common/utils'
 export { SignerExternal } from './contracts/signer-external'
 export { SignerInterface } from './contracts/signer-interface'
-export { SignerInternal } from './contracts/signer-internal'
+export { SignerInternal, SignerInternalOptions } from './contracts/signer-internal'
 export { Unencrypted } from './encryption/unencrypted'
-export { Validator } from './validator'
+export { Validator, ValidatorOptions } from './validator'

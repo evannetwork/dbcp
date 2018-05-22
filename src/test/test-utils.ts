@@ -123,9 +123,9 @@ export class TestUtils {
     });
   }
 
-  static async getExecutor(web3, isReadonly?): Promise<Executor> {
+  static async getExecutor(web3, isReadonly?, customLogger?): Promise<Executor> {
     if (isReadonly) {
-      return new Executor({});
+      return new Executor({log: customLogger});
     } else {
       const accountStore = this.getAccountStore({});
       const signer = new SignerInternal({
@@ -133,8 +133,9 @@ export class TestUtils {
         contractLoader: this.getContractLoader(web3),
         config: {},
         web3,
+        log: customLogger
       });
-      const executor = new Executor({ config, signer, web3, });
+      const executor = new Executor({ config, signer, web3, log: customLogger });
       await executor.init({});
 
       return executor;
@@ -156,7 +157,7 @@ export class TestUtils {
         keys[key] = sampleKeys[key];
       });
     }
-    return new KeyProvider(keys);
+    return new KeyProvider({keys});
   }
 
   static getKeys(): any {

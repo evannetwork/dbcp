@@ -17,8 +17,18 @@ import uuid = require('uuid');
 
 import { ContractLoader } from './contracts/contract-loader';
 import { createExceptionLogger } from './common/utils';
-import { Logger } from './common/logger';
+import { Logger, LoggerOptions } from './common/logger';
 import { NameResolver } from './name-resolver';
+
+/**
+ * eventhub instance options
+ */
+export class EventHubOptions extends LoggerOptions {
+  config: any;
+  contractLoader: any;
+  nameResolver: any;
+  eventWeb3: any;
+}
 
 /**
  * @brief      class for Ethereum event subscriptions; cleaning up subscriptions is possible with

@@ -20,14 +20,14 @@ import { DfsInterface } from './dfs/dfs-interface';
 import { Envelope } from './encryption/envelope';
 import { Executor } from './contracts/executor';
 import { KeyProviderInterface } from './encryption/key-provider-interface';
-import { Logger } from './common/logger';
+import { Logger, LoggerOptions } from './common/logger';
 import { NameResolver } from './name-resolver';
 import { Validator } from './validator';
 
 /**
  * options for Description module
  */
-export interface DescriptionOptions {
+export interface DescriptionOptions extends LoggerOptions {
   contractLoader: ContractLoader,
   dfs: DfsInterface,
   executor: Executor,

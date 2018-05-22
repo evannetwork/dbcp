@@ -27,6 +27,16 @@ export enum LogLevel {
   disabled = 999,
 }
 
+
+/**
+ * options for logger
+ */
+export class LoggerOptions {
+  log?: Function;
+  logLevel?: LogLevel;
+  logLogLevel?: LogLevel;
+}
+
 /**
  * Basic logging functionlity, allows passing a log function, defaults to console log/error,
  *

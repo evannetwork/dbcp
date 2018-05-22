@@ -20,7 +20,7 @@ import prottle = require('prottle');
 import _ = require('lodash');
 
 import { FileToAdd, DfsInterface, DfsCacheInterface } from './dfs-interface';
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
 import utils = require('./../common/utils');
 
 
@@ -29,6 +29,15 @@ const runFunctionAsPromise = utils.promisify;
 const requestWindowSize = 10;
 
 let ipfsAPI;
+
+
+/** 
+ * ipfs instance options
+ */
+export class IpfsOptions extends LoggerOptions {
+  remoteNode: any;
+  cache: any;
+}
 
 /**
  * @brief      IPFS add/get data handler

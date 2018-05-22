@@ -14,7 +14,14 @@
  */
 
 import * as ajv from 'ajv';
-import { Logger } from './common/logger';
+import { Logger, LoggerOptions } from './common/logger';
+
+/**
+ * validator options
+ */
+export class ValidatorOptions extends LoggerOptions {
+  schema: any;
+}
 
 /**
  * validator class, adds jsom schema validator for different types

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Logger } from './common/logger';
+import { Logger, LoggerOptions } from './common/logger';
 
 /**
  * wrapper for evan.network accounts private keys
@@ -28,6 +28,12 @@ export interface KeyStoreInterface {
   getPrivateKey(accountId: string): Promise<string>;
 }
 
+/**
+ * accountstore instance options
+ */
+export class AccountStoreOptions extends LoggerOptions {
+  accounts: any;
+}
 
 /**
  * wrapper for evan.network accounts private keys

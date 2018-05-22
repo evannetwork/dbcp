@@ -19,11 +19,21 @@ import lightwallet = require('eth-lightwallet');
 import Transaction = require('ethereumjs-tx');
 
 import { SignerInterface } from './signer-interface';
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
 import { KeyStoreInterface } from '../account-store';
 
 const txutils = lightwallet.txutils;
 const nonces = {};
+
+/** 
+ * signer internal instance options
+ */
+export class SignerInternalOptions extends LoggerOptions {
+  accountStore: any;
+  contractLoader: any;
+  config: any;
+  web3: any;
+}
 
 export class SignerInternal extends Logger implements SignerInterface {
   accountStore: KeyStoreInterface;
@@ -31,7 +41,7 @@ export class SignerInternal extends Logger implements SignerInterface {
   contractLoader: any;
   web3: any;
 
-  constructor(options: any) {
+  constructor(options: SignerInternalOptions) {
     super(options);
     this.accountStore = options.accountStore;
     this.contractLoader = options.contractLoader;
