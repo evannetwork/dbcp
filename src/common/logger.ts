@@ -46,7 +46,7 @@ export class Logger {
   logFunction: Function;
   logLevel: LogLevel;
   logLogLevel: LogLevel;
-  logLog = {};
+  logLog = [];
   static getDefaultLog(): Function {
     return (message, level) => {
       console[level === 'error' ? 'error' : 'log'](`[${level || 'info'}] ${message}`);
@@ -87,11 +87,11 @@ export class Logger {
    */
   public log(message: string, level = 'info') {
     if (LogLevel[level] >= this.logLogLevel) {
-       if (Array.isArray(this.logLog[level])) {
-         this.logLog[level].push(message);
-       } else {
-         this.logLog[level] = [message];
-       }
+      this.logLog.push({
+        timestamp: new Date().getTime(),
+        level,
+        message
+      });
     }
     if (LogLevel[level] >= this.logLevel) {
       this.logFunction(message, level);
