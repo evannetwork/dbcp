@@ -1,0 +1,7 @@
+contracts/*
+examples/*
+scripts/*
+src/*
+wiki/*
+tsconfig.json
+tslint.json
