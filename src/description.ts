@@ -222,7 +222,9 @@ export class Description extends Logger {
     content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
     const validation = this.validateDescription(content);
     if (validation !== true) {
-      throw new Error(`description invalid: ${JSON.stringify(validation)}`);
+      const msg = `description invalid: ${JSON.stringify(validation)}`;
+      this.log(msg, 'error');
+      throw new Error(msg);
     }
 
     if (content.private && content.cryptoInfo) {
@@ -254,7 +256,9 @@ export class Description extends Logger {
     content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
     const validation = this.validateDescription(content);
     if (validation !== true) {
-      throw new Error(`description invalid: ${JSON.stringify(validation)}`);
+      const msg = `description invalid: ${JSON.stringify(validation)}`;
+      this.log(msg, 'error');
+      throw new Error(msg);
     }
     if (content.private && content.cryptoInfo) {
       const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
