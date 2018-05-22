@@ -28,7 +28,7 @@ const nonces = {};
 /** 
  * signer internal instance options
  */
-export class SignerInternalOptions extends LoggerOptions {
+export interface SignerInternalOptions extends LoggerOptions {
   accountStore: any;
   contractLoader: any;
   config: any;

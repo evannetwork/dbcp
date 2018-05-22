@@ -18,7 +18,7 @@ import { Logger, LoggerOptions } from '../common/logger';
 /** 
  * contractloader instance options
  */
-export class ContractLoaderOptions extends LoggerOptions {
+export interface ContractLoaderOptions extends LoggerOptions {
   contracts?: any;
   web3: any;
 }

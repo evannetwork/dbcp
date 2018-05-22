@@ -23,7 +23,7 @@ import { NameResolver } from './name-resolver';
 /**
  * eventhub instance options
  */
-export class EventHubOptions extends LoggerOptions {
+export interface EventHubOptions extends LoggerOptions {
   config: any;
   contractLoader: any;
   nameResolver: any;

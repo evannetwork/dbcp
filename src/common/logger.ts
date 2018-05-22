@@ -31,7 +31,7 @@ export enum LogLevel {
 /**
  * options for logger
  */
-export class LoggerOptions {
+export interface LoggerOptions {
   log?: Function;
   logLevel?: LogLevel;
   logLogLevel?: LogLevel;

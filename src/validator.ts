@@ -19,7 +19,7 @@ import { Logger, LoggerOptions } from './common/logger';
 /**
  * validator options
  */
-export class ValidatorOptions extends LoggerOptions {
+export interface ValidatorOptions extends LoggerOptions {
   schema: any;
 }
 

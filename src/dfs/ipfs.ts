@@ -34,7 +34,7 @@ let ipfsAPI;
 /** 
  * ipfs instance options
  */
-export class IpfsOptions extends LoggerOptions {
+export interface IpfsOptions extends LoggerOptions {
   remoteNode: any;
   cache: any;
 }

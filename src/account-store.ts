@@ -31,7 +31,7 @@ export interface KeyStoreInterface {
 /**
  * accountstore instance options
  */
-export class AccountStoreOptions extends LoggerOptions {
+export interface AccountStoreOptions extends LoggerOptions {
   accounts: any;
 }
 

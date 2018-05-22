@@ -24,7 +24,7 @@ const requestWindowSize = 200;
 /**
  * Name Resolver instance options
  */
-export class NameResolverOptions extends LoggerOptions {
+export interface NameResolverOptions extends LoggerOptions {
   config: any;
   executor: any;
   contractLoader: any;

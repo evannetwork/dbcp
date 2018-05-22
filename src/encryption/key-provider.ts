@@ -18,7 +18,7 @@ import { Logger, LoggerOptions } from '../common/logger';
 import { KeyProviderInterface } from './key-provider-interface';
 import { obfuscate } from '../common/utils';
 
-export class KeyProviderOptions extends LoggerOptions {
+export interface KeyProviderOptions extends LoggerOptions {
   keys: any;
 }
 
