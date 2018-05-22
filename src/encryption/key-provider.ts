@@ -19,7 +19,7 @@ import { KeyProviderInterface } from './key-provider-interface';
 import { obfuscate } from '../common/utils';
 
 export interface KeyProviderOptions extends LoggerOptions {
-  keys: any;
+  keys?: any;
 }
 
 export class KeyProvider extends Logger implements KeyProviderInterface {
