@@ -149,8 +149,8 @@ export class Executor extends Logger {
         transaction: functionName,
         transactionHash: null,
       };
-      const level = extraParams.status === 'error' ? 'error' : 'info';
-      this.log(`gas log: ${JSON.stringify(Object.assign(staticEntries, extraParams))}`, level);
+      const level = 'gasLog';
+      this.log(Object.assign(staticEntries, extraParams), level);
     }
     return new Promise((resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
@@ -359,8 +359,7 @@ export class Executor extends Logger {
         status: 'unknown',
         transactionHash: null,
       };
-      const level = extraParams.status === 'error' ? 'error' : 'info';
-      this.log(`gas log: ${JSON.stringify(Object.assign(staticEntries, extraParams))}`, level);
+      this.log(Object.assign(staticEntries, extraParams), 'gasLog');
     }
     return new Promise<void>((resolve, reject) => {
       let isPending = true;
