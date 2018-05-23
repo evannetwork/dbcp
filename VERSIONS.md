@@ -1,6 +1,7 @@
 # dbcp
 
 ## Next version
+- add check to ignore all log messages above level 'technical' (100), which includes 'gasLog'; gasLog messages can still be retrieved from Loggers 'logLog' property
 
 ## Version 1.0.1
 - remove babel-polyfill from index.ts to remove it as prod dependency

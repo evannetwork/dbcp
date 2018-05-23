@@ -23,7 +23,9 @@ export enum LogLevel {
   warning,
   error,
 
-  gasLog = 100,
+  // technical logs start at 100 and will not be output to log function
+  technical = 100,
+  gasLog = 101,
   disabled = 999,
 }
 
@@ -93,7 +95,7 @@ export class Logger {
         message
       });
     }
-    if (LogLevel[level] >= this.logLevel) {
+    if (LogLevel[level] >= this.logLevel && LogLevel[level] < LogLevel.technical) {
       this.logFunction(message, level);
     }
   }
