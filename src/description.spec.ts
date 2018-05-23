@@ -52,7 +52,6 @@ const sampleDescription = {
       "task.js",
       "task.css"
     ],
-    "module": "TestModule",
     "origin": "Qm...",
     "primaryColor": "#e87e23",
     "secondaryColor": "#fffaf5",
@@ -124,6 +123,33 @@ describe('Description handler', function() {
       descriptionEnvelope.public.dapp = Object.assign({}, descriptionEnvelope.public.dapp, { newProperty: 123, });
       promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
       await expect(promise).to.be.rejected;
+    });
+
+    it('should be able to hold versions history', async () => {
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000, });
+      const descriptionEnvelope = { public: Object.assign({}, sampleDescription, {
+        versions: {
+          '0.7.0': 'Qmf...',
+          '0.8.0': 'Qmu...',
+          '0.9.0': 'Qmx...',
+        }
+      }), };
+      await description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+    });
+
+    it('should reject invalid versions history keys', async () => {
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000, });
+      const descriptionEnvelope = {
+        public: Object.assign({}, sampleDescription, {
+          versions: {
+            '0.7.X': 'Qmf...',
+            '0.YAZ.0': 'Qmu...',
+            'latest': 'Qmx...',
+          }
+        }),
+      };
+      const setPromise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      expect(setPromise).to.be.rejected;
     });
   });
 

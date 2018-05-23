@@ -16,6 +16,7 @@
 const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const commonShake = require('common-shakeify');
+const insert = require('gulp-insert');
 const del = require('del');
 const exec = require('child_process').exec;
 const gulp = require('gulp');
@@ -30,14 +31,30 @@ const sourcemaps = require('gulp-sourcemaps');
 const ipfsProtocol = 'https';
 const ipfsHost = 'ipfs.evan.network';
 const distFolder = `dist`;
-const deploymentFolder = `deployment`;
+const deploymentTmpFolder = `.deploymentTmp`;
+const deploymentFolder = `.deployment`;
 const browserifyName = 'dbcp.js';
 
 const browserifyDBCP = async function() {
   console.log('Put everything together...');
 
+  await new Promise((resolve, reject) => {
+    gulp
+      .src(`${ distFolder }/**/*`)
+      .pipe(gulp.dest(`${deploymentTmpFolder}`))
+      .on('end', () => resolve())
+  });
+
+  await new Promise((resolve, reject) => {
+    gulp
+      .src(`${deploymentTmpFolder}/index.js`)
+      .pipe(insert.prepend('require(\'babel-polyfill\');\n'))
+      .pipe(gulp.dest(`${deploymentTmpFolder}`))
+      .on('end', () => resolve())
+  });
+
   await new Promise((resolve, reject) =>
-    browserify(`${ distFolder }/index.js`, {
+    browserify(`${ deploymentTmpFolder }/index.js`, {
       standalone: 'dbcp',
       debug: true,
     })
@@ -216,6 +233,7 @@ async function deployToIpns(hash) {
  * Delete the deployment folder when everything is ready.
  */
 async function deleteDeploymentFolder() {
+  del.sync(deploymentTmpFolder, { force: true });
   del.sync(deploymentFolder, { force: true });
 }
 

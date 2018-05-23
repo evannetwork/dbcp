@@ -51,6 +51,18 @@ describe('Executor handler', function() {
     expect(executor).not.to.be.undefined;
   });
 
+  it.only('should be able to set a custom log function', async () => {
+    return new Promise<void>(async (resolve) => {
+      const logFn = (message) => {
+        if(message === 'test') {
+          resolve();
+        }
+      }
+      const executor = await TestUtils.getExecutor(web3, null, logFn);
+      executor.log('test');
+    });    
+  });
+
   it('should be able to call a contract method', async () => {
     const executor = await TestUtils.getExecutor(web3);
     const loader = TestUtils.getContractLoader(web3);

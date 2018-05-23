@@ -55,7 +55,7 @@ async function runExample() {
     "public": {
       "name": "DBCP sample greeter",
       "description": "smart contract with a greeting message and a data property",
-      "autor": "dbcp test",
+      "author": "dbcp test",
       "tags": [
         "example",
         "greeter"

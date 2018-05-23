@@ -81,14 +81,13 @@ const definitions = {
               "type": "array",
               "items": { "type": "string" }
             },
-            "module": {"type": "string"},
             "origin": {"type": "string"},
             "primaryColor": {"type": "string"},
             "secondaryColor": {"type": "string"},
             "standalone": {"type": "boolean"},
             "type": {"type": "string"}
           },
-          "required": ["entrypoint", "files", "type", "module", "origin"]
+          "required": ["entrypoint", "files", "type", "origin"]
         },
         "blockchain": {
           "type": "object",
@@ -107,7 +106,14 @@ const definitions = {
             "referenceValue": {"type": "string"},
           },
           "required": ["referenceType", "referenceValue"]
-        }
+        },
+        "versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+\\.\\d+\\.\\d+$": { "type": "string" }
+          }
+        },
       },
       "required": ["name", "description", "author", "version", "dbcpVersion"]
   },

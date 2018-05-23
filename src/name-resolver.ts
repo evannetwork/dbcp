@@ -17,10 +17,19 @@ import prottle = require('prottle');
 
 import { Executor } from './contracts/executor';
 import { ContractLoader } from './contracts/contract-loader';
-import { Logger } from './common/logger';
+import { Logger, LoggerOptions } from './common/logger';
 
 const requestWindowSize = 200;
 
+/**
+ * Name Resolver instance options
+ */
+export interface NameResolverOptions extends LoggerOptions {
+  config: any;
+  executor: any;
+  contractLoader: any;
+  web3: any;
+}
 
 export class NameResolver extends Logger {
   config: any;

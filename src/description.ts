@@ -20,14 +20,14 @@ import { DfsInterface } from './dfs/dfs-interface';
 import { Envelope } from './encryption/envelope';
 import { Executor } from './contracts/executor';
 import { KeyProviderInterface } from './encryption/key-provider-interface';
-import { Logger } from './common/logger';
+import { Logger, LoggerOptions } from './common/logger';
 import { NameResolver } from './name-resolver';
 import { Validator } from './validator';
 
 /**
  * options for Description module
  */
-export interface DescriptionOptions {
+export interface DescriptionOptions extends LoggerOptions {
   contractLoader: ContractLoader,
   dfs: DfsInterface,
   executor: Executor,
@@ -222,7 +222,9 @@ export class Description extends Logger {
     content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
     const validation = this.validateDescription(content);
     if (validation !== true) {
-      throw new Error(`description invalid: ${JSON.stringify(validation)}`);
+      const msg = `description invalid: ${JSON.stringify(validation)}`;
+      this.log(msg, 'error');
+      throw new Error(msg);
     }
 
     if (content.private && content.cryptoInfo) {
@@ -254,7 +256,9 @@ export class Description extends Logger {
     content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
     const validation = this.validateDescription(content);
     if (validation !== true) {
-      throw new Error(`description invalid: ${JSON.stringify(validation)}`);
+      const msg = `description invalid: ${JSON.stringify(validation)}`;
+      this.log(msg, 'error');
+      throw new Error(msg);
     }
     if (content.private && content.cryptoInfo) {
       const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);

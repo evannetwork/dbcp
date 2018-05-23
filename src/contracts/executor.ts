@@ -15,13 +15,15 @@
 
 import { createExceptionLogger } from './../common/utils';
 import { EventHub } from './../event-hub';
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
 import { SignerInterface } from './signer-interface';
 
 
-export interface ExecutorOptions {
+/**
+ * options for executor instance
+ */
+export interface ExecutorOptions extends LoggerOptions {
   config?: any,
-  log?: Function,
   signer?: SignerInterface,
   web3?: any,
 }
@@ -147,8 +149,8 @@ export class Executor extends Logger {
         transaction: functionName,
         transactionHash: null,
       };
-      const level = extraParams.status === 'error' ? 'error' : 'info';
-      this.log(`gas log: ${JSON.stringify(Object.assign(staticEntries, extraParams))}`, level);
+      const level = 'gasLog';
+      this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), level);
     }
     return new Promise((resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
@@ -357,8 +359,7 @@ export class Executor extends Logger {
         status: 'unknown',
         transactionHash: null,
       };
-      const level = extraParams.status === 'error' ? 'error' : 'info';
-      this.log(`gas log: ${JSON.stringify(Object.assign(staticEntries, extraParams))}`, level);
+      this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), 'gasLog');
     }
     return new Promise<void>((resolve, reject) => {
       let isPending = true;

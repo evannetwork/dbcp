@@ -14,10 +14,13 @@
  */
 
 import { CryptoInfo } from './envelope';
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
 import { KeyProviderInterface } from './key-provider-interface';
 import { obfuscate } from '../common/utils';
 
+export interface KeyProviderOptions extends LoggerOptions {
+  keys?: any;
+}
 
 export class KeyProvider extends Logger implements KeyProviderInterface {
   currentAccount: any;
@@ -25,9 +28,9 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
   keys: any;
   profile: any;
 
-  constructor(_keys) {
-    super();
-    this.keys = _keys;
+  constructor(options: KeyProviderOptions) {
+    super(options);
+    this.keys = (options && options.keys) ? options.keys : {};
   }
 
   init(_profile: any) {
@@ -53,7 +56,7 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
         // it' a communication key
         this.log(`key lookup: commKey for "${info.originator}", info "${JSON.stringify(info)}"`, 'debug');
         key = await this.profile.getContactKey(info.originator, 'commKey');
-        if(!key) {
+        if (!key) {
           this.log(`no key found for "${JSON.stringify(info)}"; only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
           return Promise.resolve(null);
         } else {

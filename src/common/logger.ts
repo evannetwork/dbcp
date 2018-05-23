@@ -27,6 +27,16 @@ export enum LogLevel {
   disabled = 999,
 }
 
+
+/**
+ * options for logger
+ */
+export interface LoggerOptions {
+  log?: Function;
+  logLevel?: LogLevel;
+  logLogLevel?: LogLevel;
+}
+
 /**
  * Basic logging functionlity, allows passing a log function, defaults to console log/error,
  *
@@ -36,7 +46,7 @@ export class Logger {
   logFunction: Function;
   logLevel: LogLevel;
   logLogLevel: LogLevel;
-  logLog = {};
+  logLog = [];
   static getDefaultLog(): Function {
     return (message, level) => {
       console[level === 'error' ? 'error' : 'log'](`[${level || 'info'}] ${message}`);
@@ -77,11 +87,11 @@ export class Logger {
    */
   public log(message: string, level = 'info') {
     if (LogLevel[level] >= this.logLogLevel) {
-       if (Array.isArray(this.logLog[level])) {
-         this.logLog[level].push(message);
-       } else {
-         this.logLog[level] = [message];
-       }
+      this.logLog.push({
+        timestamp: new Date().getTime(),
+        level,
+        message
+      });
     }
     if (LogLevel[level] >= this.logLevel) {
       this.logFunction(message, level);

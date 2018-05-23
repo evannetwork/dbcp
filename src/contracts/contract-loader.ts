@@ -13,7 +13,15 @@
  * limitations under the License.
  */
 
-import { Logger } from '../common/logger';
+import { Logger, LoggerOptions } from '../common/logger';
+
+/** 
+ * contractloader instance options
+ */
+export interface ContractLoaderOptions extends LoggerOptions {
+  contracts?: any;
+  web3: any;
+}
 
 export class ContractLoader extends Logger {
   // taken from filted solc output
@@ -49,7 +57,7 @@ export class ContractLoader extends Logger {
   contracts: any;
   web3: any;
 
-  constructor(options: any) {
+  constructor(options: ContractLoaderOptions) {
     super(options);
     this.contracts = Object.assign({}, ContractLoader.defaultAbis, options.contracts);
     this.web3 = options.web3;

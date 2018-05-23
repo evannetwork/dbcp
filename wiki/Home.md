@@ -102,7 +102,13 @@ The following snippet shows a shortened sample description, the full sample desc
         "contract abi..."
       ]
     },
-    "source": "Qm..."
+    "source": "Qm...",
+    "version": "1.0.0",
+    "versions": {
+      "0.7.0": "Qmf...",
+      "0.8.0": "Qmu...",
+      "0.9.0": "Qmx...",
+    },
   }
 }
 ```
@@ -116,6 +122,7 @@ Depending on the visibility of the properties, these are placed under a differen
 | author | x | string | author of the ÐAPP |
 | version | x | string | version information about the descripition itself |
 | dbcpVersion | x | number | used DBCP protocol definition version |
+| versions | | object | version history (including the version specific dbcp description hash) |
 | abis | | object | abis related to the contract or ÐApp |
 | abis.own | | object[] | if this DBCP description describes a contract, the abi of this contract |
 | abis.related | | object | abis of smart contracts related to this contract or ÐApp |
@@ -138,7 +145,6 @@ Contracts that use a ÐApp for interacting with it, need the "dapp" property, th
 | entrypoint | x | string | startup file for ÐApp |
 | files | x | string[] | included files (.css, .js, ...) |
 | type | x | string | library/dapp |
-| module | x | string | start module for embedded Angular application |
 | origin | x | string | hash reference where the ÐApp is stored in the distributed file system |
 | primaryColor | | string | color code for primary color |
 | secondaryColor | | string | color code for secondary color |
