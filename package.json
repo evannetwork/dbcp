@@ -9,7 +9,7 @@
     "typescript",
     "API"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://dbcp.online/",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

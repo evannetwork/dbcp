@@ -1,6 +1,8 @@
 # dbcp
 
 ## Next version
+
+## Version 1.0.1
 - remove babel-polyfill from index.ts to remove it as prod dependency
 - remove dapp.module from dbcp schema definition
 - add versions to dbcp schema definition as optional dependency
