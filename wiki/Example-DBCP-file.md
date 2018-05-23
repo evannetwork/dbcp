@@ -13,7 +13,6 @@
         "task.js",
         "task.css"
       ],
-      "module": "TaskModule",
       "origin": "QmfV238C7gDehVuwmoXT2soRRPhCE3tU6pwgWnFMorVcMV",
       "primaryColor": "#e87e23",
       "secondaryColor": "#fffaf5",

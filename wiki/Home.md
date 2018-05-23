@@ -62,7 +62,6 @@ The following snippet shows a shortened sample description, the full sample desc
         "task.js",
         "task.css"
       ],
-      "module": "TaskModule",
       "origin": "Qm...",
       "primaryColor": "#e87e23",
       "secondaryColor": "#fffaf5",
