@@ -150,7 +150,7 @@ export class Executor extends Logger {
         transactionHash: null,
       };
       const level = 'gasLog';
-      this.log(Object.assign(staticEntries, extraParams), level);
+      this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), level);
     }
     return new Promise((resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
@@ -359,7 +359,7 @@ export class Executor extends Logger {
         status: 'unknown',
         transactionHash: null,
       };
-      this.log(Object.assign(staticEntries, extraParams), 'gasLog');
+      this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), 'gasLog');
     }
     return new Promise<void>((resolve, reject) => {
       let isPending = true;
