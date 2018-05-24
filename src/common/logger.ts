@@ -29,12 +29,22 @@ export enum LogLevel {
 
 
 /**
+ * loglog interface (array like)
+ */
+export interface LogLogInterface {
+  push: Function;
+  map: Function;
+  filter: Function;
+}
+
+/**
  * options for logger
  */
 export interface LoggerOptions {
   log?: Function;
   logLevel?: LogLevel;
   logLogLevel?: LogLevel;
+  logLog?: LogLogInterface;
 }
 
 /**
@@ -62,6 +72,7 @@ export class Logger {
    * @return     {any}  pass custom log function with .log property, log level with .logLevel
    */
   constructor(options?) {
+    this.logLog = (options && options.logLog) ? options.logLog : this.logLog;
     this.logFunction = (options && options.log) ? options.log : Logger.getDefaultLog();
     this.logLevel = (options && options.logLevel) ? LogLevel[<string>options.logLevel] : LogLevel.error;
     this.logLogLevel = (options && options.logLogLevel) ? LogLevel[<string>options.logLogLevel] : LogLevel.error;
