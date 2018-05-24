@@ -1,6 +1,7 @@
 # dbcp
 
 ## Next version
+- add LogLogInterface to allow one central logging storage
 
 ## Version 1.0.1
 - remove babel-polyfill from index.ts to remove it as prod dependency
