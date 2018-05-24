@@ -4,9 +4,9 @@
     "name": "Cool Task with Abis",
     "dapp": {
       "dependencies": {
-        "angular-bc": "^0.9.0",
-        "angular-core": "^0.9.0",
-        "angular-libs": "^0.9.0"
+        "angular-bc": "^1.0.0",
+        "angular-core": "^1.0.0",
+        "angular-libs": "^1.0.0"
       },
       "entrypoint": "task.js",
       "files": [
