@@ -34,7 +34,6 @@
     "eth-lightwallet": "git+https://github.com/ConsenSys/eth-lightwallet.git#251eda97f705dbfae5ef099479aa19160028ae80",
     "ipfs-api": "^17.5.0",
     "prottle": "^1.0.3",
-    "typescript": "2.6.2",
     "uuid": "3.2.1",
     "web3-eth-abi": "1.0.0-beta.27"
   },
@@ -65,6 +64,7 @@
     "mocha": "4.0.1",
     "request": "^2.83.0",
     "ts-node": "3.3.0",
+    "typescript": "2.6.2",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "web3": "1.0.0-beta.27",
