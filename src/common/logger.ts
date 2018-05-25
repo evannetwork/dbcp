@@ -45,8 +45,8 @@ export interface LogLogInterface {
 export interface LoggerOptions {
   log?: Function;
   logLevel?: LogLevel;
-  logLogLevel?: LogLevel;
   logLog?: LogLogInterface;
+  logLogLevel?: LogLevel;
 }
 
 /**
