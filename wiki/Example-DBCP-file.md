@@ -4,16 +4,15 @@
     "name": "Cool Task with Abis",
     "dapp": {
       "dependencies": {
-        "angular-bc": "^0.9.0",
-        "angular-core": "^0.9.0",
-        "angular-libs": "^0.9.0"
+        "angular-bc": "^1.0.0",
+        "angular-core": "^1.0.0",
+        "angular-libs": "^1.0.0"
       },
       "entrypoint": "task.js",
       "files": [
         "task.js",
         "task.css"
       ],
-      "module": "TaskModule",
       "origin": "QmfV238C7gDehVuwmoXT2soRRPhCE3tU6pwgWnFMorVcMV",
       "primaryColor": "#e87e23",
       "secondaryColor": "#fffaf5",
