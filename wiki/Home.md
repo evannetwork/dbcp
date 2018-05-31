@@ -53,7 +53,6 @@ The following snippet shows a shortened sample description, the full sample desc
     "name": "Cool Task with Abis",
     "dapp": {
       "dependencies": {
-        "angular-bc": "^1.0.0",
         "angular-core": "^1.0.0",
         "angular-libs": "^1.0.0"
       },
@@ -153,7 +152,6 @@ Contracts that use a ÐApp for interacting with it, need the "dapp" property, th
 ÐAPP dependencies are similar to dependencies in npm packages and allow to specify their required version range, example:
 ```json
 "dependencies": {
-  "angular-bc": "^1.0.0",
   "angular-core": "^1.0.0",
   "angular-libs": "^1.0.0",
   "bcc-bc": "^1.0.0"
