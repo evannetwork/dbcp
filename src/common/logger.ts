@@ -23,10 +23,21 @@ export enum LogLevel {
   warning,
   error,
 
-  gasLog = 100,
+  // technical logs start at 100 and will not be output to log function
+  technical = 100,
+  gasLog = 101,
   disabled = 999,
 }
 
+
+/**
+ * loglog interface (array like)
+ */
+export interface LogLogInterface {
+  push: Function;
+  map: Function;
+  filter: Function;
+}
 
 /**
  * options for logger
@@ -34,6 +45,7 @@ export enum LogLevel {
 export interface LoggerOptions {
   log?: Function;
   logLevel?: LogLevel;
+  logLog?: LogLogInterface;
   logLogLevel?: LogLevel;
 }
 
@@ -62,6 +74,7 @@ export class Logger {
    * @return     {any}  pass custom log function with .log property, log level with .logLevel
    */
   constructor(options?) {
+    this.logLog = (options && options.logLog) ? options.logLog : this.logLog;
     this.logFunction = (options && options.log) ? options.log : Logger.getDefaultLog();
     this.logLevel = (options && options.logLevel) ? LogLevel[<string>options.logLevel] : LogLevel.error;
     this.logLogLevel = (options && options.logLogLevel) ? LogLevel[<string>options.logLogLevel] : LogLevel.error;
@@ -93,7 +106,7 @@ export class Logger {
         message
       });
     }
-    if (LogLevel[level] >= this.logLevel) {
+    if (LogLevel[level] >= this.logLevel && LogLevel[level] < LogLevel.technical) {
       this.logFunction(message, level);
     }
   }

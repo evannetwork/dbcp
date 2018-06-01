@@ -299,7 +299,7 @@ runtime.contractLoader.contracts['Greeter'] = {
 
 Or they can be passed to the constructor a custom runtime:
 ```js
-const { ContractLoader } = require('dbcp');
+const { ContractLoader } = require('@evan.network/dbcp');
 const Web3 = require('web3');
 
 // web3 instance for ContractLoader
@@ -588,7 +588,7 @@ export DBCP_LOGLEVEL=info
 
 - When creating a custom runtime, set the `logLevel` property to a value matching your needs, when creating any module instance. This allows you to change log level for single modules, but requires you to create a custom runtime, e.g.:
 ```js
-const { ContractLoader } = require('dbcp');
+const { ContractLoader } = require('@evan.network/dbcp');
 const Web3 = require('web3');
 
 // web3 instance for ContractLoader

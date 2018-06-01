@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-// require babel-polyfill for deployment using browserify
-require('babel-polyfill');
-
 export { AccountStore } from './account-store'
 export { config } from './config'
 export { ContractLoader, ContractLoaderOptions } from './contracts/contract-loader'
@@ -31,7 +28,7 @@ export { Executor, ExecutorOptions } from './contracts/executor'
 export { Ipfs, IpfsOptions } from './dfs/ipfs'
 export { KeyProvider, KeyProviderOptions } from './encryption/key-provider'
 export { KeyProviderInterface } from './encryption/key-provider-interface'
-export { Logger, LoggerOptions, LogLevel } from './common/logger'
+export { Logger, LoggerOptions, LogLevel, LogLogInterface } from './common/logger'
 export { NameResolver, NameResolverOptions } from './name-resolver'
 export { obfuscate } from './common/utils'
 export { SignerExternal } from './contracts/signer-external'

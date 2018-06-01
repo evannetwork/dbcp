@@ -53,16 +53,15 @@ The following snippet shows a shortened sample description, the full sample desc
     "name": "Cool Task with Abis",
     "dapp": {
       "dependencies": {
-        "angular-bc": "^0.9.0",
-        "angular-core": "^0.9.0",
-        "angular-libs": "^0.9.0"
+        "angular-bc": "^1.0.0",
+        "angular-core": "^1.0.0",
+        "angular-libs": "^1.0.0"
       },
       "entrypoint": "task.js",
       "files": [
         "task.js",
         "task.css"
       ],
-      "module": "TaskModule",
       "origin": "Qm...",
       "primaryColor": "#e87e23",
       "secondaryColor": "#fffaf5",
@@ -154,10 +153,10 @@ Contracts that use a ÐApp for interacting with it, need the "dapp" property, th
 ÐAPP dependencies are similar to dependencies in npm packages and allow to specify their required version range, example:
 ```json
 "dependencies": {
-  "angular-bc": "^0.1.0",
-  "angular-core": "^0.1.0",
-  "angular-libs": "^0.1.0",
-  "bcc-bc": "^0.1.0"
+  "angular-bc": "^1.0.0",
+  "angular-core": "^1.0.0",
+  "angular-libs": "^1.0.0",
+  "bcc-bc": "^1.0.0"
 }
 ```
 
