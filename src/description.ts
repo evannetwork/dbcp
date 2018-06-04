@@ -89,8 +89,15 @@ export class Description extends Logger {
       // address is ENS address
       const contractAddress = await this.nameResolver.getAddress(address);
       if (contractAddress && contractAddress !== '0x0000000000000000000000000000000000000000') {
-        // got address from ENS, try to check this contract for a description
-        contractDescription = await this.getDescriptionFromContract(contractAddress, accountId);
+        try {
+          // got address from ENS, try to check this contract for a description
+          contractDescription = await this.getDescriptionFromContract(contractAddress, accountId);
+        } catch (ex) {
+          // calling this may fail, tried to receive description from contract, but it was invalid
+          // we will retry loading contractDescription from getDescriptionFromEns
+          this.log(`getDescription: getDescriptionFromContract call failed for address
+            ${ address } with accountId ${ accountId }: ${ ex.message }`, 'debug');
+        }
       }
       if (!contractDescription) {
         // either no address set at ENS or this contract had no description, check ENS for description
