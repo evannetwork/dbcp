@@ -1,7 +1,8 @@
 # dbcp
 
 ## Next version
-
+### Fixes
+- fix unbound entry retrieval in `getArrayFromUintMapping` by adding paging to it
 
 ## Version 1.0.2
 ### Fixes
