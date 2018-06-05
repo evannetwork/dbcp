@@ -3,6 +3,11 @@
 ## Next version
 
 
+## Version 1.0.3
+### Fixes
+- fix unbound entry retrieval in `getArrayFromUintMapping` by adding paging to it
+
+
 ## Version 1.0.2
 ### Fixes
 - add check to ignore all log messages above level 'technical' (100), which includes 'gasLog'; gasLog messages can still be retrieved from Loggers 'logLog' property

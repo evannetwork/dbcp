@@ -495,16 +495,25 @@ export class NameResolver extends Logger {
   async getArrayFromUintMapping(
       contract: any,
       countRetriever: Function,
-      elementRetriever: Function): Promise<any[]> {
+      elementRetriever: Function,
+      count = 10,
+      offset = 0,
+      reverse = false): Promise<any[]> {
     const results = [];
-    this.log('retrieving uint mapping elements without limitation for maxcount', 'debug');
     const length = parseInt(await countRetriever(), 10);
     if (length !== 0) {
+      let indicesToGet = [...Array(length)].map((_, i) => i).filter(i => i >= 0);
+      if (reverse) {
+        indicesToGet = indicesToGet.reverse();
+      }
+      indicesToGet = indicesToGet.slice(offset, offset + count);
       // array of functions that retrieve an element as a promise and set it in then
-      const retrievals = [...Array(length)].map(
-        (_, i) => async () => elementRetriever(i).then((elem) => { results.push(elem); }));
+      const retrievals = indicesToGet.map(
+        i => async () => elementRetriever(i).then((elem) => { results.push(elem); }));
       // run these function windowed, chain .then()s, return result array
-      await prottle(requestWindowSize, retrievals);
+      if (retrievals.length) {
+        await prottle(requestWindowSize, retrievals);
+      }
     }
     return results;
   }
