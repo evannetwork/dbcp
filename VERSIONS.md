@@ -1,7 +1,8 @@
 # dbcp
 
 ## Next version
-
+### Fixes
+- fix setting ipfs cache correctly
 
 ## Version 1.0.3
 ### Fixes

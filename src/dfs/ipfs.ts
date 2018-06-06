@@ -81,7 +81,7 @@ export class Ipfs extends Logger implements DfsInterface {
   constructor(options) {
     super(options);
     this.remoteNode = options.remoteNode;
-    if (!options.cache) {
+    if (options.cache) {
       this.cache = options.cache;
     }
   }
