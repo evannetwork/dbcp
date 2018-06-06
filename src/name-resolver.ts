@@ -492,6 +492,20 @@ export class NameResolver extends Logger {
     ;
   }
 
+  /**
+   * get elements from a contract by using a countRetriever and an elementRetriever
+   *
+   * @param      {any}             contract          contract to retrieve elements from
+   * @param      {Function}        countRetriever    function, that returns the element count (as a
+   *                                                 base 10 string):
+   *                                                 (): Promise<string> => {...}
+   * @param      {Function}        elementRetriever  function, returns an element at position i:
+   *                                                 (i: number): Promise<any> => {...}
+   * @param      {number}          count             number of elements to retrieve
+   * @param      {number}          offset            skip this many elements
+   * @param      {boolean}         reverse           reverse order of elements
+   * @return     {Promise<any[]>}  array with results
+   */
   async getArrayFromUintMapping(
       contract: any,
       countRetriever: Function,
