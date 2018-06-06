@@ -502,7 +502,7 @@ export class NameResolver extends Logger {
     const results = [];
     const length = parseInt(await countRetriever(), 10);
     if (length !== 0) {
-      let indicesToGet = [...Array(length)].map((_, i) => i).filter(i => i >= 0);
+      let indicesToGet = [...Array(length)].map((_, i) => i);
       if (reverse) {
         indicesToGet = indicesToGet.reverse();
       }
