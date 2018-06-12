@@ -513,7 +513,7 @@ export class NameResolver extends Logger {
       count = 10,
       offset = 0,
       reverse = false): Promise<any[]> {
-    const results = [];
+    let results = [];
     const length = parseInt(await countRetriever(), 10);
     if (length !== 0) {
       let indicesToGet = [...Array(length)].map((_, i) => i);
@@ -522,8 +522,9 @@ export class NameResolver extends Logger {
       }
       indicesToGet = indicesToGet.slice(offset, offset + count);
       // array of functions that retrieve an element as a promise and set it in then
+      results = new Array(indicesToGet.length);
       const retrievals = indicesToGet.map(
-        i => async () => elementRetriever(i).then((elem) => { results.push(elem); }));
+        (i, j) => async () => elementRetriever(i).then((elem) => { results[j] = elem; }));
       // run these function windowed, chain .then()s, return result array
       if (retrievals.length) {
         await prottle(requestWindowSize, retrievals);

@@ -3,6 +3,7 @@
 ## Next version
 ### Fixes
 - fix setting ipfs cache correctly
+- fix result order in `NameResolver.getArrayFromUintMapping`
 
 ## Version 1.0.3
 ### Fixes
