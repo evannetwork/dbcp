@@ -1,6 +1,9 @@
 # dbcp
 
 ## Next version
+### Features
+- add support for setting descriptions by hash (which allows to encode them beforehand)
+
 ### Fixes
 - fix setting ipfs cache correctly
 - fix result order in `NameResolver.getArrayFromUintMapping`

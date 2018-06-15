@@ -199,12 +199,12 @@ export class Description extends Logger {
   /**
    * set description, can be used for contract addresses and ENS addresses
    *
-   * @param      {string}    address    contract address or ENS address
-   * @param      {Envelope}  envelope   description as an envelope
-   * @param      {string}    accountId  ETH account id
-   * @return     {Promise}   resolved when done
+   * @param      {string}           address    contract address or ENS address
+   * @param      {Envelope|string}  envelope   description as an envelope
+   * @param      {string}           accountId  ETH account id
+   * @return     {Promise}          resolved when done
    */
-  public async setDescription(address: string, envelope: Envelope, accountId: string): Promise<void> {
+  public async setDescription(address: string, envelope: Envelope|string, accountId: string): Promise<void> {
     if (address.startsWith('0x')) {
       // address is contract address
       return this.setDescriptionToContract(address, envelope, accountId);
@@ -217,33 +217,39 @@ export class Description extends Logger {
   /**
    * store description at contract
    *
-   * @param      {string}    contractAddress  The contract address where description will be stored
-   * @param      {Envelope}  envelope    description as an envelope
-   * @param      {string}    accountId   ETH account id
-   * @return     {Promise}   resolved when done
+   * @param      {string}           contractAddress  The contract address where description will be
+   *                                                 stored
+   * @param      {Envelope|string}  envelope         description as an envelope or a presaved description hash
+   * @param      {string}           accountId        ETH account id
+   * @return     {Promise}          resolved when done
    */
-  public async setDescriptionToContract(contractAddress: string, envelope: Envelope, accountId: string):
+  public async setDescriptionToContract(contractAddress: string, envelope: Envelope|string, accountId: string):
       Promise<void> {
-    const content: Envelope = Object.assign({}, envelope);
-    // add dbcp version
-    content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
-    const validation = this.validateDescription(content);
-    if (validation !== true) {
-      const msg = `description invalid: ${JSON.stringify(validation)}`;
-      this.log(msg, 'error');
-      throw new Error(msg);
-    }
+    let hash;
+    if (typeof envelope === 'string') {
+      hash = envelope;
+    } else {
+      const content: Envelope = Object.assign({}, envelope);
+      // add dbcp version
+      content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
+      const validation = this.validateDescription(content);
+      if (validation !== true) {
+        const msg = `description invalid: ${JSON.stringify(validation)}`;
+        this.log(msg, 'error');
+        throw new Error(msg);
+      }
 
-    if (content.private && content.cryptoInfo) {
-      const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
-      const blockNr = await this.web3.eth.getBlockNumber();
-      const key = await this.keyProvider.getKey(content.cryptoInfo);
-      const encrypted = await cryptor.encrypt(content.private, { key, });
-      content.private = encrypted.toString(this.encodingEncrypted);
-      content.cryptoInfo.block = blockNr;
+      if (content.private && content.cryptoInfo) {
+        const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
+        const blockNr = await this.web3.eth.getBlockNumber();
+        const key = await this.keyProvider.getKey(content.cryptoInfo);
+        const encrypted = await cryptor.encrypt(content.private, { key, });
+        content.private = encrypted.toString(this.encodingEncrypted);
+        content.cryptoInfo.block = blockNr;
+      }
+      hash = await this.dfs.add(
+        'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
     }
-    const hash = await this.dfs.add(
-      'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
     const contract = this.contractLoader.loadContract('Described', contractAddress);
     await this.executor.executeContractTransaction(contract, 'setContractDescription', {from: accountId, gas: 200000}, hash);
   };
@@ -251,30 +257,35 @@ export class Description extends Logger {
   /**
    * store description at ens
    *
-   * @param      {string}    ensAddress  The ens address where description will be stored
-   * @param      {Envelope}  envelope    description as an envelope
-   * @param      {string}    accountId   ETH account id
-   * @return     {Promise}   resolved when done
+   * @param      {string}           ensAddress  The ens address where description will be stored
+   * @param      {Envelope|string}  envelope    description as an envelope
+   * @param      {string}           accountId   ETH account id
+   * @return     {Promise}          resolved when done
    */
-  public async setDescriptionToEns(ensAddress: string, envelope: Envelope, accountId: string):
+  public async setDescriptionToEns(ensAddress: string, envelope: Envelope|string, accountId: string):
       Promise<void> {
-    const content: Envelope = Object.assign({}, envelope);
-    // add dbcp version
-    content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
-    const validation = this.validateDescription(content);
-    if (validation !== true) {
-      const msg = `description invalid: ${JSON.stringify(validation)}`;
-      this.log(msg, 'error');
-      throw new Error(msg);
+    let hash;
+    if (typeof envelope === 'string') {
+      hash = envelope;
+    } else {
+      const content: Envelope = Object.assign({}, envelope);
+      // add dbcp version
+      content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
+      const validation = this.validateDescription(content);
+      if (validation !== true) {
+        const msg = `description invalid: ${JSON.stringify(validation)}`;
+        this.log(msg, 'error');
+        throw new Error(msg);
+      }
+      if (content.private && content.cryptoInfo) {
+        const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
+        const key = await this.keyProvider.getKey(content.cryptoInfo);
+        const encrypted = await cryptor.encrypt(content.private, { key, });
+        content.private = encrypted.toString(this.encodingEncrypted);
+      }
+      hash = await this.dfs.add(
+        'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
     }
-    if (content.private && content.cryptoInfo) {
-      const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
-      const key = await this.keyProvider.getKey(content.cryptoInfo);
-      const encrypted = await cryptor.encrypt(content.private, { key, });
-      content.private = encrypted.toString(this.encodingEncrypted);
-    }
-    const hash = await this.dfs.add(
-      'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
     await this.nameResolver.setContent(ensAddress, hash, accountId, accountId);
   };
 
