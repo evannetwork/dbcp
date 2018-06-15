@@ -7,6 +7,7 @@
 ### Fixes
 - fix setting ipfs cache correctly
 - fix result order in `NameResolver.getArrayFromUintMapping`
+- fix logLevel and logLogLevel check to handle LogLevel.debug
 
 ## Version 1.0.3
 ### Fixes
