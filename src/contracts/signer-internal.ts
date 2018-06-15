@@ -232,7 +232,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         ;
       })
       .catch((ex) => {
-        const msg = `could not sign transaction; "${(ex.message || ex)}"`;
+        const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
         handleTxResult(msg);
       })
     ;
