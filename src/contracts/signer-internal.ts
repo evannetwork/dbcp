@@ -153,7 +153,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     Promise
       .all([
         this.getPrivateKey(options.from),
-        this.getGasPrice(),
+        options.gasPrice || this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
@@ -202,7 +202,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     Promise
       .all([
         this.getPrivateKey(options.from),
-        this.getGasPrice(),
+        options.gasPrice || this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
@@ -260,7 +260,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     return Promise
       .all([
         this.getPrivateKey(options.from),
-        this.getGasPrice(),
+        options.gasPrice || this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) =>

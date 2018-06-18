@@ -123,6 +123,7 @@ export class Executor extends Logger {
     const options: any = {
       from: inputOptions.from,
       gas: inputOptions.gas,
+      gasPrice: inputOptions.gasPrice,
     };
     if (inputOptions.value) {
       options.value = inputOptions.value;

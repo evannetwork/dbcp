@@ -3,6 +3,7 @@
 ## Next version
 ### Features
 - add support for setting descriptions by hash (which allows to encode them beforehand)
+- add support for using custom gas prices via `gasPrice` in executor and signer
 
 ### Fixes
 - fix setting ipfs cache correctly
