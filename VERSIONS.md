@@ -8,7 +8,8 @@
 ### Fixes
 - fix setting ipfs cache correctly
 - fix result order in `NameResolver.getArrayFromUintMapping`
-- fix Logger initialization for options.logLevel and options.logLogLevel to take the correct values 
+- fix Logger initialization for options.logLevel and options.logLogLevel to take the correct values
+- fix `EventHub` error logging (did throw with unrelated error message and fail to add message to error message log)
 
 ## Version 1.0.3
 ### Fixes

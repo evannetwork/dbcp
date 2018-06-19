@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { createExceptionLogger } from './../common/utils';
 import { EventHub } from './../event-hub';
 import { Logger, LoggerOptions } from '../common/logger';
 import { SignerInterface } from './signer-interface';
@@ -96,7 +95,7 @@ export class Executor extends Logger {
    * @param      {any}            inputOptions       currently supported: from, gas, event,
    *                                                 getEventResult, eventTimeout, estimate, force
    * @param      {any[]}          functionArguments  optional arguments to pass to contract
-   *                                                 tranaction
+   *                                                 transaction
    * @return     {Promise<any>}  Promise, that resolves to: no result (if no event to watch was
    *                              given), the event (if event but no getEventResult was given), the
    *                              value returned by getEventResult(eventObject)
@@ -166,7 +165,9 @@ export class Executor extends Logger {
           if (this.eventHub) {
             this.eventHub
               .unsubscribe({ subscription})
-              .catch(createExceptionLogger(this.log, 'unsubscribing from tranaction event'))
+              .catch((ex) => {
+                this.log(`error occurred while unsubscribing from transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
+              })
             ;
           } else {
             reject('passed an event to a transaction but no event hub registered');
@@ -210,7 +211,9 @@ export class Executor extends Logger {
                 }
               )
               .then((result) => { subscription = result; })
-              .catch(createExceptionLogger(this.log, 'subscribing to tranaction event'))
+              .catch((ex) => {
+                this.log(`error occurred while subscribing to transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
+              })
             ;
           } else {
             this.log('passed an event to a transaction but no event hub registered', 'warning');

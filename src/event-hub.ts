@@ -16,7 +16,6 @@
 import uuid = require('uuid');
 
 import { ContractLoader } from './contracts/contract-loader';
-import { createExceptionLogger } from './common/utils';
 import { Logger, LoggerOptions } from './common/logger';
 import { NameResolver } from './name-resolver';
 
@@ -128,7 +127,9 @@ export class EventHub extends Logger {
                   return onEvent(event);
                 }
               })
-              .catch(createExceptionLogger(this.log, 'handling contract event'))
+              .catch((ex) => {
+                this.log(`error occurred while handling contract event; ${ex.message || ex}${ex.stack || ''}`, 'error');
+              })
             ;
           } else {
             chain = Promise.resolve();
