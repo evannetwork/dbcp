@@ -214,7 +214,7 @@ export class SignerInternal extends Logger implements SignerInterface {
           nonce,
           gasPrice,
           gasLimit: this.ensureHashWithPrefix(options.gas),
-          to: options.to,
+          to: contract.options.address,
           value: options.value ? ('0x' + (new BigNumber(options.value, 10)).toString(16)) : 0,
           data: this.ensureHashWithPrefix(data),
           chainId: NaN,
