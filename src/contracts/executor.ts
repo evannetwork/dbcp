@@ -23,6 +23,7 @@ import { SignerInterface } from './signer-interface';
  */
 export interface ExecutorOptions extends LoggerOptions {
   config?: any,
+  defaultOptions?: any,
   signer?: SignerInterface,
   web3?: any,
 }
@@ -35,6 +36,7 @@ export interface ExecutorOptions extends LoggerOptions {
  */
 export class Executor extends Logger {
   config: any;
+  defaultOptions: any;
   eventHub: EventHub;
   signer: SignerInterface;
   web3: any;
@@ -46,6 +48,7 @@ export class Executor extends Logger {
   constructor(options: ExecutorOptions) {
     super(options);
     this.config = options.config;
+    this.defaultOptions = options.defaultOptions;
     this.signer = options.signer;
     this.web3 = options.web3;
   }
@@ -79,8 +82,13 @@ export class Executor extends Logger {
     if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
     }
+    let options;
+    options = this.defaultOptions ? Object.assign({}, this.defaultOptions) : null;
     if (args.length && typeof args[args.length - 1] === 'object') {
-      return contract.methods[functionName].apply(contract.methods, args.slice(0, args.length - 1)).call(args[args.length - 1]);
+      options = Object.assign(options || {}, args[args.length - 1]);
+      return contract.methods[functionName].apply(contract.methods, args.slice(0, args.length - 1)).call(options);
+    } else if (options) {
+      return contract.methods[functionName].apply(contract.methods, args).call(options);
     } else {
       return contract.methods[functionName].apply(contract.methods, args).call();
     }
@@ -90,15 +98,15 @@ export class Executor extends Logger {
    * execute a transaction against the blockchain, handle gas exceeded and return values from
    * contract function
    *
-   * @param      {any}            contract           contract instance
-   * @param      {string}         functionName       name of the contract function to call
-   * @param      {any}            inputOptions       currently supported: from, gas, event,
-   *                                                 getEventResult, eventTimeout, estimate, force
-   * @param      {any[]}          functionArguments  optional arguments to pass to contract
-   *                                                 transaction
+   * @param      {any}           contract           contract instance
+   * @param      {string}        functionName       name of the contract function to call
+   * @param      {any}           inputOptions       currently supported: from, gas, event,
+   *                                                getEventResult, eventTimeout, estimate, force
+   * @param      {any[]}         functionArguments  optional arguments to pass to contract
+   *                                                transaction
    * @return     {Promise<any>}  Promise, that resolves to: no result (if no event to watch was
-   *                              given), the event (if event but no getEventResult was given), the
-   *                              value returned by getEventResult(eventObject)
+   *                             given), the event (if event but no getEventResult was given), the
+   *                             value returned by getEventResult(eventObject)
    */
   async executeContractTransaction(contract: any, functionName: string, inputOptions: any, ...functionArguments: any[]): Promise<any> {
     // autoGas 1.1 ==> if truthy, enables autoGas 1.1 ==> adds 10% to estimated value capped to current block
@@ -119,11 +127,11 @@ export class Executor extends Logger {
     }
 
     // every argument beyond the third is an argument for the contract function
-    const options: any = {
-      from: inputOptions.from,
-      gas: inputOptions.gas,
-      gasPrice: inputOptions.gasPrice,
-    };
+    let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    if (options.hasOwnProperty('autoGas')) {
+      // strip unrelated option
+      delete options.autoGas;
+    }
     if (inputOptions.value) {
       options.value = inputOptions.value;
     }
@@ -346,14 +354,16 @@ export class Executor extends Logger {
   /**
    * send EVEs to target account
    *
-   * @param      {any}  options  transaction options, having at least from, to and value
-   * @return     {Promise<void>}   resolved when done
+   * @param      {any}            inputOptions  transaction options, having at least from, to and
+   *                                            value
+   * @return     {Promise<void>}  resolved when done
    */
-  async executeSend(options): Promise<void> {
+  async executeSend(inputOptions): Promise<void> {
     this.log('starting contract EVE transfer transaction', 'debug');
     if (!this.signer) {
       throw new Error('signer is undefined');
     }
+    let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
     const logGas = (extraParams) => {
       const staticEntries = {
         from: options.from,
@@ -431,14 +441,15 @@ export class Executor extends Logger {
    * options.from
    *
    * @param      {string}        contractName       contract name
-   * @param      {an[]}          functionArguments  arguments for contract creation, pass empty
+   * @param      {any[]}         functionArguments  arguments for contract creation, pass empty
    *                                                Array if no arguments
-   * @param      {any}           options            transaction arguments, having at least .from and
+   * @param      {any}           inputOptions       transaction arguments, having at least .from and
    *                                                .gas
    * @return     {Promise<any>}  new contract
    */
-  async createContract(contractName: string, functionArguments: any[], options: any): Promise<any> {
+  async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
+    let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
     if (!this.signer) {
       throw new Error('signer is undefined');
     }

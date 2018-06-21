@@ -25,7 +25,7 @@ import { KeyStoreInterface } from '../account-store';
 const txutils = lightwallet.txutils;
 const nonces = {};
 
-/** 
+/**
  * signer internal instance options
  */
 export interface SignerInternalOptions extends LoggerOptions {
@@ -153,7 +153,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     Promise
       .all([
         this.getPrivateKey(options.from),
-        options.gasPrice || this.getGasPrice(),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
@@ -202,7 +202,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     Promise
       .all([
         this.getPrivateKey(options.from),
-        options.gasPrice || this.getGasPrice(),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
@@ -260,7 +260,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     return Promise
       .all([
         this.getPrivateKey(options.from),
-        options.gasPrice || this.getGasPrice(),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) =>
