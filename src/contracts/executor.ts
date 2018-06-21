@@ -128,10 +128,14 @@ export class Executor extends Logger {
 
     // every argument beyond the third is an argument for the contract function
     let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
-    if (options.hasOwnProperty('autoGas')) {
-      // strip unrelated option
-      delete options.autoGas;
-    }
+    // strip unrelated option
+    const purged = {};
+    ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'].forEach((key) => {
+      if (typeof options[key] !== 'undefined') {
+        purged[key] = options[key];
+      }
+    });
+    options = purged;
     if (inputOptions.value) {
       options.value = inputOptions.value;
     }
