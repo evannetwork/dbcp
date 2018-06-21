@@ -151,7 +151,7 @@ describe('Executor handler', function() {
     throw new Error('Should have thrown an error');
   });
 
-  it('should be able perform transactions', async () => {
+  it('should be able to perform transactions', async () => {
     const executor = await TestUtils.getExecutor(web3);
     let owner = await executor.executeContractCall(contract, 'owner');
     expect(owner).to.eq(testUser);
