@@ -128,17 +128,15 @@ export class Executor extends Logger {
 
     // every argument beyond the third is an argument for the contract function
     let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+
     // strip unrelated option
-    const purged = {};
-    ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'].forEach((key) => {
-      if (typeof options[key] !== 'undefined') {
-        purged[key] = options[key];
+    const validProperties = ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'];
+    Object.keys(options).forEach((option) => {
+      if (!validProperties.includes(option)) {
+        delete options[option];
       }
     });
-    options = purged;
-    if (inputOptions.value) {
-      options.value = inputOptions.value;
-    }
+
     let autoGas;
     if (inputOptions.autoGas) {
       autoGas = inputOptions.autoGas;
@@ -262,13 +260,14 @@ export class Executor extends Logger {
                 } else {
                   const currentLimit = result.gasLimit;
                   const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
+                  // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
                   logGas({ status: 'autoGas.estimation', gasEstimated: gasEstimated, gasGiven: gas, message: `estimated with ${autoGas}` });
                   options.gas = gas;
-                  this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), options, executeCallback);
+                  this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), executeCallback);
                 }
               });
             } else {
-              this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), options, executeCallback);
+              this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), executeCallback);
             }
           }
         };
@@ -345,7 +344,7 @@ export class Executor extends Logger {
             return reject(`${functionName} failed: ${ex.message}`);
           }
         };
-        contract.methods[functionName].apply(contract.methods, initialArguments).estimateGas(options, estimationCallback);
+        contract.methods[functionName].apply(contract.methods, initialArguments).estimateGas(Object.assign({}, options), estimationCallback);
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
         stopWatching();
