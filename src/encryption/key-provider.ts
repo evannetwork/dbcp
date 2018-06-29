@@ -38,12 +38,12 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
   };
 
   async getKey(info: CryptoInfo): Promise<string> {
-    this.log(JSON.stringify(info, null, 2))
+    this.log(JSON.stringify(info), 'debug')
     if (info.algorithm === 'unencrypted') {
       return Promise.resolve('unencrypted');
     }
     if (this.keys[info.originator]) {
-      this.log(JSON.stringify(obfuscate(this.keys[info.originator]), null, 2))
+      this.log(JSON.stringify(obfuscate(this.keys[info.originator])), 'debug')
       return this.keys[info.originator];
     } else if (this.profile) {
       let key;

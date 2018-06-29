@@ -15,10 +15,12 @@
 
 import 'mocha';
 import { expect } from 'chai';
+import IpfsApi = require('ipfs-api');
 
 import { Ipfs } from './ipfs'
 import { InMemoryCache } from './in-memory-cache'
 import { TestUtils } from '../test/test-utils'
+
 
 
 let ipfs: Ipfs;
@@ -86,4 +88,10 @@ describe('IPFS handler', function() {
     // remove cache after test
     delete ipfs.cache;
   });
+
+  it('should set the cache when passed via options', async () => {
+    const remoteNode = IpfsApi({host: 'ipfs.evan.network', port: '443', protocol: 'https'});
+    const ipfs =  new Ipfs({ remoteNode, cache: new InMemoryCache()});
+    expect(ipfs.cache).to.be.ok;
+  })
 });

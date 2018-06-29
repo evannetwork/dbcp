@@ -76,8 +76,8 @@ export class Logger {
   constructor(options?) {
     this.logLog = (options && options.logLog) ? options.logLog : this.logLog;
     this.logFunction = (options && options.log) ? options.log : Logger.getDefaultLog();
-    this.logLevel = (options && options.logLevel) ? LogLevel[<string>options.logLevel] : LogLevel.error;
-    this.logLogLevel = (options && options.logLogLevel) ? LogLevel[<string>options.logLogLevel] : LogLevel.error;
+    this.logLevel = (options && typeof options.logLevel !== 'undefined') ? options.logLevel : LogLevel.error;
+    this.logLogLevel = (options && typeof options.logLogLevel !== 'undefined') ? options.logLogLevel : LogLevel.error;
     if (options && options.logLevel) {
       this.logLevel = LogLevel[<string>options.logLevel];
     } else  if (typeof global !== 'undefined' &&

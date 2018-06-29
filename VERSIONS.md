@@ -1,6 +1,22 @@
 # dbcp
 
 ## Next version
+### Features
+### Fixes
+### Deprecations
+
+
+## Version 1.1.0
+### Features
+- add support for setting descriptions by hash (which allows to encode them beforehand)
+- add support for using custom gas prices via `gasPrice` in executor and signer
+- allow passing `defaultOptions` to executor, that will be used in transactions/call, if not overwritten by explicit options
+
+### Fixes
+- fix setting ipfs cache correctly
+- fix result order in `NameResolver.getArrayFromUintMapping`
+- fix Logger initialization for options.logLevel and options.logLogLevel to take the correct values
+- fix `EventHub` error logging (did throw with unrelated error message and fail to add message to error message log)
 
 
 ## Version 1.0.3

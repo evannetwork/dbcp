@@ -96,8 +96,7 @@ When creating a custom runtime, the modules have to be created and added to a ru
  */
 export interface ExecutorOptions {
   config?: any,
-  eventHub?: EventHub,
-  log?: Function,
+  defaultOptions?: any,
   signer?: SignerInterface,
   web3?: any,
 }
@@ -114,6 +113,7 @@ export class Executor extends Logger {
   constructor(options: ExecutorOptions) {
     super(options);
     this.config = options.config;
+    this.defaultOptions = options.defaultOptions;
     this.signer = options.signer;
     this.web3 = options.web3;
   }
@@ -337,6 +337,8 @@ The signer requires you to have a contract instance, either by
 - directly via [web3.js](https://github.com/ethereum/web3.js)<sup>[+]</sup>.
 
 Sample usages of the [`Executor`](./src/contracts/executor.ts) can be found in in the examples [examples](./examples) and in the Executors [test file](./src/contracts/executor.spec.ts).
+
+The executor allows to pass the `defaultOptions` property to its constructor. This property contains options for transactions and calls, that will be used if no other properties are provided in calls/transactions. Explicitly passed options always overwrite default options.
 
 ##### Reading from contracts
 The sample contract here is a greeter (`./contracts/Greeter.sol`), which has a constant function called "greet". Using it can be done with:

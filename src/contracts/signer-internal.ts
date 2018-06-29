@@ -25,7 +25,7 @@ import { KeyStoreInterface } from '../account-store';
 const txutils = lightwallet.txutils;
 const nonces = {};
 
-/** 
+/**
  * signer internal instance options
  */
 export interface SignerInternalOptions extends LoggerOptions {
@@ -153,7 +153,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     Promise
       .all([
         this.getPrivateKey(options.from),
-        this.getGasPrice(),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
@@ -202,7 +202,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     Promise
       .all([
         this.getPrivateKey(options.from),
-        this.getGasPrice(),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
@@ -214,7 +214,7 @@ export class SignerInternal extends Logger implements SignerInterface {
           nonce,
           gasPrice,
           gasLimit: this.ensureHashWithPrefix(options.gas),
-          to: options.to,
+          to: contract.options.address,
           value: options.value ? ('0x' + (new BigNumber(options.value, 10)).toString(16)) : 0,
           data: this.ensureHashWithPrefix(data),
           chainId: NaN,
@@ -232,7 +232,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         ;
       })
       .catch((ex) => {
-        const msg = `could not sign transaction; "${(ex.message || ex)}"`;
+        const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
         handleTxResult(msg);
       })
     ;
@@ -260,7 +260,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     return Promise
       .all([
         this.getPrivateKey(options.from),
-        this.getGasPrice(),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) =>

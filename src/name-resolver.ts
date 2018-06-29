@@ -492,6 +492,20 @@ export class NameResolver extends Logger {
     ;
   }
 
+  /**
+   * get elements from a contract by using a countRetriever and an elementRetriever
+   *
+   * @param      {any}             contract          contract to retrieve elements from
+   * @param      {Function}        countRetriever    function, that returns the element count (as a
+   *                                                 base 10 string):
+   *                                                 (): Promise<string> => {...}
+   * @param      {Function}        elementRetriever  function, returns an element at position i:
+   *                                                 (i: number): Promise<any> => {...}
+   * @param      {number}          count             number of elements to retrieve
+   * @param      {number}          offset            skip this many elements
+   * @param      {boolean}         reverse           reverse order of elements
+   * @return     {Promise<any[]>}  array with results
+   */
   async getArrayFromUintMapping(
       contract: any,
       countRetriever: Function,
@@ -499,17 +513,18 @@ export class NameResolver extends Logger {
       count = 10,
       offset = 0,
       reverse = false): Promise<any[]> {
-    const results = [];
+    let results = [];
     const length = parseInt(await countRetriever(), 10);
     if (length !== 0) {
-      let indicesToGet = [...Array(length)].map((_, i) => i).filter(i => i >= 0);
+      let indicesToGet = [...Array(length)].map((_, i) => i);
       if (reverse) {
         indicesToGet = indicesToGet.reverse();
       }
       indicesToGet = indicesToGet.slice(offset, offset + count);
       // array of functions that retrieve an element as a promise and set it in then
+      results = new Array(indicesToGet.length);
       const retrievals = indicesToGet.map(
-        i => async () => elementRetriever(i).then((elem) => { results.push(elem); }));
+        (i, j) => async () => elementRetriever(i).then((elem) => { results[j] = elem; }));
       // run these function windowed, chain .then()s, return result array
       if (retrievals.length) {
         await prottle(requestWindowSize, retrievals);
