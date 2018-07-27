@@ -5,6 +5,7 @@
 ### Fixes
 - fix unsubscribe chain handling in `EventHub`
 - fix unsubscribe in `Executor`, that caused issues, when event based result handling was used, but transaction was rejected because estimation predicted an error
+- add timeout of 1s to `Executor` event unsubscribe if transaction caused an error to ensure proper unsubscribe
 
 ### Deprecations
 

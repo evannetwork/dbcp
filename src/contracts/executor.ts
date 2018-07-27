@@ -170,7 +170,7 @@ export class Executor extends Logger {
 
       // timeout and event listener with this
       let subscription;
-      const stopWatching = async () => {
+      const stopWatching = async (isError?) => {
         return new Promise((resolveStop) => {
           setTimeout(() => {
             if (inputOptions.event && subscription) {
@@ -187,7 +187,7 @@ export class Executor extends Logger {
             }
             isPending = false;
             resolveStop();
-          }, 0);
+          }, isError ? 1000 : 0);
         });
       }
 
@@ -195,7 +195,7 @@ export class Executor extends Logger {
         // timeout rejects promise if not already done so
         setTimeout(async () => {
           if (isPending) {
-            await stopWatching();
+            await stopWatching(true);
             logGas({ status: 'error', message: 'timeout' });
             reject(new Error(`timeout during ${functionName}`));
           }
@@ -243,14 +243,14 @@ export class Executor extends Logger {
         const estimationCallback = async (error, gasAmount) => {
           gasEstimated = gasAmount;
           if (error) {
-            await stopWatching();
+            await stopWatching(true);
             logGas({ status: 'error', message: `could not estimate; ${error}` });
             reject(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`);
           } else if (inputOptions.estimate) {
             await stopWatching();
             resolve(gasAmount);
           } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
-            await stopWatching();
+            await stopWatching(true);
             logGas({ status: 'error', message: 'out of gas estimated' });
             reject(`transaction ${functionName} by ${options.from} would most likely fail`);
           } else {
@@ -333,7 +333,7 @@ export class Executor extends Logger {
                   });
                 }
                 if (inputOptions.event && this.eventHub) {
-                  await stopWatching();
+                  await stopWatching(true);
                 }
                 logGas({
                   status: 'error',
@@ -352,7 +352,7 @@ export class Executor extends Logger {
         contract.methods[functionName].apply(contract.methods, initialArguments).estimateGas(Object.assign({}, options), (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); });
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
-        await stopWatching();
+        await stopWatching(true);
         logGas({ status: 'error', message: 'transaction could not be started' });
         reject(ex);
       }
