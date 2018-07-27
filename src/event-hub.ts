@@ -262,6 +262,7 @@ export class EventHub extends Logger {
             }
           }
         }
+        return chain;
       } else {
         // iterate over all subscriptions for contract sequentially
         let chain = Promise.resolve();
@@ -271,6 +272,7 @@ export class EventHub extends Logger {
             chain = chain.then(() => { this.unsubscribe({ subscription }) });
           }
         }
+        return chain;
       }
     } else {
       return Promise.reject('unsupported unsubscribe criteria');

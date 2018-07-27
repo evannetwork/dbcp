@@ -3,6 +3,9 @@
 ## Next version
 ### Features
 ### Fixes
+- fix unsubscribe chain handling in `EventHub`
+- fix unsubscribe in `Executor`, that caused issues, when event based result handling was used, but transaction was rejected because estimation predicted an error
+
 ### Deprecations
 
 

@@ -162,7 +162,7 @@ export class Executor extends Logger {
       const level = 'gasLog';
       this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), level);
     }
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
       let isPending = true;
       let transactionHash;
@@ -170,27 +170,32 @@ export class Executor extends Logger {
 
       // timeout and event listener with this
       let subscription;
-      const stopWatching = () => {
-        if (inputOptions.event && subscription) {
-          if (this.eventHub) {
-            this.eventHub
-              .unsubscribe({ subscription})
-              .catch((ex) => {
-                this.log(`error occurred while unsubscribing from transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
-              })
-            ;
-          } else {
-            reject('passed an event to a transaction but no event hub registered');
-          }
-        }
-        isPending = false;
+      const stopWatching = async () => {
+        return new Promise((resolveStop) => {
+          setTimeout(() => {
+            if (inputOptions.event && subscription) {
+              if (this.eventHub) {
+                this.eventHub
+                  .unsubscribe({ subscription})
+                  .catch((ex) => {
+                    this.log(`error occurred while unsubscribing from transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
+                  })
+                ;
+              } else {
+                reject('passed an event to a transaction but no event hub registered');
+              }
+            }
+            isPending = false;
+            resolveStop();
+          }, 0);
+        });
       }
 
       try {
         // timeout rejects promise if not already done so
-        setTimeout(() => {
+        setTimeout(async () => {
           if (isPending) {
-            stopWatching();
+            await stopWatching();
             logGas({ status: 'error', message: 'timeout' });
             reject(new Error(`timeout during ${functionName}`));
           }
@@ -235,17 +240,17 @@ export class Executor extends Logger {
         // const estimationArguments = functionArguments.slice();
         let gasEstimated;
         let executeCallback;
-        const estimationCallback = (error, gasAmount) => {
+        const estimationCallback = async (error, gasAmount) => {
           gasEstimated = gasAmount;
           if (error) {
-            stopWatching();
+            await stopWatching();
             logGas({ status: 'error', message: `could not estimate; ${error}` });
             reject(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`);
           } else if (inputOptions.estimate) {
-            stopWatching();
+            await stopWatching();
             resolve(gasAmount);
           } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
-            stopWatching();
+            await stopWatching();
             logGas({ status: 'error', message: 'out of gas estimated' });
             reject(`transaction ${functionName} by ${options.from} would most likely fail`);
           } else {
@@ -263,16 +268,16 @@ export class Executor extends Logger {
                   // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
                   logGas({ status: 'autoGas.estimation', gasEstimated: gasEstimated, gasGiven: gas, message: `estimated with ${autoGas}` });
                   options.gas = gas;
-                  this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), executeCallback);
+                  this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); });
                 }
               });
             } else {
-              this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), executeCallback);
+              this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); });
             }
           }
         };
 
-        executeCallback = (err, receipt) => {
+        executeCallback = async (err, receipt) => {
           if (err) {
             return reject(`${functionName} failed: ${err}`);
           }
@@ -307,7 +312,7 @@ export class Executor extends Logger {
                   isPending = false;
                   resolve();
                 } else if (eventResults[transactionHash]) {
-                  stopWatching();
+                  await stopWatching();
                   if (inputOptions.getEventResult) {
                     resolve(inputOptions.getEventResult(eventResults[transactionHash], eventResults[transactionHash].args ||  eventResults[transactionHash].returnValues));
                   } else {
@@ -328,7 +333,7 @@ export class Executor extends Logger {
                   });
                 }
                 if (inputOptions.event && this.eventHub) {
-                  stopWatching();
+                  await stopWatching();
                 }
                 logGas({
                   status: 'error',
@@ -344,10 +349,10 @@ export class Executor extends Logger {
             return reject(`${functionName} failed: ${ex.message}`);
           }
         };
-        contract.methods[functionName].apply(contract.methods, initialArguments).estimateGas(Object.assign({}, options), estimationCallback);
+        contract.methods[functionName].apply(contract.methods, initialArguments).estimateGas(Object.assign({}, options), (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); });
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
-        stopWatching();
+        await stopWatching();
         logGas({ status: 'error', message: 'transaction could not be started' });
         reject(ex);
       }
