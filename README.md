@@ -15,7 +15,7 @@ DBCP is a formalized description of how to interact with (Ethereum) smart contra
 
 Developers, that write applications for smart contracts, need at least the contract address and the ABI for writing code, that interacts with the contract. Some details about the Smart Contract and contact addresses can be helpful as well.
 
-Users, that want to use such a ÐAPP for interacting with the smart contract on the other hand, need to know either were to find the ÐAPP and most probably want some information about the ÐAPP before they actually run it with their accounts.
+Users, that want to use such a ÐAPP for interacting with the smart contract on the other hand, need to know either where to find the ÐAPP and most probably want some information about the ÐAPP before they actually run it with their accounts.
 
 The DBCP protocol faces those needs and provides a comprehensive description of contracts, their ÐAPPs or even contractless ÐAPPs. Developers can write own applications for interacting with the smart contract or can show details about contracts in their own ÐAPP and offer links to the contracts own ÐAPP.
 
