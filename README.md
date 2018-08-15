@@ -75,31 +75,23 @@ Add it to your Node.js project:
 npm i @evan.network/dbcp
 ```
 
-### IPFS IPNS deployment
-For using DBCP as a fixed version over IPFS for frontend applications or similar, an IPFS + IPNS deployment is required. For this, all necessary files are assembled into a bundle with the help of browserify.
-
-Before deploying a new version to the IPFS be sure to start a local IPFS node and connect it to the evan.network. For simplicity, the scripts folder contains a "scripts/go-ipfs" script that sets up your local IPFS node, starts a deamon and connects to the evan.network.
-
-```sh
-./scripts/go-ipfs.sh
-```
-
-To bind DBCP to a recurring IPNS path, a deployment key is required. Before deploying, generate a key with:
-```sh
-ipfs key gen --type=rsa --size=2048 dbcp-ipns
-```
-
-To start the deployment, call the following command:
-```sh
-npm run deploy
-```
-
-
 ### Usage in Browser (via IPFS)
-Or use the latest relase from the [evan.network](https://evannetwork.github.io/)<sup>[+]</sup> IPFS:
+The latest version is always deployed to an IPNS hash, that does not change between versions, so you can use the latest release from the [evan.network](https://evannetwork.github.io/)<sup>[+]</sup> IPFS via:
 ```html
 <!-- use latest DBCP version -->
 <script src="https://ipfs.evan.network/ipns/QmdWqqkKaiqhqRgsq3HeaxwUHVREb5HUFF12KBrj3gYbTx"></script>
+<script>
+  console.log(window.dbcp);
+</script>
+```
+```js
+// Output:
+// {AccountStore: ƒ, config: {…}, ContractLoader: ƒ, createDefaultRuntime: ƒ, CryptoProvider: ƒ, …}
+```
+Or if you want a specific version refer to the [releases](https://github.com/evannetwork/dbcp/releases) page and their respective IPFS hashes. For example for version 1.0.0 use:
+```html
+<!-- use DBCP version 1.0.0 -->
+<script src="https://ipfs.evan.network/ipfs/QmXK2C6FhRSv9JBobocdVmbwTEPZaaAq6BaJBQhV52cp7z"></script>
 <script>
   console.log(window.dbcp);
 </script>
