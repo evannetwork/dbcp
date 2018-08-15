@@ -51,6 +51,22 @@ Descriptions can be bound to ENS addresses as well, allowing to exchange the con
 Combining ENS addresses and descriptions allows even more: The same principle can be applied to the ÐApp structure itself, ÐApps can use libraries and dependencies, that are provided via descriptions on ENS address paths s well. This allows a fine granular dependency and version handling.
 
 
+## Using descriptions in own Contracts
+As mentioned beforehand, descriptions can be used directly at smart contracts and at ENS addresses. Both have different use cases, where they are more more suited for.
+
+Contract based descriptions make them suitable for being used on their own. You can use this approach, if you
+- want to create many contracts for single or limited purposes
+- do not want updates for user interfaces of your contracts (e.g. if you have special interfaces for each contract for each instance of it or want to "freeze" them for archiving or other purposes)
+- do not have access to an ENS address
+
+ENS based descriptions allow descriptions to be stored at a human readable address, that stays the same between contract deployments. You can use this approach, if you
+- expect to redeploy your smart contract behind the description
+- want to create ÐApps, that do not require a smart contract itself (e.g. if you want to create a dashboard, that allows to access smart contracts)
+- want to structure your contracts in an ENS path based landmap, you can assign each path a description that explains its purpose and hot to use it
+
+You can use both approaches interchangeably, but keep in mind, that the description at a contract will have precedence over the respective ENS addresses description. The API function `getDescription` for example will try to get both, but use the contracts description if it can find it.
+
+
 ## Description and Contract Updates
 As contracts may change over time, descriptions aren't set in stone as well. Updates in smart contracts can be reflected in the description as well, this includes but is not limited to:
 - updates in a contract's metadata, like name, description, i18n, icon, etc.
