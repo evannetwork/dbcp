@@ -75,6 +75,53 @@ Add it to your Node.js project:
 npm i @evan.network/dbcp
 ```
 
+### Basic Usage
+#### Runtime
+The DBCP module library consists out of multiple libraries, that allow to work with contract descriptions and even to perform transactions on your smart contracts. To get a running instance for each of the modules, you can a `runtime` provided by the package with:
+```js
+const runtime = await createDefaultRuntime(web3, dfs, { accountMap: runtimeConfig.accountMap, });
+```
+
+#### Reading descriptions
+See this [example](https://github.com/evannetwork/dbcp/blob/master/examples/readFromContract.js) for information about the required input arguments.
+
+If you want to read a description from an existing contract use:
+```js
+const description = await runtime.description.getDescription('0x9c0Aaa728Daa085Dfe85D3C72eE1c1AdF425be49');
+```
+
+#### Setting Descriptions
+Descriptions can be set by using `runtime.description` as well. For this you create a description object with the structure as described [here](https://github.com/evannetwork/dbcp/wiki#properties-in-description) and store it to your contract.
+```js
+// greeter is a running web3.js instance of your contract
+let greeter;
+// create a simple description object
+const description = {
+  "public": {
+    "name": "DBCP sample greeter",
+    "description": "smart contract with a greeting message and a data property",
+    "author": "dbcp test",
+    "tags": [
+      "example",
+      "greeter"
+    ],
+    "version": "0.1.0"
+  }
+};
+// add your abi to the description
+description.public.abis = { own: greeter.options.jsonInterface, };
+// store description to contract
+await runtime.description.setDescription(greeter.options.address, description, from);
+```
+The last example assumes, that your greeter contract supports the [`Described`](https://github.com/evannetwork/dbcp/blob/master/contracts/AbstractDescribed.sol) interface and therefore can store descriptions by itself. If this isn't the case or if you want to store you description to a more central location, you can also store your description at an ENS address.
+
+To store the description at an ENS address, you just pass this ENS address instead of a contracct address to the `setDescription` function:
+```js
+await runtime.description.setDescription('greeter.an-ens-path-i-own.evan', description, from);
+```
+For more examples have a look at our [examples](https://github.com/evannetwork/dbcp/blob/master/examples/) section.
+
+
 ### Usage in Browser (via IPFS)
 The latest version is always deployed to an IPNS hash, that does not change between versions, so you can use the latest release from the [evan.network](https://evannetwork.github.io/)<sup>[+]</sup> IPFS via:
 ```html
