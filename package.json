@@ -1,5 +1,5 @@
 {
-  "author": "evan.network",
+  "author": "evan GmbH",
   "dependencies": {
     "@types/node": "8.0.53",
     "ajv": "^5.5.1",
