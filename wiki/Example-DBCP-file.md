@@ -1,3 +1,5 @@
+This page shows the full example for the trunkated description in our [wiki](https://github.com/evannetwork/dbcp/wiki#properties-in-description).
+
 ```json
 {
   "public": {

@@ -7,7 +7,7 @@ Join the community at the [DBCP Community Webpage](https://dbcp.online/)<sup>[+]
 
 Or have a look at the [protocol definition](https://github.com/evannetwork/dbcp/wiki).
 
-Or take a dive into the [API documentation](https://github.com/evannetwork/dbcp/wiki/API-Documentation).
+Or take a dive into the [API documentation](https://ipfs.evan.network/ipns/QmSXPThSm6u3BDE1X4C9QofFfcNH86cCWAR1W5Sqe9VWKn).
 
 Get a quickstart with [this blog post](https://medium.com/evan-network/settle-the-unicorns-were-describing-contracts-in-a-generalized-way-5b065ebf4309) about DBCP.
 
