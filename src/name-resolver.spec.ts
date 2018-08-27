@@ -81,4 +81,23 @@ describe('NameResolver class', function() {
     address = await nameResolver.getAddress(testAddress);
     expect(address).to.eq(emptyAddressValue);
   });
+
+  it('should be able to set a domain, even if parent domain is not owned by setting account', async () => {
+    const nameResolver = await TestUtils.getNameResolver(web3);
+    const testAddress1 = `${Math.random().toString(32).substr(2)}.test.${nameResolver.getDomainName(config.nameResolver.domains.root)}`;
+    const testAddress2 = `${Math.random().toString(32).substr(2)}.${testAddress1}`;
+    console.log(testAddress1)
+    await nameResolver.setAddress(testAddress1, testAddressValue, accounts[0], accounts[0]);
+    console.log(testAddress2)
+    await nameResolver.setAddress(testAddress2, testAddressValue, accounts[0], accounts[1]);
+
+    let address;
+    address = await nameResolver.getAddress(testAddress1);
+    expect(address).to.eq(testAddressValue);
+
+    debugger;
+    await nameResolver.setAddress(testAddress2, emptyAddressValue, accounts[1], accounts[1]);
+    address = await nameResolver.getAddress(testAddress2);
+    expect(address).to.eq(emptyAddressValue);
+  });
 });

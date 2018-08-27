@@ -145,123 +145,83 @@ export class NameResolver extends Logger {
     const split = name.split('.');
     const parentName = split.slice(1).join('.');
     const getOptions = () => { return {from: accountId, gas: 200000}; };
-    let accountIdOwnsNode = false;
+    let finalNodeOwner = domainOwnerId || accountId;
+    let nodeNotDirectlyOwned;
 
-    // when on root level, set configured resolver
-    if (split.length === 2) {
-      this.log('setting pre-configured resolver', 'debug');
-      const rootDomain = this.config.domains.root.map(
-        label => this.config.labels[label]).join('.').toLowerCase();
-      // get owner of node
-      const owner = await this.executor.executeContractCall(
-        this.ensContract, 'owner', this.namehash(name));
-      // temporarily take control of new subnodes parent if required
-      this.log('checking owner', 'debug');
-      if (owner === '0x0000000000000000000000000000000000000000') {
-        this.log(`ens name ${name} is not claimed. claiming with account ${accountId}`, 'debug');
-        await this.executor.executeContractTransaction(
-          this.ensContract,
-          'setSubnodeOwner',
-          getOptions(),
-          this.namehash(rootDomain),
-          this.sha3(name.substr(0, name.indexOf('.'))),
-          accountId
-        );
-      }
-    }
-
-    // ensure that we are the owner of the parent node
-    if (split.length > 2) {
-      // get owner of subnodes parent
-      const owner = await this.executor.executeContractCall(
+    // ensure ownership of node or its parent
+    let nameOwner = await this.executor.executeContractCall(
+      this.ensContract, 'owner', this.namehash(name));
+    if (nameOwner !== accountId) {
+      // currently not owner of node; check parent node
+      const parentOwner = await this.executor.executeContractCall(
         this.ensContract, 'owner', this.namehash(parentName));
-      // temporarily take control of new subnodes parent if required
-      this.log('checking parent owner', 'debug');
-      if (owner === '0x0000000000000000000000000000000000000000') {
-        this.log(`parent name ${parentName} is not claimed. claiming with account ${accountId}`, 'debug');
-        console.log(split.slice(2).join('.'));
-        console.log(parentName.substr(0, name.indexOf('.')));
+      if (parentOwner !== accountId) {
+        const msg = `cannot set ens value neither node "${name}" not its parent owned by "${accountId}"`;
+        this.log(msg, 'error');
+        throw new Error(msg);
+      }
+      if (value) {
+        // a value has to bee set, so take ownership of node
         await this.executor.executeContractTransaction(
           this.ensContract,
           'setSubnodeOwner',
           getOptions(),
-          this.namehash(split.slice(2).join('.')),
-          this.sha3(parentName.substr(0, name.indexOf('.'))),
-          accountId
+          this.namehash(parentName),
+          this.sha3(name.substr(0, name.indexOf('.'))),
+          accountId,
         );
-      } else if (owner !== accountId) {
-        throw new Error(`parent node is owned by ${owner} and not by ${accountId}`);
+        // keep track of changed ownership
+        nameOwner = accountId;
+        nodeNotDirectlyOwned = true;
       }
+    }
 
-      // assign ownership of subnode to us (we change it later on of domainOwnerId was provided),
-      // e.g. foo.bar.evan
+    // ensure resolver for node
+    let resolverAddress = await this.executor.executeContractCall(
+        this.ensContract, 'resolver', this.namehash(name));
+    if (resolverAddress === '0x0000000000000000000000000000000000000000') {
+      // no resolver set
+      if (split.length > 2) {
+        // level 3 domains (foo.bar.top) use parent domains resolver as fallback
+        resolverAddress = await this.executor.executeContractCall(
+          this.ensContract, 'resolver', this.namehash(parentName));
+      }
+      if (resolverAddress === '0x0000000000000000000000000000000000000000') {
+        // if no parent resolver was found or if we have a level 2 domain (bar.top), use default
+        resolverAddress = this.config.ensResolver;
+      }
       await this.executor.executeContractTransaction(
-        this.ensContract,
-        'setSubnodeOwner',
-        getOptions(),
-        this.namehash(parentName), //  --> bar.eth
-        this.sha3(name.substr(0, name.indexOf('.'))), // --> foo
-        accountId
-      )
+        this.ensContract, 'setResolver', getOptions(), this.namehash(name), resolverAddress);
+    }
+    const resolver = await this.contractLoader.loadContract('PublicResolver', resolverAddress);
+
+    // set value to resolver
+    if (value) {
+      await this.executor.executeContractTransaction(
+        resolver, setter, getOptions(), this.namehash(name), value);
     }
 
-    // ensure specified names resolver
-    let resolverAddress;
-    try {
-      resolverAddress = await this.executor.executeContractCall(
-        this.ensContract, 'resolver', this.namehash(name));
-    } catch (ex) {
-      // when the domain is new, no ens name is assigned, so an error is thrown
-      // ignore exactly this error and thread all other errors as errors
-      if (ex.message !== 'ENS name not found') {
-        throw ex;
-      } else {
-        return null;
-      }
-    }
-
-    this.log('checking "new" nodes resolver', 'debug');
-    let resolver;
-    if (resolverAddress !== null &&
-        resolverAddress !== '0x0000000000000000000000000000000000000000') {
-      this.log('resolver already defined', 'debug');
-      resolver = await this.contractLoader.loadContract('PublicResolver', resolverAddress);
-    } else {
-      this.log('no resolver defined, assigning parent nodes resolver', 'debug');
-      const parentResolver = await this.executor
-        .executeContractCall(this.ensContract, 'resolver', this.namehash(parentName));
-      if (parentResolver === null ||
-          parentResolver === '0x0000000000000000000000000000000000000000') {
-        this.log('no parent resolver defined, assigning pre configured resolver', 'debug');
-        await this.executor.executeContractTransaction(
-          this.ensContract, 'setResolver', getOptions(), this.namehash(name), this.config.ensResolver);
-      } else {
-        await this.executor.executeContractTransaction(
-          this.ensContract, 'setResolver', getOptions(), this.namehash(name), parentResolver);
-      }
-      // fetch resolver
-      const address = await this.executor.executeContractCall(
-        this.ensContract, 'resolver', this.namehash(name));
-      resolver = this.contractLoader.loadContract('PublicResolver', address);
-    }
-
-    // register value on new domain in parent (and childs) resolver
-    await this.executor.executeContractTransaction(
-      resolver, setter, getOptions(), this.namehash(name), value);
-
-    // assign control of subnode if not accountId
-    if (domainOwnerId) {
+    // if node should be owned by another account, set ownership to this
+    if (nameOwner !== domainOwnerId) {
       this.log('assigning node no specified user', 'debug');
-      return this.executor
-        .executeContractTransaction(
+      if (nodeNotDirectlyOwned) {
+        await this.executor.executeContractTransaction(
           this.ensContract,
           'setSubnodeOwner',
           getOptions(),
-          this.namehash(parentName), // --> bar.eth
-          this.sha3(name.substr(0, name.indexOf('.'))), // --> foo
-          domainOwnerId
-        )
-      ;
+          this.namehash(parentName),
+          this.sha3(name.substr(0, name.indexOf('.'))),
+          domainOwnerId,
+        );
+      } else {
+        await this.executor.executeContractTransaction(
+          this.ensContract,
+          'setOwner',
+          getOptions(),
+          this.namehash(name),
+          domainOwnerId,
+        );
+      }
     }
   }
 

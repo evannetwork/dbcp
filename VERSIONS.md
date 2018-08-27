@@ -10,6 +10,8 @@
 - fix unsubscribe chain handling in `EventHub`
 - fix unsubscribe in `Executor`, that caused issues, when event based result handling was used, but transaction was rejected because estimation predicted an error
 - add timeout of 1s to `Executor` event unsubscribe if transaction caused an error to ensure proper unsubscribe
+- cleanup `setAddressOrContent` in `NameResolver`
+- allow to manage subdomains, if parent node is not owned by the owner of a node in `NameResolver`
 
 
 ## Version 1.1.0
