@@ -139,12 +139,12 @@ export class NameResolver extends Logger {
       const parentOwner = await this.executor.executeContractCall(
         this.ensContract, 'owner', this.namehash(parentName));
       if (parentOwner !== accountId) {
-        const msg = `cannot set ens value neither node "${name}" not its parent owned by "${accountId}"`;
+        const msg = `cannot set ens value neither node "${name}" nor its parent owned by "${accountId}"`;
         this.log(msg, 'error');
         throw new Error(msg);
       }
       if (value) {
-        // a value has to bee set, so take ownership of node
+        // a value has to be set, so take ownership of node
         await this.executor.executeContractTransaction(
           this.ensContract,
           'setSubnodeOwner',
@@ -185,7 +185,7 @@ export class NameResolver extends Logger {
     }
 
     // if node should be owned by another account, set ownership to this
-    if (nameOwner !== domainOwnerId) {
+    if (nameOwner !== finalNodeOwner) {
       this.log('assigning node no specified user', 'debug');
       if (nodeNotDirectlyOwned) {
         await this.executor.executeContractTransaction(
@@ -194,7 +194,7 @@ export class NameResolver extends Logger {
           getOptions(),
           this.namehash(parentName),
           this.sha3(name.substr(0, name.indexOf('.'))),
-          domainOwnerId,
+          finalNodeOwner,
         );
       } else {
         await this.executor.executeContractTransaction(
@@ -202,7 +202,7 @@ export class NameResolver extends Logger {
           'setOwner',
           getOptions(),
           this.namehash(name),
-          domainOwnerId,
+          finalNodeOwner,
         );
       }
     }
