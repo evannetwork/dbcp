@@ -155,31 +155,34 @@ export class NameResolver extends Logger {
         );
         // keep track of changed ownership
         nameOwner = accountId;
-        nodeNotDirectlyOwned = true;
       }
+      nodeNotDirectlyOwned = true;
     }
 
     // ensure resolver for node
     let resolverAddress = await this.executor.executeContractCall(
         this.ensContract, 'resolver', this.namehash(name));
-    if (resolverAddress === '0x0000000000000000000000000000000000000000') {
-      // no resolver set
-      if (split.length > 2) {
-        // level 3 domains (foo.bar.top) use parent domains resolver as fallback
-        resolverAddress = await this.executor.executeContractCall(
-          this.ensContract, 'resolver', this.namehash(parentName));
-      }
-      if (resolverAddress === '0x0000000000000000000000000000000000000000') {
-        // if no parent resolver was found or if we have a level 2 domain (bar.top), use default
-        resolverAddress = this.config.ensResolver;
-      }
-      await this.executor.executeContractTransaction(
-        this.ensContract, 'setResolver', getOptions(), this.namehash(name), resolverAddress);
-    }
-    const resolver = await this.contractLoader.loadContract('PublicResolver', resolverAddress);
 
     // set value to resolver
     if (value) {
+      // if no resolver is set, set one to be able to set an address later on
+      if (resolverAddress === '0x0000000000000000000000000000000000000000') {
+        // no resolver set
+        if (split.length > 2) {
+          // level 3 domains (foo.bar.top) use parent domains resolver as fallback
+          resolverAddress = await this.executor.executeContractCall(
+            this.ensContract, 'resolver', this.namehash(parentName));
+        }
+        if (resolverAddress === '0x0000000000000000000000000000000000000000') {
+          // if no parent resolver was found or if we have a level 2 domain (bar.top), use default
+          resolverAddress = this.config.ensResolver;
+        }
+        await this.executor.executeContractTransaction(
+          this.ensContract, 'setResolver', getOptions(), this.namehash(name), resolverAddress);
+      }
+      const resolver = await this.contractLoader.loadContract('PublicResolver', resolverAddress);
+
+      // actually set address / content
       await this.executor.executeContractTransaction(
         resolver, setter, getOptions(), this.namehash(name), value);
     }
