@@ -228,7 +228,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, resolves to {string} address
    */
-  public setAddress(name: string, address: string, accountId: string, domainOwnerId: string) {
+  public setAddress(name: string, address: string, accountId: string, domainOwnerId = null) {
     this.log(`setting address "${address}" to name "${name}"`, 'info');
     return this.setAddressOrContent(name, address, accountId, domainOwnerId, 'address');
   }
@@ -245,7 +245,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to {string} address
    */
-  public setContent(name: string, content: string, accountId: string, domainOwnerId: string) {
+  public setContent(name: string, content: string, accountId: string, domainOwnerId = null) {
     this.log(`setting content "${content}" to name "${name}"`, 'info');
     return this.setAddressOrContent(name, content, accountId, domainOwnerId, 'content');
   }

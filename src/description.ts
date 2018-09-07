@@ -265,29 +265,38 @@ export class Description extends Logger {
    */
   public async setDescriptionToEns(ensAddress: string, envelope: Envelope|string, accountId: string):
       Promise<void> {
-    let hash;
+    let promises = [];
     if (typeof envelope === 'string') {
-      hash = envelope;
+      promises.push(envelope);
     } else {
-      const content: Envelope = Object.assign({}, envelope);
-      // add dbcp version
-      content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
-      const validation = this.validateDescription(content);
-      if (validation !== true) {
-        const msg = `description invalid: ${JSON.stringify(validation)}`;
-        this.log(msg, 'error');
-        throw new Error(msg);
-      }
-      if (content.private && content.cryptoInfo) {
-        const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
-        const key = await this.keyProvider.getKey(content.cryptoInfo);
-        const encrypted = await cryptor.encrypt(content.private, { key, });
-        content.private = encrypted.toString(this.encodingEncrypted);
-      }
-      hash = await this.dfs.add(
-        'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
+      promises.push((async () => {
+        const content: Envelope = Object.assign({}, envelope);
+        // add dbcp version
+        content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
+        const validation = this.validateDescription(content);
+        if (validation !== true) {
+          const msg = `description invalid: ${JSON.stringify(validation)}`;
+          this.log(msg, 'error');
+          throw new Error(msg);
+        }
+        if (content.private && content.cryptoInfo) {
+          const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
+          const key = await this.keyProvider.getKey(content.cryptoInfo);
+          const encrypted = await cryptor.encrypt(content.private, { key, });
+          content.private = encrypted.toString(this.encodingEncrypted);
+        }
+        return await this.dfs.add(
+          'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
+      })());
     }
-    await this.nameResolver.setContent(ensAddress, hash, accountId, accountId);
+    promises.push(this.executor.executeContractCall(
+      this.nameResolver, 'owner', this.nameResolver.namehash(ensAddress)));
+    const [ hash, currentOwner ] = await promises;
+    let finalNodeOwner = null;
+    if (currentOwner !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+      finalNodeOwner = currentOwner;
+    }
+    await this.nameResolver.setContent(ensAddress, hash, accountId, finalNodeOwner);
   };
 
   /**
