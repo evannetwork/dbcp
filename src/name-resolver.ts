@@ -32,6 +32,11 @@ export interface NameResolverOptions extends LoggerOptions {
   web3: any;
 }
 
+/**
+ * Class for getting / setting ENS domains address or content, hashing and list retrieval utilities
+ *
+ * @class      NameResolver (name)
+ */
 export class NameResolver extends Logger {
   config: any;
   contractLoader: ContractLoader;
@@ -60,7 +65,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to {string} address
    */
-  async getAddressOrContent(name: string, type: string): Promise<string> {
+  public async getAddressOrContent(name: string, type: string): Promise<string> {
     this.log(`looking up ENS name "${name}"`, 'debug');
     // decide which setter to use
     let getter;
@@ -86,7 +91,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to {string} address
    */
-  getAddress(name: string) {
+  public async getAddress(name: string) {
     return this.getAddressOrContent(name, 'address')
   }
 
@@ -97,7 +102,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to {string} address
    */
-  getContent(name: string) {
+  public async getContent(name: string) {
     return this.getAddressOrContent(name, 'content')
   }
 
@@ -112,7 +117,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to {string} address
    */
-  async setAddressOrContent(
+  public async setAddressOrContent(
       name: string,
       value: string,
       accountId: string,
@@ -223,7 +228,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, resolves to {string} address
    */
-  setAddress(name: string, address: string, accountId: string, domainOwnerId: string) {
+  public setAddress(name: string, address: string, accountId: string, domainOwnerId: string) {
     this.log(`setting address "${address}" to name "${name}"`, 'info');
     return this.setAddressOrContent(name, address, accountId, domainOwnerId, 'address');
   }
@@ -240,7 +245,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to {string} address
    */
-  setContent(name: string, content: string, accountId: string, domainOwnerId: string) {
+  public setContent(name: string, content: string, accountId: string, domainOwnerId: string) {
     this.log(`setting content "${content}" to name "${name}"`, 'info');
     return this.setAddressOrContent(name, content, accountId, domainOwnerId, 'content');
   }
@@ -252,7 +257,7 @@ export class NameResolver extends Logger {
    *
    * @return     address of the contract factory
    */
-  getFactory(contractName: string) {
+  public async getFactory(contractName: string) {
     const factoryDomain = [contractName].concat(
       this.config.domains.factory.map(label => this.config.labels[label])).join('.').toLowerCase();
     return this.getAddress(factoryDomain);
@@ -265,7 +270,7 @@ export class NameResolver extends Logger {
    *
    * @return     The domain name.
    */
-  getDomainName(domainConfig: string[] | string, ...subLabels) {
+  public getDomainName(domainConfig: string[] | string, ...subLabels) {
     if (Array.isArray(domainConfig)) {
       return subLabels.filter(label => label).concat(domainConfig.map(
         label => this.config.labels[label])).join('.').toLowerCase();
@@ -287,7 +292,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, that resolves to: {Array} list of addresses
    */
-  getArrayFromIndexContract(
+  public async getArrayFromIndexContract(
     indexContract: any,
     listHash: string,
     retrievers = {
@@ -367,7 +372,7 @@ export class NameResolver extends Logger {
    *
    * @return     Promise, resolved to: {Array} list of addresses
    */
-  getArrayFromListContract(
+  public async getArrayFromListContract(
     listContract: any,
     count = 10,
     offset = 0,
@@ -459,7 +464,7 @@ export class NameResolver extends Logger {
    * @param      {boolean}         reverse           reverse order of elements
    * @return     {Promise<any[]>}  array with results
    */
-  async getArrayFromUintMapping(
+  public async getArrayFromUintMapping(
       contract: any,
       countRetriever: Function,
       elementRetriever: Function,
@@ -492,7 +497,7 @@ export class NameResolver extends Logger {
    * @param  input text or buffer to hash
    * @return hashed output
    */
-  sha3(input: string | Buffer) {
+  public sha3(input: string | Buffer) {
     return this.web3.utils.sha3(input).toString();
   }
 
@@ -503,7 +508,7 @@ export class NameResolver extends Logger {
    * @param      {...any}  args    arguments for hashing
    * @return     {string}  hashed output
    */
-  soliditySha3(...args) {
+  public soliditySha3(...args) {
     return this.web3.utils.soliditySha3.apply(this.web3.utils.soliditySha3, args)
   }
 
@@ -513,7 +518,7 @@ export class NameResolver extends Logger {
    * @param      {string}  inputName  ens name to hash
    * @return     {string}  name hash
    */
-  namehash(inputName: string) {
+  public namehash(inputName: string) {
     function dropPrefix0x(input: string): string {
       return input.replace(/^0x/, '');
     }
@@ -539,7 +544,7 @@ export class NameResolver extends Logger {
     return node;
   }
 
-  bytes32ToAddress(hash) {
+  public bytes32ToAddress(hash) {
     return `0x${hash.substr(26)}`;
   }
 }
