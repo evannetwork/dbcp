@@ -24,6 +24,7 @@ import { TestUtils } from './test/test-utils';
 
 const testAddressValue = '0x0000000000000000000000000000000000000123';
 const emptyAddressValue = '0x0000000000000000000000000000000000000000';
+const dbcpTestDoman = 'dbcp.test.evan';
 let web3;
 
 describe('NameResolver class', function() {
@@ -53,7 +54,7 @@ describe('NameResolver class', function() {
 
   it('should be able to set an ENS name', async () => {
     const nameResolver = await TestUtils.getNameResolver(web3);
-    const testAddress = `foo.${nameResolver.getDomainName(config.nameResolver.domains.root)}`;
+    const testAddress = `foo.${dbcpTestDoman}`;
     await nameResolver.setAddress(testAddress, testAddressValue, accounts[0], accounts[0]);
 
     let address;
@@ -67,7 +68,7 @@ describe('NameResolver class', function() {
 
   it('should be able to set a domain, even if parent domain is not owned by setting account', async () => {
     const nameResolver = await TestUtils.getNameResolver(web3);
-    const testAddress1 = `${Math.random().toString(32).substr(2)}.test.${nameResolver.getDomainName(config.nameResolver.domains.root)}`;
+    const testAddress1 = `${Math.random().toString(32).substr(2)}.${dbcpTestDoman}`;
     const testAddress2 = `${Math.random().toString(32).substr(2)}.${testAddress1}`;
     console.log(testAddress1)
     await nameResolver.setAddress(testAddress1, testAddressValue, accounts[0], accounts[0]);
@@ -78,7 +79,6 @@ describe('NameResolver class', function() {
     address = await nameResolver.getAddress(testAddress1);
     expect(address).to.eq(testAddressValue);
 
-    debugger;
     await nameResolver.setAddress(testAddress2, emptyAddressValue, accounts[1], accounts[1]);
     address = await nameResolver.getAddress(testAddress2);
     expect(address).to.eq(emptyAddressValue);
