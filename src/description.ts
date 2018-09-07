@@ -290,12 +290,13 @@ export class Description extends Logger {
       })());
     }
     promises.push(this.executor.executeContractCall(
-      this.nameResolver, 'owner', this.nameResolver.namehash(ensAddress)));
-    const [ hash, currentOwner ] = await promises;
+      this.nameResolver.ensContract, 'owner', this.nameResolver.namehash(ensAddress)));
+    const [ hash, currentOwner ] = await Promise.all(promises);
     let finalNodeOwner = null;
     if (currentOwner !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
       finalNodeOwner = currentOwner;
     }
+
     await this.nameResolver.setContent(ensAddress, hash, accountId, finalNodeOwner);
   };
 
