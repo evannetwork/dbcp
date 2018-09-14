@@ -1,35 +1,18 @@
 /*
   Copyright (c) 2018-present evan GmbH.
- 
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
- 
+
       http://www.apache.org/licenses/LICENSE-2.0
- 
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-
-  
 */
-
-/* Copyright 2018 evan.network GmbH
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 import descriptionSchemas from './description.schemas';
 import { ContractLoader } from './contracts/contract-loader';
@@ -282,29 +265,39 @@ export class Description extends Logger {
    */
   public async setDescriptionToEns(ensAddress: string, envelope: Envelope|string, accountId: string):
       Promise<void> {
-    let hash;
+    let promises = [];
     if (typeof envelope === 'string') {
-      hash = envelope;
+      promises.push(envelope);
     } else {
-      const content: Envelope = Object.assign({}, envelope);
-      // add dbcp version
-      content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
-      const validation = this.validateDescription(content);
-      if (validation !== true) {
-        const msg = `description invalid: ${JSON.stringify(validation)}`;
-        this.log(msg, 'error');
-        throw new Error(msg);
-      }
-      if (content.private && content.cryptoInfo) {
-        const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
-        const key = await this.keyProvider.getKey(content.cryptoInfo);
-        const encrypted = await cryptor.encrypt(content.private, { key, });
-        content.private = encrypted.toString(this.encodingEncrypted);
-      }
-      hash = await this.dfs.add(
-        'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
+      promises.push((async () => {
+        const content: Envelope = Object.assign({}, envelope);
+        // add dbcp version
+        content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
+        const validation = this.validateDescription(content);
+        if (validation !== true) {
+          const msg = `description invalid: ${JSON.stringify(validation)}`;
+          this.log(msg, 'error');
+          throw new Error(msg);
+        }
+        if (content.private && content.cryptoInfo) {
+          const cryptor = this.cryptoProvider.getCryptorByCryptoInfo(content.cryptoInfo);
+          const key = await this.keyProvider.getKey(content.cryptoInfo);
+          const encrypted = await cryptor.encrypt(content.private, { key, });
+          content.private = encrypted.toString(this.encodingEncrypted);
+        }
+        return await this.dfs.add(
+          'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope));
+      })());
     }
-    await this.nameResolver.setContent(ensAddress, hash, accountId, accountId);
+    promises.push(this.executor.executeContractCall(
+      this.nameResolver.ensContract, 'owner', this.nameResolver.namehash(ensAddress)));
+    const [ hash, currentOwner ] = await Promise.all(promises);
+    let finalNodeOwner = null;
+    if (currentOwner !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+      finalNodeOwner = currentOwner;
+    }
+
+    await this.nameResolver.setContent(ensAddress, hash, accountId, finalNodeOwner);
   };
 
   /**

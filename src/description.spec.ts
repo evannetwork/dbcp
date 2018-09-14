@@ -1,35 +1,18 @@
 /*
   Copyright (c) 2018-present evan GmbH.
- 
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
- 
+
       http://www.apache.org/licenses/LICENSE-2.0
- 
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-
-  
 */
-
-/* Copyright 2018 evan.network GmbH
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 import 'mocha';
 import { expect, use, } from 'chai';
@@ -51,6 +34,7 @@ import { Unencrypted } from './encryption/unencrypted';
 
 use(chaiAsPromised);
 
+const dbcpTestDoman = 'dbcp.test.evan';
 const testAddressPrefix = 'testDapp';
 /* tslint:disable:quotemark */
 const sampleDescription = {
@@ -97,7 +81,7 @@ describe('Description handler', function() {
     executor.eventHub = await TestUtils.getEventHub(web3);
     loader = TestUtils.getContractLoader(web3);
 
-    testAddressFoo = `${testAddressPrefix}.${nameResolver.getDomainName(config.nameResolver.domains.root)}`;
+    testAddressFoo = `${testAddressPrefix}.${dbcpTestDoman}`;
   });
 
   after(async () => {
@@ -172,7 +156,7 @@ describe('Description handler', function() {
 
   describe('when working with ENS descriptions', () => {
     it('should be able to set and get unencrypted content for ENS addresses', async () => {
-      await description.setDescriptionToEns(testAddressFoo, { public: sampleDescription, }, accounts[1]);
+      await description.setDescriptionToEns(testAddressFoo, { public: sampleDescription, }, accounts[0]);
       const content = await description.getDescriptionFromEns(testAddressFoo);
       expect(content).to.deep.eq({ public: sampleDescription, });
     });
@@ -181,7 +165,7 @@ describe('Description handler', function() {
       const sampleDescriptionSpecialCharacters = {
         public: Object.assign({}, sampleDescription, { name: 'Special Characters !"§$%&/()=?ÜÄÖ', }),
       };
-      await description.setDescriptionToEns(testAddressFoo, sampleDescriptionSpecialCharacters, accounts[1]);
+      await description.setDescriptionToEns(testAddressFoo, sampleDescriptionSpecialCharacters, accounts[0]);
       const content = await description.getDescriptionFromEns(testAddressFoo);
       expect(content).to.deep.eq(sampleDescriptionSpecialCharacters);
     });
@@ -203,7 +187,7 @@ describe('Description handler', function() {
           name: 'real name',
         },
       };
-      await description.setDescriptionToEns(testAddressFoo, secureDescription, accounts[1]);
+      await description.setDescriptionToEns(testAddressFoo, secureDescription, accounts[0]);
       const content = await description.getDescriptionFromEns(testAddressFoo);
       expect(content).to.deep.eq(secureDescription);
     });
@@ -274,10 +258,10 @@ describe('Description handler', function() {
     
     it('should prefer a smart contracts description over an ENS address description, when getting descriptions', async () => {
       // create a contract with a description
-      const contract = await executor.createContract('Described', [], {from: accounts[1], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
 
       // link ENS address to it, set description at ENS sddress
-      await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[1], accounts[1]);
+      await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[0], accounts[0]);
       const ensDescription = {
         public: Object.assign(
           {},
@@ -285,10 +269,10 @@ describe('Description handler', function() {
           { abis: { own: JSON.parse(sampleInterfaceDescribed), },
         }),
       };
-      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[1]);
+      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
 
       // expect it to use the description defined at ENS address
-      expect(await description.getDescription(testAddressFoo, accounts[1])).to.deep.eq(ensDescription);
+      expect(await description.getDescription(testAddressFoo, accounts[0])).to.deep.eq(ensDescription);
 
       // set different description at contract
       const contractDescription = {
@@ -298,21 +282,21 @@ describe('Description handler', function() {
           { abis: { own: JSON.parse(sampleInterfaceAbstractENS), },
         }),
       };
-      await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[1]);
+      await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
 
       // expect it to use its own description, when loaded via its contract address
-      expect(await description.getDescription(contract.options.address, accounts[1])).to.deep.eq(contractDescription);
+      expect(await description.getDescription(contract.options.address, accounts[0])).to.deep.eq(contractDescription);
 
       // load contract via ENS, expect it to (still) use the interface defined at the contract
-      expect(await description.getDescription(testAddressFoo, accounts[1])).to.deep.eq(contractDescription);
+      expect(await description.getDescription(testAddressFoo, accounts[0])).to.deep.eq(contractDescription);
     });
 
     it('should prefer a smart contracts description over an ENS address description, when loading contract instances', async () => {
       // create a contract
-      const contract = await executor.createContract('Described', [], {from: accounts[1], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
 
       // link ENS address to it, set description at ENS sddress
-      await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[1], accounts[1]);
+      await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[0], accounts[0]);
       const ensDescription = {
         public: Object.assign(
           {},
@@ -320,7 +304,7 @@ describe('Description handler', function() {
           { abis: { own: JSON.parse(sampleInterfaceDescribed), },
         }),
       };
-      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[1]);
+      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
 
       // load contract via ENS address, expect it to use the interface defined at ENS address
       let loadedContract = await description.loadContract(testAddressFoo, accounts[0]);
@@ -335,7 +319,7 @@ describe('Description handler', function() {
           { abis: { own: JSON.parse(sampleInterfaceAbstractENS), },
         }),
       };
-      await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[1]);
+      await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
 
       // expect it to use its own interface, when loaded via its contract address
       loadedContract = await description.loadContract(testAddressFoo, accounts[0]);
