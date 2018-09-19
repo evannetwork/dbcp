@@ -293,7 +293,7 @@ export class Description extends Logger {
       this.nameResolver.ensContract, 'owner', this.nameResolver.namehash(ensAddress)));
     const [ hash, currentOwner ] = await Promise.all(promises);
     let finalNodeOwner = null;
-    if (currentOwner !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+    if (currentOwner !== '0x0000000000000000000000000000000000000000') {
       finalNodeOwner = currentOwner;
     }
 
