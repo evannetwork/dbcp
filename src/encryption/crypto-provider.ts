@@ -38,7 +38,7 @@ export class CryptoProvider {
    */
   getCryptorByCryptoAlgo(cryptoAlgo: string): Cryptor {
     if (!this.cryptors[cryptoAlgo]) {
-      throw new Error('algorithm "${cryptoAlgo} "unsupported');
+      throw new Error(`algorithm "${cryptoAlgo}" unsupported`);
     }
     return this.cryptors[cryptoAlgo];
   }
