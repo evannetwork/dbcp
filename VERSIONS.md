@@ -5,6 +5,11 @@
 ### Fixes
 ### Deprecations
 
+## Version 1.3.1
+### Fixes
+- fix `finalNodeOwner` check within `setDescriptionToEns` when owner is not set (currentOwner === 0x0000000000000000000000000000000000000000)
+- add fallback for hash <=> Hash in `dfs` - `Ipfs` - `addMultiple`
+
 ## Version 1.3.0
 ### Fixes
 - fix issue in `NameResolver`, that when trying to get ownership of a node, when no address is set at the same time

@@ -121,6 +121,12 @@ export class Ipfs extends Logger implements DfsInterface {
       if (!remoteFiles.length) {
         throw new Error('no hash was returned');
       }
+      remoteFiles = remoteFiles.map((fileHash) => {
+        if (!fileHash.hash) {
+          fileHash.hash = fileHash.Hash;
+        }
+        return fileHash;
+      });
     } catch (ex) {
       let msg = `could not add file to ipfs: ${ex.message || ex}`;
       this.log(msg);
