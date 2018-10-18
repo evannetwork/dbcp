@@ -4,6 +4,7 @@
 ### Features
 ### Fixes
 - fix `finalNodeOwner` check within `setDescriptionToEns` when owner is not set (currentOwner === 0x0000000000000000000000000000000000000000)
+- add fallback for hash <=> Hash in `dfs` - `Ipfs` - `addMultiple`
 
 ### Deprecations
 
