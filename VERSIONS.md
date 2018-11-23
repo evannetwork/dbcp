@@ -3,8 +3,11 @@
 ## Next Version
 ### Features
 ### Fixes
-- add accountId handling for IPFS files which is a preparation for payment channels
 ### Deprecations
+
+## Version 1.4.0
+### Features
+- add accountId handling for IPFS files which is a preparation for payment channels
 
 ## Version 1.3.1
 ### Fixes
