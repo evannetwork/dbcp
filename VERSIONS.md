@@ -5,6 +5,10 @@
 ### Fixes
 ### Deprecations
 
+## Version 1.4.1
+### Fixes
+- add missing ipfs hash accountId parsing
+
 ## Version 1.4.0
 ### Features
 - add accountId handling for IPFS files which is a preparation for payment channels

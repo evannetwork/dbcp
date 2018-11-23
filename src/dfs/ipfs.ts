@@ -214,13 +214,14 @@ export class Ipfs extends Logger implements DfsInterface {
 
     if (this.cache) {
       let buffer = await this.cache.get(ipfsHash);
-      const evanIdentity = Buffer.from(buffer.slice(0, 18));
-      const accIdBuf = Buffer.from(buffer.slice(18, 38));
-      const isAccountId = evanIdentity.toString() === '|||evanIdentity|||';
-      if(isAccountId) {
-        buffer = buffer.slice(38);
-      }
       if (buffer) {
+        const evanIdentity = Buffer.from(buffer.slice(0, 18));
+        const accIdBuf = Buffer.from(buffer.slice(18, 38));
+        const isAccountId = evanIdentity.toString() === '|||evanIdentity|||';
+        if (isAccountId) {
+          buffer = buffer.slice(38);
+        }
+
         if (returnBuffer) {
           return Buffer.from(buffer);
         } else {
@@ -239,10 +240,11 @@ export class Ipfs extends Logger implements DfsInterface {
     const getRemoteHash = runFunctionAsPromise(this.remoteNode.files, 'cat', ipfsHash)
       .then((buffer: any) => {
         let fileBuffer = buffer;
-        const accIdBuf = Buffer.from(fileBuffer.slice(0, 20));
-        const isAccountId = this.web3.utils.isAddress(accIdBuf.toString('hex'));
+        const evanIdentity = Buffer.from(fileBuffer.slice(0, 18));
+        const accIdBuf = Buffer.from(fileBuffer.slice(18, 38));
+        const isAccountId = evanIdentity.toString() === '|||evanIdentity|||';
         if(isAccountId) {
-          fileBuffer = fileBuffer.slice(20);
+          fileBuffer = fileBuffer.slice(38);
         }        
         const ret = fileBuffer.toString('binary');
         if (this.cache) {
