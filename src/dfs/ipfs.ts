@@ -38,6 +38,9 @@ let ipfsAPI;
 export interface IpfsOptions extends LoggerOptions {
   remoteNode: any;
   cache: any;
+  accountId: string;
+  accountStore: any;
+  web3: any;
 }
 
 /**
@@ -45,6 +48,9 @@ export interface IpfsOptions extends LoggerOptions {
  */
 export class Ipfs extends Logger implements DfsInterface {
   remoteNode: any;
+  web3: any;
+  accountId: string;
+  accountStore: any;
   cache: DfsCacheInterface;
 
   /**
@@ -82,6 +88,9 @@ export class Ipfs extends Logger implements DfsInterface {
   constructor(options) {
     super(options);
     this.remoteNode = options.remoteNode;
+    this.accountId = options.accountId;
+    this.web3 = options.web3;
+    this.accountStore = options.accountStore;
     if (options.cache) {
       this.cache = options.cache;
     }
@@ -117,6 +126,10 @@ export class Ipfs extends Logger implements DfsInterface {
   async addMultiple(files: FileToAdd[]): Promise<string[]> {
     let remoteFiles = [];
     try {
+      files.forEach((file) => {
+        const accBuf = Buffer.concat([Buffer.from('|||evanIdentity|||'), Buffer.from(this.accountId.replace('0x', ''), 'hex')]);
+        file.content = Buffer.concat([accBuf, file.content]);
+      })
       remoteFiles = await runFunctionAsPromise(this.remoteNode.files, 'add', files);
       if (!remoteFiles.length) {
         throw new Error('no hash was returned');
@@ -147,11 +160,16 @@ export class Ipfs extends Logger implements DfsInterface {
    * @param      hash  filehash of the pinned item
    */
   async pinFileHash(hash: string): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+
+      const toSignedMessage = 'ipfsUpload';
+      const signer = this.accountId.toLowerCase();
+      const pk = '0x' + await this.accountStore.getPrivateKey(signer);
+      const signedMessage = this.web3.eth.accounts.sign(toSignedMessage, pk).signature;
       const options = {
         hostname: 'ipfs.evan.network',
         port: '443',
-        path: `/pins/${hash}`,
+        path: `/pins/${hash}?message=${signedMessage}&accountId=${this.accountId}`,
         method : 'POST'
       };
       const req = https.request(options, (res) => {
@@ -195,7 +213,13 @@ export class Ipfs extends Logger implements DfsInterface {
     this.log(`Getting IPFS Hash ${ipfsHash}`, 'debug');
 
     if (this.cache) {
-      const buffer = await this.cache.get(ipfsHash);
+      let buffer = await this.cache.get(ipfsHash);
+      const evanIdentity = Buffer.from(buffer.slice(0, 18));
+      const accIdBuf = Buffer.from(buffer.slice(18, 38));
+      const isAccountId = evanIdentity.toString() === '|||evanIdentity|||';
+      if(isAccountId) {
+        buffer = buffer.slice(38);
+      }
       if (buffer) {
         if (returnBuffer) {
           return Buffer.from(buffer);
@@ -214,12 +238,18 @@ export class Ipfs extends Logger implements DfsInterface {
     });
     const getRemoteHash = runFunctionAsPromise(this.remoteNode.files, 'cat', ipfsHash)
       .then((buffer: any) => {
-        const ret = buffer.toString('binary');
+        let fileBuffer = buffer;
+        const accIdBuf = Buffer.from(fileBuffer.slice(0, 20));
+        const isAccountId = this.web3.utils.isAddress(accIdBuf.toString('hex'));
+        if(isAccountId) {
+          fileBuffer = fileBuffer.slice(20);
+        }        
+        const ret = fileBuffer.toString('binary');
         if (this.cache) {
-          this.cache.add(ipfsHash, buffer);
+          this.cache.add(ipfsHash, fileBuffer);
         }
         if (returnBuffer) {
-          return buffer;
+          return fileBuffer;
         } else {
           return ret;
         }
