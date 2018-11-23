@@ -5,6 +5,10 @@
 ### Fixes
 ### Deprecations
 
+## Version 1.4.0
+### Features
+- add accountId handling for IPFS files which is a preparation for payment channels
+
 ## Version 1.3.1
 ### Fixes
 - fix `finalNodeOwner` check within `setDescriptionToEns` when owner is not set (currentOwner === 0x0000000000000000000000000000000000000000)
