@@ -7,7 +7,7 @@
       "files": [
         "index.html"
       ],
-      "origin": "QmNuQLXmsEqtN7e21dqenLBgijF8bKRrVqUvbYiqGMuwnU",
+      "origin": "QmfBVcG1LffyN7LdhRhktev6XVwTM1wFqbrU4K67nT3Tip",
       "primaryColor": "#1a68b7",
       "secondaryColor": "#eaeaea",
       "type": "library"
@@ -32,7 +32,7 @@
     ],
     "version": "1.0.0",
     "versions": {
-      "1.0.0": "QmRRJm8w1mG9yY7ju3wzM4wKViA1on8xyQ3UsmhGopTa4h"
+      "1.0.0": "QmbCkstFGajdnx1WTmHiC9c8QXDgQtR449zAmwAz49iPhX"
     }
   }
 }

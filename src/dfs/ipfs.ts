@@ -126,10 +126,6 @@ export class Ipfs extends Logger implements DfsInterface {
   async addMultiple(files: FileToAdd[]): Promise<string[]> {
     let remoteFiles = [];
     try {
-      files.forEach((file) => {
-        const accBuf = Buffer.concat([Buffer.from('|||evanIdentity|||'), Buffer.from(this.accountId.replace('0x', ''), 'hex')]);
-        file.content = Buffer.concat([accBuf, file.content]);
-      })
       remoteFiles = await runFunctionAsPromise(this.remoteNode.files, 'add', files);
       if (!remoteFiles.length) {
         throw new Error('no hash was returned');
