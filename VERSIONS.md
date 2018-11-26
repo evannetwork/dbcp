@@ -5,6 +5,10 @@
 ### Fixes
 ### Deprecations
 
+## Version 1.4.2
+### Fixes
+- disable `Ipfs` `addMultiple` binary accountId prefixing
+
 ## Version 1.4.1
 ### Fixes
 - add missing ipfs hash accountId parsing
