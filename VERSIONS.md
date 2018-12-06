@@ -3,6 +3,7 @@
 ## Next Version
 ### Features
 ### Fixes
+- remove oboslete ipfs informations from ipfs class
 ### Deprecations
 
 ## Version 1.4.2
