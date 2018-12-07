@@ -157,15 +157,10 @@ export class Ipfs extends Logger implements DfsInterface {
    */
   async pinFileHash(hash: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
-
-      const toSignedMessage = 'ipfsUpload';
-      const signer = this.accountId.toLowerCase();
-      const pk = '0x' + await this.accountStore.getPrivateKey(signer);
-      const signedMessage = this.web3.eth.accounts.sign(toSignedMessage, pk).signature;
       const options = {
         hostname: 'ipfs.evan.network',
         port: '443',
-        path: `/pins/${hash}?message=${signedMessage}&accountId=${this.accountId}`,
+        path: `/pins/${hash}`,
         method : 'POST'
       };
       const req = https.request(options, (res) => {
