@@ -173,8 +173,8 @@ Parameters
 #. ``inputOptions`` - ``any``: options object
     * ``from`` - ``string`` (optional): The address the call "transaction" should be made from.
     * ``gas`` - ``number`` (optional): The amount of gas provided with the transaction.
-    * ``event`` - ``string`` (optional): The event to wait for a result of the transaction, 
-    * ``getEventResult`` - ``function`` (optional): callback function which will be called when the event is triggered.
+    * ``event`` - ``any`` (optional): object with two properties ``target`` (contract name) and ``eventName``
+    * ``getEventResult`` - ``function`` (optional): callback function which will be called when the event is triggered. First argument is the full event info, second argument is an options with the event arguments.
     * ``eventTimeout`` - ``number`` (optional): timeout (in ms) to wait for a event result before the transaction is marked as error
     * ``estimate`` - ``boolean`` (optional): Should the amount of gas be estimated for the transaction (overwrites ``gas`` parameter)
     * ``force`` - ``string`` (optional): Forces the transaction to be executed. Ignores estimation errors
@@ -185,7 +185,7 @@ Parameters
 Returns
 -------
 
-``Promise`` resolves to: ``no result`` (if no event to watch was given), ``the event`` (if event but no getEventResult was given), ``the`` value returned by getEventResult(eventObject).
+``Promise`` resolves to: ``no result`` (if no event to watch was given), ``the event`` (if event but no getEventResult was given), ``the`` value returned by getEventResult(eventObject, arguments).
 
 Because an estimation is performed, even if a fixed gas cost has been set, failing transactions are rejected before being executed. This protects users from executing transactions, that consume all provided gas and fail, which is usually not intended, especially if a large amount of gas has been provided. To prevent this behavior for any reason, add a ``force: true`` to the options, though it is **not advised to do so**.
 
