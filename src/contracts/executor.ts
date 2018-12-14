@@ -178,16 +178,20 @@ export class Executor extends Logger {
               if (this.eventHub) {
                 this.eventHub
                   .unsubscribe({ subscription})
+                  .then(() => { resolveStop(); })
                   .catch((ex) => {
                     this.log(`error occurred while unsubscribing from transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
                   })
+                  .then(() => { isPending = false; })
                 ;
               } else {
+                isPending = false;
                 reject('passed an event to a transaction but no event hub registered');
               }
+            } else {
+              isPending = false;
+              resolveStop();
             }
-            isPending = false;
-            resolveStop();
           }, isError ? 1000 : 0);
         });
       }
