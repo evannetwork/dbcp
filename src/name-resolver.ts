@@ -539,6 +539,8 @@ export class NameResolver extends Logger {
         const buffer = new Buffer(dropPrefix0x(node) + dropPrefix0x(labelSha), 'hex');
         node = this.sha3(buffer);
       }
+    } else {
+      node = `0x${node}`;
     }
 
     return node;

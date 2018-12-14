@@ -7,10 +7,10 @@
     "bs58": "4.0.1",
     "eth-lightwallet": "git+https://github.com/ConsenSys/eth-lightwallet.git#251eda97f705dbfae5ef099479aa19160028ae80",
     "ethereumjs-tx": "1.3.4",
-    "ipfs-api": "^17.5.0",
+    "ipfs-api": "^26.1.2",
     "prottle": "^1.0.3",
     "uuid": "^3.2.1",
-    "web3-eth-abi": "1.0.0-beta.27"
+    "web3-eth-abi": "1.0.0-beta.37"
   },
   "description": "formalized Ethereum based smart contract interaction description",
   "devDependencies": {
@@ -44,25 +44,7 @@
     "typescript": "2.6.2",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
-    "web3": "1.0.0-beta.27",
-    "web3-bzz": "1.0.0-beta.27",
-    "web3-core": "1.0.0-beta.27",
-    "web3-core-helpers": "1.0.0-beta.27",
-    "web3-core-method": "1.0.0-beta.27",
-    "web3-core-promievent": "1.0.0-beta.27",
-    "web3-core-requestmanager": "1.0.0-beta.27",
-    "web3-core-subscriptions": "1.0.0-beta.27",
-    "web3-eth": "1.0.0-beta.27",
-    "web3-eth-accounts": "1.0.0-beta.27",
-    "web3-eth-contract": "1.0.0-beta.27",
-    "web3-eth-iban": "1.0.0-beta.27",
-    "web3-eth-personal": "1.0.0-beta.27",
-    "web3-net": "1.0.0-beta.27",
-    "web3-providers-http": "1.0.0-beta.27",
-    "web3-providers-ipc": "1.0.0-beta.27",
-    "web3-providers-ws": "1.0.0-beta.27",
-    "web3-shh": "1.0.0-beta.27",
-    "web3-utils": "1.0.0-beta.27"
+    "web3": "1.0.0-beta.37"
   },
   "homepage": "https://dbcp.online/",
   "keywords": [
@@ -89,5 +71,5 @@
     "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.4.2"
+  "version": "1.4.3"
 }
