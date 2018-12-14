@@ -10,7 +10,7 @@
     "ipfs-api": "^26.1.2",
     "prottle": "^1.0.3",
     "uuid": "^3.2.1",
-    "web3-eth-abi": "1.0.0-beta.27"
+    "web3-eth-abi": "1.0.0-beta.37"
   },
   "description": "formalized Ethereum based smart contract interaction description",
   "devDependencies": {
