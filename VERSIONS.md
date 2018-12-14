@@ -3,10 +3,12 @@
 ## Next Version
 ### Features
 ### Fixes
+### Deprecations
+
+## Version 1.4.3
+### Fixes
 - remove oboslete ipfs informations from ipfs class
 - return proper `0x` prefix when namehashing empty string with `NameResolver.namehash`
-
-### Deprecations
 
 ## Version 1.4.2
 ### Fixes
