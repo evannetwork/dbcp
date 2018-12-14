@@ -9,8 +9,7 @@
     "ethereumjs-tx": "1.3.4",
     "ipfs-api": "^26.1.2",
     "prottle": "^1.0.3",
-    "uuid": "^3.2.1",
-    "web3-eth-abi": "1.0.0-beta.37"
+    "uuid": "^3.2.1"
   },
   "description": "formalized Ethereum based smart contract interaction description",
   "devDependencies": {
@@ -44,7 +43,7 @@
     "typescript": "2.6.2",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
-    "web3": "1.0.0-beta.37"
+    "web3": "1.0.0-beta.33"
   },
   "homepage": "https://dbcp.online/",
   "keywords": [
@@ -71,5 +70,5 @@
     "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.4.3"
+  "version": "1.4.4"
 }
