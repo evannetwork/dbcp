@@ -5,6 +5,10 @@
 ### Fixes
 ### Deprecations
 
+## Version 1.4.4
+### Fixes
+- use 1.0.0-beta.33, beta.37 will cause Websocket errors in Edge browser
+
 ## Version 1.4.3
 ### Fixes
 - remove oboslete ipfs informations from ipfs class
