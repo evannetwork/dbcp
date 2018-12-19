@@ -2,7 +2,9 @@
 
 ## Next Version
 ### Features
+- allow listening for events on other contract addresses when using executeContractTransaction
 ### Fixes
+- throw error when using events on executor without an registered eventhub
 ### Deprecations
 
 ## Version 1.4.4

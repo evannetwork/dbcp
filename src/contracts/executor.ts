@@ -212,7 +212,7 @@ export class Executor extends Logger {
             this.eventHub
               .subscribe(
                 inputOptions.event.target,
-                contract.options.address,
+                inputOptions.event.targetAdress || contract.options.address,
                 inputOptions.event.eventName,
                 (event) => true,
                 (event) => {
@@ -236,7 +236,7 @@ export class Executor extends Logger {
               })
             ;
           } else {
-            this.log('passed an event to a transaction but no event hub registered', 'warning');
+            throw new Error('passed an event to a transaction but no event hub registered');
           }
         }
 
