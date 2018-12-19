@@ -3,40 +3,51 @@
 ## Next Version
 ### Features
 - allow listening for events on other contract addresses when using executeContractTransaction
+
 ### Fixes
 - throw error when using events on executor without an registered eventhub
+
 ### Deprecations
+- (future deprication) invalid descriptions now log a warning and invalid description will throw in the near future
+
 
 ## Version 1.4.4
 ### Fixes
 - use 1.0.0-beta.33, beta.37 will cause Websocket errors in Edge browser
+
 
 ## Version 1.4.3
 ### Fixes
 - remove oboslete ipfs informations from ipfs class
 - return proper `0x` prefix when namehashing empty string with `NameResolver.namehash`
 
+
 ## Version 1.4.2
 ### Fixes
 - disable `Ipfs` `addMultiple` binary accountId prefixing
+
 
 ## Version 1.4.1
 ### Fixes
 - add missing ipfs hash accountId parsing
 
+
 ## Version 1.4.0
 ### Features
 - add accountId handling for IPFS files which is a preparation for payment channels
+
 
 ## Version 1.3.1
 ### Fixes
 - fix `finalNodeOwner` check within `setDescriptionToEns` when owner is not set (currentOwner === 0x0000000000000000000000000000000000000000)
 - add fallback for hash <=> Hash in `dfs` - `Ipfs` - `addMultiple`
 
+
 ## Version 1.3.0
 ### Fixes
 - fix issue in `NameResolver`, that when trying to get ownership of a node, when no address is set at the same time
 - `setDescriptionToEns` in `Description` now keeps current node owner if node is owned
+
 
 ## Version 1.2.0
 ### Fixes
