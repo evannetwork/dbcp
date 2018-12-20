@@ -212,7 +212,7 @@ export class Executor extends Logger {
             this.eventHub
               .subscribe(
                 inputOptions.event.target,
-                inputOptions.event.targetAdress || contract.options.address,
+                inputOptions.event.targetAddress || contract.options.address,
                 inputOptions.event.eventName,
                 (event) => true,
                 (event) => {
