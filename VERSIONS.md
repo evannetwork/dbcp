@@ -3,6 +3,11 @@
 ## Next Version
 ### Features
 - allow listening for events on other contract addresses when using executeContractTransaction
+- add dbcp schema version 2 with the following updates
+  + add `/identities` propety
+  + add `/license` property
+  + move `/imgSquare` to `/dapp/imgSquare`
+  + move `/imgWide` to `/dapp/imgWide`
 
 ### Fixes
 - throw error when using events on executor without an registered eventhub

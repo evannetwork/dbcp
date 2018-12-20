@@ -42,7 +42,7 @@ const sampleDescription = {
   "description": "description used in tests.",
   "author": "description test user",
   "version": "0.0.1",
-  "dbcpVersion": 1,
+  "dbcpVersion": 2,
   "dapp": {
     "dependencies": {
       "angular-core": "^1.0.0",

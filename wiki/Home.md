@@ -65,10 +65,11 @@ The following snippet shows a shortened sample description, the full sample desc
       "primaryColor": "#e87e23",
       "secondaryColor": "#fffaf5",
       "standalone": true,
-      "type": "dapp"
+      "type": "dapp",
+      "imgSquare": "data:image/png;base64,...",
     },
     "description": "Create todos and manage updates.",
-    "dbcpVersion": 1,
+    "dbcpVersion": 2,
     "i18n": {
       "description": {
         "de": "Erstelle Aufgaben oder zeige sie an",
@@ -79,7 +80,6 @@ The following snippet shows a shortened sample description, the full sample desc
         "en": "Task"
       }
     },
-    "imgSquare": "data:image/png;base64,...",
     "dataSchema": {
       "list_settable_by_member": {
         "$id": "list_settable_by_member_schema",
@@ -128,11 +128,11 @@ Depending on the visibility of the properties, these are placed under a differen
 | dataSchema | | object | json schema definition for data in the contract, written as [ajv](https://github.com/epoberezkin/ajv) schemas |
 | tags | | string[] | tags for categorizing the contract |
 | i18n | | object | labels for displaying contract information (multilingual) |
-| imgSquare | | string | contract logo (square) e.g. for icons - can be Data URL or regular URL   |
-| imgWide | | string | contract logo (wide) e.g. for sidebar - can be Data URL or regular URL |
 | dapp | | object | details about the used ÐApp, see section "ÐApp Definition" below |
 | blockchain | | object | blockchain reference, see section "Blockchain Reference" below |
 | dfs | | object | distributed file system reference, see section "Distributed File System Reference" below |
+| identity | | string | [Decentralized Identity](https://www.weboftrust.info/)<sup>[+]</sup> about described object |
+| license | | object | license information like license type and license |
 
 
 ## ÐApp Definition
@@ -148,6 +148,8 @@ Contracts that use a ÐApp for interacting with it, need the "dapp" property, th
 | secondaryColor | | string | color code for secondary color |
 | standalone | | bool | indicates whether this ÐApp runs in "full screen" without a run container |
 | dependencies | | object | dependencies of this ÐAPP |
+| imgSquare | | string | contract logo (square) e.g. for icons - can be Data URL or regular URL   |
+| imgWide | | string | contract logo (wide) e.g. for sidebar - can be Data URL or regular URL |
 
 ÐAPP dependencies are similar to dependencies in npm packages and allow to specify their required version range, example:
 ```json
