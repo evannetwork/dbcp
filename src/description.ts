@@ -106,6 +106,12 @@ export class Description extends Logger {
       }
     }
 
+    const validation = this.validateDescription(contractDescription);
+    if (validation !== true) {
+      this.log(`description "${address}" is invalid: ${JSON.stringify(validation)}; ` +
+        'this may invalidate the entire description in the near future', 'warning');
+    }
+
     return contractDescription;
   }
 
