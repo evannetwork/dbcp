@@ -6,8 +6,7 @@
 - add dbcp schema version 2 with the following updates
   + add `/identities` propety
   + add `/license` property
-  + move `/imgSquare` to `/dapp/imgSquare`
-  + move `/imgWide` to `/dapp/imgWide`
+- default dbcpVersion is now 1. so old descriptions without version will be checked as version 1, descriptions without versions will be set as version 1
 
 ### Fixes
 - throw error when using events on executor without an registered eventhub
