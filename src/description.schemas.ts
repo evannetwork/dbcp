@@ -164,6 +164,8 @@ const definitions = {
           }
         }
       },
+      "imgSquare": { "type": "string" },
+      "imgWide": { "type": "string" },
       "dapp": {
         "type": "object",
         "additionalProperties": false,
@@ -187,8 +189,6 @@ const definitions = {
           "secondaryColor": {"type": "string"},
           "standalone": {"type": "boolean"},
           "type": {"type": "string"},
-          "imgSquare": { "type": "string" },
-          "imgWide": { "type": "string" },
         },
         "required": ["entrypoint", "files", "type", "origin"]
       },

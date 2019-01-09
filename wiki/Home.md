@@ -43,7 +43,7 @@ When having an ENS entry or a contract address, the DBCP description for that ca
 ![DBCP information flow](https://user-images.githubusercontent.com/1394421/38669351-724dbb98-3e46-11e8-9b87-a9b1157e0e7e.png)
 
 ## Properties in Description
-The current DBCP protocol definition spec is at version 1 (see property `dbcpVersion`).
+The current DBCP protocol definition spec is at version 2 (see property `dbcpVersion`).
 
 The following snippet shows a shortened sample description, the full sample description can be found [here](https://github.com/evannetwork/dbcp/wiki/Example-DBCP-file).
 
@@ -51,6 +51,7 @@ The following snippet shows a shortened sample description, the full sample desc
 {
   "public": {
     "name": "Cool Task with Abis",
+    "imgSquare": "data:image/png;base64,...",
     "dapp": {
       "dependencies": {
         "angular-core": "^1.0.0",
@@ -66,7 +67,6 @@ The following snippet shows a shortened sample description, the full sample desc
       "secondaryColor": "#fffaf5",
       "standalone": true,
       "type": "dapp",
-      "imgSquare": "data:image/png;base64,...",
     },
     "description": "Create todos and manage updates.",
     "dbcpVersion": 2,
@@ -128,6 +128,8 @@ Depending on the visibility of the properties, these are placed under a differen
 | dataSchema | | object | json schema definition for data in the contract, written as [ajv](https://github.com/epoberezkin/ajv) schemas |
 | tags | | string[] | tags for categorizing the contract |
 | i18n | | object | labels for displaying contract information (multilingual) |
+| imgSquare | | string | contract logo (square) e.g. for icons - can be Data URL or regular URL   |
+| imgWide | | string | contract logo (wide) e.g. for sidebar - can be Data URL or regular URL |
 | dapp | | object | details about the used ÐApp, see section "ÐApp Definition" below |
 | blockchain | | object | blockchain reference, see section "Blockchain Reference" below |
 | dfs | | object | distributed file system reference, see section "Distributed File System Reference" below |
@@ -148,8 +150,6 @@ Contracts that use a ÐApp for interacting with it, need the "dapp" property, th
 | secondaryColor | | string | color code for secondary color |
 | standalone | | bool | indicates whether this ÐApp runs in "full screen" without a run container |
 | dependencies | | object | dependencies of this ÐAPP |
-| imgSquare | | string | contract logo (square) e.g. for icons - can be Data URL or regular URL   |
-| imgWide | | string | contract logo (wide) e.g. for sidebar - can be Data URL or regular URL |
 
 ÐAPP dependencies are similar to dependencies in npm packages and allow to specify their required version range, example:
 ```json
