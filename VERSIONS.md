@@ -10,6 +10,7 @@
 
 ### Fixes
 - throw error when using events on executor without an registered eventhub
+- add checks to prevent calls and transactions against null and zero address contracts
 
 ### Deprecations
 - (future deprication) invalid descriptions now log a warning and invalid description will throw in the near future

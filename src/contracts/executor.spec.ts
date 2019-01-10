@@ -15,7 +15,8 @@
 */
 
 import 'mocha';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import chaiAsPromised = require('chai-as-promised');
 
 import { accounts } from '../test/accounts';
 import { ContractLoader } from './contract-loader';
@@ -44,6 +45,9 @@ const mockContract = {
   }
 }
 
+use(chaiAsPromised);
+
+
 class MockedSigner implements SignerInterface {
   public lastOptions;
 
@@ -70,6 +74,7 @@ describe('Executor handler', function() {
     gas: 1234567,
     gasPrice: 2012345678,
   };
+  let contractLoader: ContractLoader;
   let mockedExecutor: Executor;
   let mockedSigner: MockedSigner;
 
@@ -83,6 +88,7 @@ describe('Executor handler', function() {
       signer: mockedSigner,
       web3,
     });
+    contractLoader = TestUtils.getContractLoader(web3);
   });
 
   after(() => {
@@ -239,6 +245,16 @@ describe('Executor handler', function() {
       expect(mockContract.lastOptions.gas).to.eq(100000);
       expect(mockContract.lastOptions.gasPrice).to.eq(defaultOptions.gasPrice);
     });
+
+    it('should throw an error when trying to perform a call on null contract', async() => {
+      const ownedContract = contractLoader.loadContract('Owned', null);
+      expect(mockedExecutor.executeContractCall(ownedContract, 'owner')).to.be.rejected;
+    });
+
+    it('should throw an error when trying to perform a call on zero address contract', async() => {
+      const ownedContract = contractLoader.loadContract('Owned', '0x0000000000000000000000000000000000000000');
+      expect(mockedExecutor.executeContractCall(ownedContract, 'owner')).to.be.rejected;
+    });
   });
 
   describe('when performing contract transactions', async () => {
@@ -258,6 +274,16 @@ describe('Executor handler', function() {
       await mockedExecutor.executeContractTransaction(ownedContract, 'owner', { from: accounts[0], gas: 100000, });
       expect(mockedSigner.lastOptions.gas).to.eq(100000);
       expect(mockedSigner.lastOptions.gasPrice).to.eq(defaultOptions.gasPrice);
+    });
+
+    it('should throw an error when trying to perform a transaction on null contract', async() => {
+      const ownedContract = contractLoader.loadContract('Owned', null);
+      expect(mockedExecutor.executeContractTransaction(ownedContract, 'owner', { from: accounts[0], })).to.be.rejected;
+    });
+
+    it('should throw an error when trying to perform a transaction on zero address contract', async() => {
+      const ownedContract = contractLoader.loadContract('Owned', '0x0000000000000000000000000000000000000000');
+      expect(mockedExecutor.executeContractTransaction(ownedContract, 'owner', { from: accounts[0], })).to.be.rejected;
     });
   });
 
@@ -279,7 +305,7 @@ describe('Executor handler', function() {
     });
   });
 
-  describe.only('when listening to contracts events at execution', async () => {
+  describe('when listening to contracts events at execution', async () => {
     it('should receive an event when a contract fires an event directly', async () => {
       const executor = await TestUtils.getExecutor(web3);
       const eventHub = await TestUtils.getEventHub(web3);
