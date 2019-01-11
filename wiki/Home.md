@@ -43,7 +43,7 @@ When having an ENS entry or a contract address, the DBCP description for that ca
 ![DBCP information flow](https://user-images.githubusercontent.com/1394421/38669351-724dbb98-3e46-11e8-9b87-a9b1157e0e7e.png)
 
 ## Properties in Description
-The current DBCP protocol definition spec is at version 1 (see property `dbcpVersion`).
+The current DBCP protocol definition spec is at version 2 (see property `dbcpVersion`).
 
 The following snippet shows a shortened sample description, the full sample description can be found [here](https://github.com/evannetwork/dbcp/wiki/Example-DBCP-file).
 
@@ -51,6 +51,7 @@ The following snippet shows a shortened sample description, the full sample desc
 {
   "public": {
     "name": "Cool Task with Abis",
+    "imgSquare": "data:image/png;base64,...",
     "dapp": {
       "dependencies": {
         "angular-core": "^1.0.0",
@@ -65,10 +66,10 @@ The following snippet shows a shortened sample description, the full sample desc
       "primaryColor": "#e87e23",
       "secondaryColor": "#fffaf5",
       "standalone": true,
-      "type": "dapp"
+      "type": "dapp",
     },
     "description": "Create todos and manage updates.",
-    "dbcpVersion": 1,
+    "dbcpVersion": 2,
     "i18n": {
       "description": {
         "de": "Erstelle Aufgaben oder zeige sie an",
@@ -79,7 +80,6 @@ The following snippet shows a shortened sample description, the full sample desc
         "en": "Task"
       }
     },
-    "imgSquare": "data:image/png;base64,...",
     "dataSchema": {
       "list_settable_by_member": {
         "$id": "list_settable_by_member_schema",
@@ -133,6 +133,8 @@ Depending on the visibility of the properties, these are placed under a differen
 | dapp | | object | details about the used ÐApp, see section "ÐApp Definition" below |
 | blockchain | | object | blockchain reference, see section "Blockchain Reference" below |
 | dfs | | object | distributed file system reference, see section "Distributed File System Reference" below |
+| identity | | string | [Decentralized Identity](https://www.weboftrust.info/)<sup>[+]</sup> about described object |
+| license | | object | license information like license type and license |
 
 
 ## ÐApp Definition

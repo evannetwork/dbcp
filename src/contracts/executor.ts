@@ -76,6 +76,11 @@ export class Executor extends Logger {
    */
   async executeContractCall(contract: any, functionName: string, ...args): Promise<any>  {
     this.log(`starting contract call "${functionName}"`, 'debug');
+    if (!contract.options.address ||
+        contract.options.address === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`trying to execute contract call "${functionName}" ` +
+        'against invalid contract address');
+    }
     if (!contract.methods[functionName]) {
       throw new Error(`contract does not support method "${functionName}", ` +
         `supported methods are ${Object.keys(contract.methods)}`);
@@ -125,6 +130,11 @@ export class Executor extends Logger {
     }
     if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
+    }
+    if (!contract.options.address ||
+        contract.options.address === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`trying to execute contract transaction "${functionName}" ` +
+        'against invalid contract address');
     }
 
     // every argument beyond the third is an argument for the contract function
@@ -212,7 +222,7 @@ export class Executor extends Logger {
             this.eventHub
               .subscribe(
                 inputOptions.event.target,
-                contract.options.address,
+                inputOptions.event.targetAddress || contract.options.address,
                 inputOptions.event.eventName,
                 (event) => true,
                 (event) => {
@@ -236,7 +246,7 @@ export class Executor extends Logger {
               })
             ;
           } else {
-            this.log('passed an event to a transaction but no event hub registered', 'warning');
+            throw new Error('passed an event to a transaction but no event hub registered');
           }
         }
 

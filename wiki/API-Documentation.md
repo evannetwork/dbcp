@@ -226,7 +226,7 @@ await runtime.description.setDescriptionToContract(address, description, account
 ```
 
 #### Validating Descriptions
-Descriptions are validated when setting them. A list of known DBCP definition schemas is maintained in [`description.schema.ts`](./src/description.schema.ts). If a description is set, its property `dbcpVersion` will be used for validating the description, if `dbcpVersion` is not provided, the latest version known to the API is used.
+Descriptions are validated when setting them. A list of known DBCP definition schemas is maintained in [`description.schema.ts`](./src/description.schema.ts). If a description is set, its property `dbcpVersion` will be used for validating the description, if `dbcpVersion` is not provided, version 1 is used and a warning is logged.
 
 Descriptions can be checked against the validator before setting them. The functions returns `true` if the description is valid and an array of issues if description was invalid, e.g.:
 

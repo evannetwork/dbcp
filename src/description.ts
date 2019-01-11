@@ -46,7 +46,6 @@ export interface DescriptionOptions extends LoggerOptions {
 export class Description extends Logger {
   contractLoader: ContractLoader;
   cryptoProvider: CryptoProvider;
-  dbcpVersion: number;
   dfs: DfsInterface;
   executor: Executor;
   keyProvider: KeyProviderInterface;
@@ -66,8 +65,6 @@ export class Description extends Logger {
     this.keyProvider = options.keyProvider;
     this.nameResolver = options.nameResolver;
     this.web3 = options.web3;
-    // used version number is most recent version (biggest version number)
-    this.dbcpVersion = Math.max.apply(Math, (Object.keys(descriptionSchemas).map(x => parseInt(x, 10))));
   }
 
   /**
@@ -104,6 +101,12 @@ export class Description extends Logger {
         // either no address set at ENS or this contract had no description, check ENS for description
         contractDescription = await this.getDescriptionFromEns(address);
       }
+    }
+
+    const validation = this.validateDescription(contractDescription);
+    if (validation !== true) {
+      this.log(`description "${address}" is invalid: ${JSON.stringify(validation)}; ` +
+        'this may invalidate the entire description in the near future', 'warning');
     }
 
     return contractDescription;
@@ -232,7 +235,10 @@ export class Description extends Logger {
     } else {
       const content: Envelope = Object.assign({}, envelope);
       // add dbcp version
-      content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
+      if (!content.public.dbcpVersion) {
+        this.log('dbcpVersion not set, using fallback of version 1', 'warning');
+        content.public.dbcpVersion = content.public.dbcpVersion || 1;
+      }
       const validation = this.validateDescription(content);
       if (validation !== true) {
         const msg = `description invalid: ${JSON.stringify(validation)}`;
@@ -272,7 +278,10 @@ export class Description extends Logger {
       promises.push((async () => {
         const content: Envelope = Object.assign({}, envelope);
         // add dbcp version
-        content.public.dbcpVersion = content.public.dbcpVersion || this.dbcpVersion;
+        if (!content.public.dbcpVersion) {
+          this.log('dbcpVersion not set, using fallback of version 1', 'warning');
+          content.public.dbcpVersion = content.public.dbcpVersion || 1;
+        }
         const validation = this.validateDescription(content);
         if (validation !== true) {
           const msg = `description invalid: ${JSON.stringify(validation)}`;
@@ -309,7 +318,11 @@ export class Description extends Logger {
    */
   public validateDescription(envelope: Envelope): boolean|any[] {
     const combinedDescription = Object.assign({}, envelope.public, envelope.private);
-    combinedDescription.dbcpVersion = combinedDescription.dbcpVersion || this.dbcpVersion;
+    // add dbcp version
+    if (!combinedDescription.dbcpVersion) {
+      this.log('dbcpVersion not set, using fallback of version 1', 'warning');
+      combinedDescription.dbcpVersion = combinedDescription.dbcpVersion || 1;
+    }
     const validator = new Validator({schema: descriptionSchemas[combinedDescription.dbcpVersion]});
     this.log(`validating DBCP definition with schema version ${combinedDescription.dbcpVersion}`, 'info');
     return validator.validate(combinedDescription);

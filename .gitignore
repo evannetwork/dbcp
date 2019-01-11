@@ -1,7 +1,8 @@
 dist/*
+docs/_build/*
 node_modules/*
-package-lock.json.*
-package-lock.json
 .deployment
 .deploymentTmp
-docs/_build/*
+package-lock.json
+package-lock.json.*
+yarn.lock
