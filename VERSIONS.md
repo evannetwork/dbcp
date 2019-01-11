@@ -2,6 +2,11 @@
 
 ## Next Version
 ### Features
+### Fixes
+### Deprecations
+
+## Version 1.5.0
+### Features
 - allow listening for events on other contract addresses when using executeContractTransaction
 - add dbcp schema version 2 with the following updates
   + add `/identities` propety
