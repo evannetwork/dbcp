@@ -3,7 +3,10 @@
 ## Next Version
 ### Features
 ### Fixes
+- remove `eth-lightwallet` dependency
+
 ### Deprecations
+
 
 ## Version 1.5.0
 ### Features

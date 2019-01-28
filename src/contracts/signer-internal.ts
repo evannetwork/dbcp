@@ -16,14 +16,12 @@
 
 import BigNumber = require('bignumber.js');
 import coder = require('web3-eth-abi');
-import lightwallet = require('eth-lightwallet');
 import Transaction = require('ethereumjs-tx');
 
 import { SignerInterface } from './signer-interface';
 import { Logger, LoggerOptions } from '../common/logger';
 import { KeyStoreInterface } from '../account-store';
 
-const txutils = lightwallet.txutils;
 const nonces = {};
 
 /**
@@ -208,8 +206,7 @@ export class SignerInternal extends Logger implements SignerInterface {
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
         /* eslint-disable no-underscore-dangle */
-        const types = txutils._getTypesFromAbi(contract.options.jsonInterface, functionName);
-        const data = txutils._encodeFunctionTxData(functionName, types, functionArguments);
+        const data = contract.methods[functionName](...functionArguments).encodeABI();
         /* eslint-enable no-underscore-dangle */
         const txParams = {
           nonce,
