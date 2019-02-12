@@ -3,6 +3,8 @@
 ## Next Version
 ### Features
 ### Fixes
+- add `@babel/runtime` as devDependency so it can be build using the new version of browserify and babel
+
 ### Deprecations
 
 

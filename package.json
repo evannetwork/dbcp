@@ -1,6 +1,7 @@
 {
   "author": "evan GmbH",
   "dependencies": {
+    "@babel/runtime": "^7.3.1",
     "@types/node": "8.0.53",
     "ajv": "^5.5.1",
     "bignumber.js": "3.0.1",
