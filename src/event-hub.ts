@@ -69,6 +69,53 @@ export class EventHub extends Logger {
   }
 
   /**
+   * subscribe to a contract event or a global EventHub event, remove subscription when
+   * filterFunction matched
+   *
+   * @param      contractName    contract name
+   * @param      address         address of the contract
+   * @param      eventName       name of the event to subscribe to
+   * @param      filterFunction  a function that returns true or a Promise that
+   *                             resolves to true if onEvent function should be
+   *                             applied
+   * @param      onEvent         executed when event was fired and the filter
+   *                             matches, gets the event as its parameter
+   * @param      publishName     name under which the event will be published as a
+   *                             nodejs event
+   * @return     Promise that resolves to {string} event subscription
+   */
+  public once(
+      contractName: string | any,
+      address: string,
+      eventName: string,
+      filterFunction: (any) => boolean | Promise<boolean>,
+      onEvent: (any) => void | Promise<void>,
+      fromBlock = 'latest'): Promise<string> {
+    let alreadyFired;
+    let subscription;
+    return this
+      .subscribe(
+        contractName,
+        address,
+        eventName,
+        filterFunction,
+        (event) => {
+          if (!alreadyFired) {
+            alreadyFired = true;
+            return Promise.resolve()
+              .then(() => onEvent(event))
+              .then(() => this.unsubscribe({ subscription }))
+            ;
+          }
+        },
+        fromBlock
+      )
+      .then((result) => { subscription = result; })
+      .then(() => subscription)
+    ;
+  }
+
+  /**
    * subscribe to a contract event or a global EventHub event
    *
    * @param      contractName     target contract name
@@ -157,53 +204,6 @@ export class EventHub extends Logger {
         this.ensureSubscription(contractId, eventName, eventTarget, fromBlock);
         return subscription;
       })
-    ;
-  }
-
-  /**
-   * subscribe to a contract event or a global EventHub event, remove subscription when
-   * filterFunction matched
-   *
-   * @param      contractName    contract name
-   * @param      address         address of the contract
-   * @param      eventName       name of the event to subscribe to
-   * @param      filterFunction  a function that returns true or a Promise that
-   *                             resolves to true if onEvent function should be
-   *                             applied
-   * @param      onEvent         executed when event was fired and the filter
-   *                             matches, gets the event as its parameter
-   * @param      publishName     name under which the event will be published as a
-   *                             nodejs event
-   * @return     Promise that resolves to {string} event subscription
-   */
-  public once(
-      contractName: string | any,
-      address: string,
-      eventName: string,
-      filterFunction: (any) => boolean | Promise<boolean>,
-      onEvent: (any) => void | Promise<void>,
-      fromBlock = 'latest'): Promise<string> {
-    let alreadyFired;
-    let subscription;
-    return this
-      .subscribe(
-        contractName,
-        address,
-        eventName,
-        filterFunction,
-        (event) => {
-          if (!alreadyFired) {
-            alreadyFired = true;
-            return Promise.resolve()
-              .then(() => onEvent(event))
-              .then(() => this.unsubscribe({ subscription }))
-            ;
-          }
-        },
-        fromBlock
-      )
-      .then((result) => { subscription = result; })
-      .then(() => subscription)
     ;
   }
 
