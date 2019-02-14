@@ -14,7 +14,6 @@
   limitations under the License.
 */
 
-import IpfsServer = require('ipfs');
 import IpfsApi = require('ipfs-api');
 import Web3 = require('web3');
 
@@ -40,7 +39,7 @@ export const publicMailBoxExchange = 'mailboxKeyExchange';
 export const sampleContext = 'context sample';
 
 
-const web3Provider = 'ws://localhost:8546';
+const web3Provider = <any>process.env.CHAIN_ENDPOINT || 'wss://testcore.evan.network/ws';
 const helperWeb3 = new Web3(null);
 const sampleKeys = {};
 // dataKeys
