@@ -47,7 +47,7 @@ const source = require('vinyl-source-stream');
 const sourcemaps = require('gulp-sourcemaps');
 
 const ipfsProtocol = 'https';
-const ipfsHost = 'ipfs.evan.network';
+const ipfsHost = 'ipfs.test.evan.network';
 const distFolder = `dist`;
 const deploymentTmpFolder = `.deploymentTmp`;
 const deploymentFolder = `.deployment`;

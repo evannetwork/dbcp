@@ -143,7 +143,7 @@ export class TestUtils {
   }
 
   static async getIpfs(): Promise<Ipfs> {
-    const remoteNode = IpfsApi({host: 'ipfs.evan.network', port: '443', protocol: 'https'});
+    const remoteNode = IpfsApi({host: 'ipfs.test.evan.network', port: '443', protocol: 'https'});
     return new Ipfs({ remoteNode });
   }
 
