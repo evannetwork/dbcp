@@ -8,6 +8,8 @@
   + reconnect logic has to trigger `dbcp-reconnected` event
   + cleanup event hub subscription code
 - remove `no-unused-variable` from tslint config
+- remove unnecessary dbcpVersion reference
+- update docu
 
 ### Deprecations
 
