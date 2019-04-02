@@ -2,6 +2,8 @@
 
 ## Next Version
 ### Features
+- add more detailed log levels to default log function
+
 ### Fixes
 - add event resubscription to `event-hub`
   + relies on external web3 reconnect logic (example can be found in spec)
