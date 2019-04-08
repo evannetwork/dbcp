@@ -305,10 +305,10 @@ FileToAdd
 .. required for building markup
 
 .. |source dfsCache| replace:: ``DfsCacheInterface``
-.. _source dfsCache: /dfs/dfs-interface.html
+.. _source dfsCache: ../dfs/dfs-interface.html
 
 .. |source logLevel| replace:: ``LogLevel``
-.. _source logLevel: /common/logger.html#loglevel
+.. _source logLevel: ../common/logger.html#loglevel
 
 .. |source logLogInterface| replace:: ``LogLogInterface``
-.. _source logLogInterface: /common/logger.html#logloginterface
+.. _source logLogInterface: ../common/logger.html#logloginterface

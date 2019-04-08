@@ -332,16 +332,16 @@ Example
 
 
 .. |source signerInterface| replace:: ``SignerInterface``
-.. _source signerInterface: /blockchain/signer.html
+.. _source signerInterface: ../blockchain/signer.html
 
 .. |source eventHub| replace:: ``EventHub``
-.. _source eventHub: /blockchain/event-hub.html
+.. _source eventHub: ../blockchain/event-hub.html
 
 .. |source logLevel| replace:: ``LogLevel``
-.. _source logLevel: /common/logger.html#loglevel
+.. _source logLevel: ../common/logger.html#loglevel
 
 .. |source logLogInterface| replace:: ``LogLogInterface``
-.. _source logLogInterface: /common/logger.html#logloginterface
+.. _source logLogInterface: ../common/logger.html#logloginterface
 
 .. |source web3| replace:: ``Web3``
 .. _source web3: https://github.com/ethereum/web3.js/
