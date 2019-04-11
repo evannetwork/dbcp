@@ -237,7 +237,7 @@ export class Description extends Logger {
       // add dbcp version
       if (!content.public.dbcpVersion) {
         this.log('dbcpVersion not set, using fallback of version 1', 'warning');
-        content.public.dbcpVersion = content.public.dbcpVersion || 1;
+        content.public.dbcpVersion = 1;
       }
       const validation = this.validateDescription(content);
       if (validation !== true) {
@@ -310,7 +310,7 @@ export class Description extends Logger {
   };
 
   /**
-   * try to validate description envelop; throw Error if validation fails
+   * try to validate description envelop
    *
    * @param      {Envelope}       envelope  envelop with description data; private has to be
    *                                        unencrypted

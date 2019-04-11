@@ -7,7 +7,7 @@ Join the community at the [DBCP Community Webpage](https://dbcp.online/)<sup>[+]
 
 Or have a look at the [protocol definition](https://github.com/evannetwork/dbcp/wiki).
 
-Or take a dive into the [API documentation](https://ipfs.evan.network/ipns/QmSXPThSm6u3BDE1X4C9QofFfcNH86cCWAR1W5Sqe9VWKn).
+Or take a dive into the [API documentation](https://ipfs.test.evan.network/ipns/QmSXPThSm6u3BDE1X4C9QofFfcNH86cCWAR1W5Sqe9VWKn).
 
 Get a quickstart with [this blog post](https://medium.com/evan-network/settle-the-unicorns-were-describing-contracts-in-a-generalized-way-5b065ebf4309) about DBCP.
 
@@ -142,7 +142,7 @@ For more examples have a look at our [examples](https://github.com/evannetwork/d
 The latest version is always deployed to an IPNS hash, that does not change between versions, so you can use the latest release from the [evan.network](https://evannetwork.github.io/)<sup>[+]</sup> IPFS via:
 ```html
 <!-- use latest DBCP version -->
-<script src="https://ipfs.evan.network/ipns/QmdWqqkKaiqhqRgsq3HeaxwUHVREb5HUFF12KBrj3gYbTx"></script>
+<script src="https://ipfs.test.evan.network/ipns/QmdWqqkKaiqhqRgsq3HeaxwUHVREb5HUFF12KBrj3gYbTx"></script>
 <script>
   console.log(window.dbcp);
 </script>
@@ -154,7 +154,7 @@ The latest version is always deployed to an IPNS hash, that does not change betw
 Or if you want a specific version refer to the [releases](https://github.com/evannetwork/dbcp/releases) page and their respective IPFS hashes. For example for version 1.0.0 use:
 ```html
 <!-- use DBCP version 1.0.0 -->
-<script src="https://ipfs.evan.network/ipfs/QmXK2C6FhRSv9JBobocdVmbwTEPZaaAq6BaJBQhV52cp7z"></script>
+<script src="https://ipfs.test.evan.network/ipfs/QmXK2C6FhRSv9JBobocdVmbwTEPZaaAq6BaJBQhV52cp7z"></script>
 <script>
   console.log(window.dbcp);
 </script>

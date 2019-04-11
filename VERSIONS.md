@@ -5,6 +5,22 @@
 ### Fixes
 ### Deprecations
 
+
+## Version 1.5.3
+### Features
+- add more detailed log levels to default log function
+
+### Fixes
+- add event resubscription to `event-hub`
+  + relies on external web3 reconnect logic (example can be found in spec)
+  + reconnect logic has to trigger `dbcp-reconnected` event
+  + cleanup event hub subscription code
+- remove `no-unused-variable` from tslint config
+- remove unnecessary dbcpVersion reference
+- update docu
+- add more detailed log levels to default log function
+
+
 ## Version 1.5.2
 ### Fixes
 - add `@babel/runtime` as devDependency so it can be build using the new version of browserify and babel

@@ -293,16 +293,16 @@ Returns
 
 
 .. |source contractLoader| replace:: ``ContractLoader``
-.. _source contractLoader: /contracts/contract-loader
+.. _source contractLoader: ../contracts/contract-loader
 
 .. |source keyStoreinterface| replace:: ``KeyStoreInterface``
-.. _source keyStoreinterface: /blockchain/account-store.html
+.. _source keyStoreinterface: ../blockchain/account-store.html
 
 .. |source logLevel| replace:: ``LogLevel``
-.. _source logLevel: /common/logger.html#loglevel
+.. _source logLevel: ../common/logger.html#loglevel
 
 .. |source logLogInterface| replace:: ``LogLogInterface``
-.. _source logLogInterface: /common/logger.html#logloginterface
+.. _source logLogInterface: ../common/logger.html#logloginterface
 
 .. |source web3| replace:: ``Web3``
 .. _source web3: https://github.com/ethereum/web3.js/

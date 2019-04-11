@@ -1,6 +1,6 @@
 ## Table of Contents
 
-This page is the one-page version of the API documentation, which is slightly older than our [Read the Docs based version](https://ipfs.evan.network/ipns/QmSXPThSm6u3BDE1X4C9QofFfcNH86cCWAR1W5Sqe9VWKn)<sup>[+]</sup> variant. This page here is currently kept as a reference document and will soon be entirely replaced by it.
+This page is the one-page version of the API documentation, which is slightly older than our [Read the Docs based version](https://ipfs.test.evan.network/ipns/QmSXPThSm6u3BDE1X4C9QofFfcNH86cCWAR1W5Sqe9VWKn)<sup>[+]</sup> variant. This page here is currently kept as a reference document and will soon be entirely replaced by it.
 
 <!-- MarkdownTOC autolink="true" -->
 
@@ -498,7 +498,7 @@ console.log(runtime.dfs.bytes32ToIpfsHash('0x695adc2137f1f069ff697aa287d0eae4865
 
 Try to retrieve it directly from an Ipfs server:
 ```sh
-curl https://ipfs.evan.network/ipfs/QmVRusgtUxoFbKvPskEJCmXsnVP2kT2hbW41BzP1NdFxKH
+curl https://ipfs.test.evan.network/ipfs/QmVRusgtUxoFbKvPskEJCmXsnVP2kT2hbW41BzP1NdFxKH
 # Output:
 # we have a cat called "Maika"
 ```

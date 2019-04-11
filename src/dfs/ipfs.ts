@@ -150,7 +150,7 @@ export class Ipfs extends Logger implements DfsInterface {
   async pinFileHash(hash: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const options = {
-        hostname: 'ipfs.evan.network',
+        hostname: 'ipfs.test.evan.network',
         port: '443',
         path: `/pins/${hash}`,
         method : 'POST'

@@ -43,7 +43,7 @@ async function runExample() {
       '0x001De828935e8c7e4cb56Fe610495cAe63fb2612':
         '01734663843202e2245e5796cb120510506343c67915eb4f9348ac0d8c2cf22a',
     },
-    ipfs: {host: 'ipfs.evan.network', port: '443', protocol: 'https'},
+    ipfs: {host: 'ipfs.test.evan.network', port: '443', protocol: 'https'},
     web3Provider: 'wss://testcore.evan.network/ws',
   };
 

@@ -194,7 +194,7 @@ export class NameResolver extends Logger {
 
     // if node should be owned by another account, set ownership to this
     if (nameOwner !== finalNodeOwner) {
-      this.log('assigning node to specified user "${finalNodeOwner}"', 'debug');
+      this.log(`assigning node to specified user "${finalNodeOwner}"`, 'debug');
       if (nodeNotDirectlyOwned) {
         await this.executor.executeContractTransaction(
           this.ensContract,

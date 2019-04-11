@@ -27,7 +27,7 @@ export interface EventHubOptions extends LoggerOptions {
   config: any;
   contractLoader: any;
   nameResolver: any;
-  eventWeb3: any;
+  eventWeb3?: any;
 }
 
 /**
@@ -36,20 +36,83 @@ export interface EventHubOptions extends LoggerOptions {
  */
 export class EventHub extends Logger {
   config: any;
+  continueBlock = 0;
+  contractInstances = {};
   contractLoader: ContractLoader;
-  nameResolver: NameResolver;
+  contractSubscriptions = {};
+  eventEmitter = {};
   eventHubContract: any;
   eventWeb3: any;
-  eventEmitter = {};
-  contractSubscriptions = {};
+  nameResolver: NameResolver;
   subscriptionToContractMapping = {};
 
-  constructor(options: any) {
+  constructor(options: EventHubOptions) {
     super(options);
     this.config = options.config;
     this.contractLoader = options.contractLoader;
     this.nameResolver = options.nameResolver;
     this.eventWeb3 = options.eventWeb3;
+  }
+
+  /**
+   * bind re-subscription listener on on given web3
+   *
+   * @param      {object}  web3    connected web3 instance
+   */
+  public bindResubscribe(web3) {
+    // subscribe on current provider
+    web3.currentProvider.connection.addEventListener('dbcp-reconnected', () => {
+      // after disconnect, the provider will have changed, so resubscribe with new provider
+      this.resubscribe(web3.currentProvider);
+      this.bindResubscribe(web3);
+    });
+  }
+
+  /**
+   * subscribe to a contract event or a global EventHub event, remove subscription when
+   * filterFunction matched
+   *
+   * @param      contractName    contract name
+   * @param      address         address of the contract
+   * @param      eventName       name of the event to subscribe to
+   * @param      filterFunction  a function that returns true or a Promise that
+   *                             resolves to true if onEvent function should be
+   *                             applied
+   * @param      onEvent         executed when event was fired and the filter
+   *                             matches, gets the event as its parameter
+   * @param      publishName     name under which the event will be published as a
+   *                             nodejs event
+   * @return     Promise that resolves to {string} event subscription
+   */
+  public once(
+      contractName: string | any,
+      address: string,
+      eventName: string,
+      filterFunction: (any) => boolean | Promise<boolean>,
+      onEvent: (any) => void | Promise<void>,
+      fromBlock = 'latest'): Promise<string> {
+    let alreadyFired;
+    let subscription;
+    return this
+      .subscribe(
+        contractName,
+        address,
+        eventName,
+        filterFunction,
+        (event) => {
+          if (!alreadyFired) {
+            alreadyFired = true;
+            return Promise.resolve()
+              .then(() => onEvent(event))
+              .then(() => this.unsubscribe({ subscription }))
+            ;
+          }
+        },
+        fromBlock
+      )
+      .then((result) => { subscription = result; })
+      .then(() => subscription)
+    ;
   }
 
   /**
@@ -66,7 +129,7 @@ export class EventHub extends Logger {
    *
    * @return     resolves to {string} event subscription
    */
-  subscribe(
+  public subscribe(
       contractName: string | any,
       contractAddress: string,
       eventName: string,
@@ -138,88 +201,20 @@ export class EventHub extends Logger {
           return chain;
         };
         this.subscriptionToContractMapping[subscription] = [contractId, eventName];
-        // register blockchain event listener if required
-        if (!this.eventEmitter[contractId][eventName]) {
-          this.eventEmitter[contractId][eventName] = eventTarget.events ? eventTarget.events[eventName]({ fromBlock, }) : eventTarget[eventName](null, { fromBlock, });
-          if (this.eventEmitter[contractId][eventName].on) {
-            this.eventEmitter[contractId][eventName]
-              .on('data', (event) => {
-                // run onEvents parallel
-                Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName]).map((key) =>
-                  this.contractSubscriptions[contractId][eventName][key](event)
-                ));
-              })
-            ;
-          } else {
-            this.eventEmitter[contractId][eventName].watch((error, result) => {
-              // run onEvents parallel
-              Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName]).map((key) =>
-                this.contractSubscriptions[contractId][eventName][key](result)
-              ))
-            });
-          }
-
-        }
+        this.ensureSubscription(contractId, eventName, eventTarget, fromBlock);
         return subscription;
       })
     ;
   }
 
   /**
-   * subscribe to a contract event or a global EventHub event, remove subscription when
-   * filterFunction matched
+   * unsubscribe an event subscription
    *
-   * @param      contractName    contract name
-   * @param      address         address of the contract
-   * @param      eventName       name of the event to subscribe to
-   * @param      filterFunction  a function that returns true or a Promise that
-   *                             resolves to true if onEvent function should be
-   *                             applied
-   * @param      onEvent         executed when event was fired and the filter
-   *                             matches, gets the event as its parameter
-   * @param      publishName     name under which the event will be published as a
-   *                             nodejs event
-   * @return     Promise that resolves to {string} event subscription
-   */
-  once(
-      contractName: string | any,
-      address: string,
-      eventName: string,
-      filterFunction: (any) => boolean | Promise<boolean>,
-      onEvent: (any) => void | Promise<void>,
-      fromBlock = 'latest'): Promise<string> {
-    let alreadyFired;
-    let subscription;
-    return this
-      .subscribe(
-        contractName,
-        address,
-        eventName,
-        filterFunction,
-        (event) => {
-          if (!alreadyFired) {
-            alreadyFired = true;
-            return Promise.resolve()
-              .then(() => onEvent(event))
-              .then(() => this.unsubscribe({ subscription }))
-            ;
-          }
-        },
-        fromBlock
-      )
-      .then((result) => { subscription = result; })
-      .then(() => subscription)
-    ;
-  }
-
-  /**
-   * unsubsribe an event subscription
-   *
-   * @param      toRemove  unsubcribe criteria, supports 'subscription', 'contractId' (can be 'all')
+   * @param      toRemove  unsubscribe criteria, supports 'subscription', 'contractId' (can be 'all')
    *
    * @return     Promise, resolved when done
    */
-  unsubscribe(toRemove): Promise<void> {
+  public unsubscribe(toRemove): Promise<void> {
     this.log(`unsubscribing from "${JSON.stringify(toRemove)}"`, 'debug');
     if (toRemove.hasOwnProperty('subscription')) {
       // get and remove from reverse lookup
@@ -278,5 +273,96 @@ export class EventHub extends Logger {
     } else {
       return Promise.reject('unsupported unsubscribe criteria');
     }
+  }
+
+  /**
+   * create event subscription if not already opened
+   *
+   * @param      {string}         contractId   contractId to create event listener for
+   * @param      {string}         eventName    event to listen for
+   * @param      {object}         eventTarget  web3 contract instance to create event listener on
+   * @param      {string|number}  fromBlock    start block (number) or 'latest'
+   */
+  private ensureSubscription(
+      contractId, eventName, eventTarget, fromBlock: string|number = this.continueBlock + 1) {
+    // register blockchain event listener if required
+    if (!this.eventEmitter[contractId][eventName]) {
+      this.contractInstances[contractId] = eventTarget;
+      this.eventEmitter[contractId][eventName] = eventTarget.events ?
+        eventTarget.events[eventName]({ fromBlock: fromBlock }) :
+        eventTarget[eventName](null, { fromBlock: fromBlock });
+      if (this.eventEmitter[contractId][eventName].on) {
+        this.subscribeWeb3Gte1(contractId, eventName, fromBlock);
+      } else {
+        this.subscribeWeb3Lt1(contractId, eventName, fromBlock);
+      }
+    }
+  }
+
+  /**
+   * resubscribe event listeners
+   *
+   * @param      {object}  newProvider  web3 (websocket) provider
+   */
+  private resubscribe(newProvider): void {
+    // remove existing subscriptions
+    for (let subscription of Object.keys(this.subscriptionToContractMapping)) {
+      const [contractId, eventName] = this.subscriptionToContractMapping[subscription];
+      delete this.eventEmitter[contractId][eventName];
+    }
+    // set new providers to contract instances
+    for (let contract of Object.keys(this.contractInstances)) {
+      this.contractInstances[contract].setProvider(newProvider);
+    }
+    // create new subscriptions and re-add event handlers
+    for (let subscription of Object.keys(this.subscriptionToContractMapping)) {
+      const [contractId, eventName] = this.subscriptionToContractMapping[subscription];
+      const eventTarget = this.contractInstances[contractId];
+      this.ensureSubscription(contractId, eventName, eventTarget);
+    }
+  }
+
+  /**
+   * subscribe to web3 version >= 1.0 events
+   *
+   * @param      {string}         contractId  contractId to create event listener for
+   * @param      {string}         eventName   event to listen for
+   * @param      {string|number}  fromBlock   start block (number) or 'latest'
+   */
+  private subscribeWeb3Gte1(contractId: any, eventName: string, fromBlock: string|number): void {
+    this.eventEmitter[contractId][eventName]
+      .on('data', (event) => {
+        this.continueBlock = Math.max(event.blockNumber, this.continueBlock);
+        if (typeof fromBlock === 'number' && event.blockNumber < fromBlock) {
+          // ignore old events
+          return;
+        }
+        // run onEvents parallel
+        Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName]).map((key) =>
+          this.contractSubscriptions[contractId][eventName][key](event)
+        ));
+      })
+    ;
+  }
+
+  /**
+   * subscribe to web3 version < 1.0 events
+   *
+   * @param      {string}         contractId  contractId to create event listener for
+   * @param      {string}         eventName   event to listen for
+   * @param      {string|number}  fromBlock   start block (number) or 'latest'
+   */
+  private subscribeWeb3Lt1(contractId: any, eventName: string, fromBlock: string|number): void {
+    this.eventEmitter[contractId][eventName].watch((error, result) => {
+      this.continueBlock = Math.max(result.blockNumber, this.continueBlock);
+      if (typeof fromBlock === 'number' && result.blockNumber < fromBlock) {
+        // ignore old events
+        return;
+      }
+      // run onEvents parallel
+      Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName]).map((key) =>
+        this.contractSubscriptions[contractId][eventName][key](result)
+      ))
+    });
   }
 }

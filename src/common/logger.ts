@@ -62,7 +62,19 @@ export class Logger {
   logLog = [];
   static getDefaultLog(): Function {
     return (message, level) => {
-      console[level === 'error' ? 'error' : 'log'](`[${level || 'info'}] ${message}`);
+      let logFunction;
+      switch (level) {
+        case 'debug':
+        case 'info':
+        case 'error':
+          logFunction = level; break;
+        case 'warning':
+          logFunction = 'warn'; break;
+        case 'notice':
+        default:
+          logFunction = 'log';
+      }
+      console[logFunction](`[${level || 'info'}] ${message}`);
     };
   }
 
