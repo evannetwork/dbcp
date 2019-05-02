@@ -2,6 +2,12 @@
 
 ## Next Version
 ### Features
+### Fixes
+### Deprecations
+
+
+## Version 1.5.3
+### Features
 - add more detailed log levels to default log function
 
 ### Fixes
@@ -12,8 +18,7 @@
 - remove `no-unused-variable` from tslint config
 - remove unnecessary dbcpVersion reference
 - update docu
-
-### Deprecations
+- add more detailed log levels to default log function
 
 
 ## Version 1.5.2
