@@ -2,6 +2,8 @@
 
 ## Next Version
 ### Features
+- `signer-internal` now works with gas price retrieved from web3 if available instead of always using fallback
+
 ### Fixes
 ### Deprecations
 
