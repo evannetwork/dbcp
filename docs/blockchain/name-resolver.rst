@@ -2,7 +2,7 @@
 Name Resolver
 ================================================================================
 
-.. list-table:: 
+.. list-table::
    :widths: auto
    :stub-columns: 1
 
@@ -15,7 +15,7 @@ Name Resolver
    * - Examples
      - `name-resolver.spec.ts <https://github.com/evannetwork/dbcp/tree/master/src/name-resolver.spec.ts>`_
 
-The `NameResolver <https://github.com/evannetwork/dbcp/tree/master/src/name-resolver.ts>`_ is a collection of helper functions, that can be used for ENS interaction. These include: 
+The `NameResolver <https://github.com/evannetwork/dbcp/tree/master/src/name-resolver.ts>`_ is a collection of helper functions, that can be used for ENS interaction. These include:
 
 - setting and getting ENS addresses
 - setting and getting ENS content flags, which is used when setting data in distributed file system, especially in case of setting a description for an `ENS` address
@@ -56,7 +56,7 @@ Example
 -------
 
 .. code-block:: typescript
-  
+
   const nameResolver = new NameResolver({
       cryptoProvider,
       dfs,
@@ -237,7 +237,7 @@ Parameters
 #. ``name`` - ``string``: ens domain name (plain text)
 #. ``address`` - ``string``: ethereum address
 #. ``accountId`` - ``string``: owner of the parent domain
-#. ``domainOwnerId`` - ``string``: owner of the address to set
+#. ``domainOwnerId`` - ``string``: (optional) owner of the address to set
 
 -------
 Returns
@@ -251,11 +251,10 @@ Example
 
 .. code-block:: javascript
 
-    const testEvanAddress = await runtime.nameResolver
+    await runtime.nameResolver
       .setAddress(
         'test.evan',
         '0x9c0Aaa728Daa085Dfe85D3C72eE1c1AdF425be49',
-        '0x000000000000000000000000000000000000beef',
         '0x000000000000000000000000000000000000beef'
       );
 
@@ -353,7 +352,7 @@ builds full domain name based on the provided domain config a module initalizati
 Parameters
 ----------
 
-#. ``domainConfig`` - ``string[] | string``: The domain configuration 
+#. ``domainConfig`` - ``string[] | string``: The domain configuration
 #. ``...subLabels`` - ``string[]``: array of domain elements to be looked up and added at the lefthand
 
 -------
