@@ -4,9 +4,13 @@
 ### Features
 
 ### Fixes
-- add `mutex` logic event-hub `subscribe` and `unsubscribe` to prevent removing pending subscriptions
 
 ### Deprecations
+
+
+## Version 1.6.1
+### Fixes
+- add `mutex` logic event-hub `subscribe` and `unsubscribe` to prevent removing pending subscriptions
 
 
 ## Version 1.6.0
