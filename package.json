@@ -4,6 +4,7 @@
     "@babel/runtime": "^7.3.1",
     "@types/node": "8.0.53",
     "ajv": "^5.5.1",
+    "async-mutex": "^0.1.3",
     "bignumber.js": "3.0.1",
     "bs58": "4.0.1",
     "ethereumjs-tx": "1.3.4",
@@ -70,5 +71,5 @@
     "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.6.0"
+  "version": "1.6.1"
 }

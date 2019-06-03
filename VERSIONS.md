@@ -8,6 +8,11 @@
 ### Deprecations
 
 
+## Version 1.6.1
+### Fixes
+- add `mutex` logic event-hub `subscribe` and `unsubscribe` to prevent removing pending subscriptions
+
+
 ## Version 1.6.0
 ### Features
 - `signer-internal` now works with gas price retrieved from web3 if available instead of always using fallback
