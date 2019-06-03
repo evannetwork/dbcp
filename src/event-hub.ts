@@ -15,6 +15,7 @@
 */
 
 import uuid = require('uuid');
+import { Mutex } from 'async-mutex';
 
 import { ContractLoader } from './contracts/contract-loader';
 import { Logger, LoggerOptions } from './common/logger';
@@ -45,6 +46,7 @@ export class EventHub extends Logger {
   eventWeb3: any;
   nameResolver: NameResolver;
   subscriptionToContractMapping = {};
+  private mutexes: { [id: string]: Mutex; };
 
   constructor(options: EventHubOptions) {
     super(options);
@@ -52,6 +54,7 @@ export class EventHub extends Logger {
     this.contractLoader = options.contractLoader;
     this.nameResolver = options.nameResolver;
     this.eventWeb3 = options.eventWeb3;
+    this.mutexes = {};
   }
 
   /**
@@ -214,7 +217,7 @@ export class EventHub extends Logger {
    *
    * @return     Promise, resolved when done
    */
-  public unsubscribe(toRemove): Promise<void> {
+  public async unsubscribe(toRemove): Promise<void> {
     this.log(`unsubscribing from "${JSON.stringify(toRemove)}"`, 'debug');
     if (toRemove.hasOwnProperty('subscription')) {
       // get and remove from reverse lookup
@@ -224,28 +227,28 @@ export class EventHub extends Logger {
         // remove from event subscriptions
         delete this.contractSubscriptions[contractId][eventName][toRemove.subscription];
         // stop event listener if last subscription was removed
-        if (Object.keys(this.contractSubscriptions[contractId][eventName]).length === 0) {
-          // stop listener
-          return new Promise((resolve, reject) => {
-            if (this.eventEmitter[contractId][eventName].unsubscribe) {
-              this.eventEmitter[contractId][eventName].unsubscribe((error, success) => {
-                delete this.eventEmitter[contractId][eventName];
-                if (!error && success) {
+        await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
+          if (Object.keys(this.contractSubscriptions[contractId][eventName]).length === 0) {
+            // stop listener
+            return new Promise((resolve, reject) => {
+              if (this.eventEmitter[contractId][eventName].unsubscribe) {
+                this.eventEmitter[contractId][eventName].unsubscribe((error, success) => {
+                  delete this.eventEmitter[contractId][eventName];
+                  if (!error && success) {
+                    resolve();
+                  } else {
+                    reject(`unsubscribing failed; ${error || 'no reason given for failure'}`);
+                  }
+                });
+              } else {
+                this.eventEmitter[contractId][eventName].stopWatching(() => {
+                  delete this.eventEmitter[contractId][eventName];
                   resolve();
-                } else {
-                  reject(`unsubscribing failed; ${error || 'no reason given for failure'}`);
-                }
-              });
-            } else {
-              this.eventEmitter[contractId][eventName].stopWatching(() => {
-                delete this.eventEmitter[contractId][eventName];
-                resolve();
-              });
-            }
-          });
-        } else {
-          return Promise.resolve();
-        }
+                });
+              }
+            });
+          }
+        });
       }
     } else if (toRemove.hasOwnProperty('contractId')) {
       if (toRemove.contractId === 'all') {
@@ -283,20 +286,35 @@ export class EventHub extends Logger {
    * @param      {object}         eventTarget  web3 contract instance to create event listener on
    * @param      {string|number}  fromBlock    start block (number) or 'latest'
    */
-  private ensureSubscription(
+  private async ensureSubscription(
       contractId, eventName, eventTarget, fromBlock: string|number = this.continueBlock + 1) {
     // register blockchain event listener if required
-    if (!this.eventEmitter[contractId][eventName]) {
-      this.contractInstances[contractId] = eventTarget;
-      this.eventEmitter[contractId][eventName] = eventTarget.events ?
-        eventTarget.events[eventName]({ fromBlock: fromBlock }) :
-        eventTarget[eventName](null, { fromBlock: fromBlock });
-      if (this.eventEmitter[contractId][eventName].on) {
-        this.subscribeWeb3Gte1(contractId, eventName, fromBlock);
-      } else {
-        this.subscribeWeb3Lt1(contractId, eventName, fromBlock);
+    await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
+      if (!this.eventEmitter[contractId][eventName]) {
+        this.contractInstances[contractId] = eventTarget;
+        this.eventEmitter[contractId][eventName] = eventTarget.events ?
+          eventTarget.events[eventName]({ fromBlock: fromBlock }) :
+          eventTarget[eventName](null, { fromBlock: fromBlock });
+        if (this.eventEmitter[contractId][eventName].on) {
+          this.subscribeWeb3Gte1(contractId, eventName, fromBlock);
+        } else {
+          this.subscribeWeb3Lt1(contractId, eventName, fromBlock);
+        }
       }
+    });
+  }
+
+  /**
+   * get mutex for keyword, this can be used to lock several sections during updates
+   *
+   * @param      {string}  name    name of a section; e.g. 'sharings', 'schema'
+   * @return     {Mutex}   Mutex instance
+   */
+  private getMutex(name: string): Mutex {
+    if (!this.mutexes[name]) {
+      this.mutexes[name] = new Mutex();
     }
+    return this.mutexes[name];
   }
 
   /**
