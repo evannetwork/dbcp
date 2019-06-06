@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- add check to prevent unsubscribe conflicts
 
 ### Deprecations
 
