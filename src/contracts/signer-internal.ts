@@ -92,7 +92,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         .then((gp) => {
           if (gp === '0' || gp === 0) {
             this.log(`returned gas price was 0, using fallback 20GWei`, 'debug');
-            return '20000000000';
+            return '200000000000';
           } else {
             return gp;
           }

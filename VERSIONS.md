@@ -8,6 +8,12 @@
 ### Deprecations
 
 
+## Version 1.6.2
+### Fixes
+- add check to prevent unsubscribe conflicts
+- adjust gas price fallback
+
+
 ## Version 1.6.1
 ### Fixes
 - add `mutex` logic event-hub `subscribe` and `unsubscribe` to prevent removing pending subscriptions

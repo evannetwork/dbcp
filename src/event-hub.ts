@@ -219,7 +219,8 @@ export class EventHub extends Logger {
    */
   public async unsubscribe(toRemove): Promise<void> {
     this.log(`unsubscribing from "${JSON.stringify(toRemove)}"`, 'debug');
-    if (toRemove.hasOwnProperty('subscription')) {
+    if (toRemove.hasOwnProperty('subscription') &&
+        this.subscriptionToContractMapping[toRemove.subscription]) {
       // get and remove from reverse lookup
       const [contractId, eventName] = this.subscriptionToContractMapping[toRemove.subscription];
       if (contractId) {
