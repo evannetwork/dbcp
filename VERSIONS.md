@@ -4,9 +4,14 @@
 ### Features
 
 ### Fixes
-- add check to prevent unsubscribe conflicts
 
 ### Deprecations
+
+
+## Version 1.6.2
+### Fixes
+- add check to prevent unsubscribe conflicts
+- adjust gas price fallback
 
 
 ## Version 1.6.1
