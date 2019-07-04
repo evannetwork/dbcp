@@ -8,6 +8,11 @@
 ### Deprecations
 
 
+## Version 1.6.3
+### Fixes
+- add support for `web3` `1.0.0-beta.55`
+
+
 ## Version 1.6.2
 ### Fixes
 - add check to prevent unsubscribe conflicts

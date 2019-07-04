@@ -15,13 +15,14 @@
 */
 
 import BigNumber = require('bignumber.js');
-import coder = require('web3-eth-abi');
 import Transaction = require('ethereumjs-tx');
+import { AbiCoder } from 'web3-eth-abi';
 
 import { SignerInterface } from './signer-interface';
 import { Logger, LoggerOptions } from '../common/logger';
 import { KeyStoreInterface } from '../account-store';
 
+const coder: AbiCoder = new AbiCoder();
 const nonces = {};
 
 /**
@@ -172,6 +173,13 @@ export class SignerInternal extends Logger implements SignerInterface {
 
         // submit via sendRawTransaction
         this.web3.eth.sendSignedTransaction(signedTx)
+          .on('transactionHash', async (txHash) => {
+            const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+            if (receipt) {
+              handleTxResult(null, receipt);
+            }
+          })
           .on('receipt', (receipt) => { handleTxResult(null, receipt); })
           .on('error', (error) => { handleTxResult(error); })
         ;
@@ -224,8 +232,31 @@ export class SignerInternal extends Logger implements SignerInterface {
         const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
 
         // submit via sendRawTransaction
+        let resolved = false;
         this.web3.eth.sendSignedTransaction(signedTx)
-          .on('receipt', (receipt) => { handleTxResult(null, receipt); })
+          .on('transactionHash', async (txHash) => {
+            if (resolved) {
+              // return if already resolved
+              return;
+            }
+            const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+            if (resolved) {
+              // return if resolved while waiting for getTransactionReceipt
+              return;
+            }
+            if (receipt) {
+              resolved = true;
+              handleTxResult(null, receipt);
+            }
+          })
+          .on('receipt', (receipt) => {
+            if (resolved) {
+              // return if already resolved
+              return;
+            }
+            resolved = true;
+            handleTxResult(null, receipt); })
           .on('error', (error) => { handleTxResult(error); })
         ;
       })
@@ -282,6 +313,13 @@ export class SignerInternal extends Logger implements SignerInterface {
 
           // submit via sendRawTransaction
           this.web3.eth.sendSignedTransaction(signedTx)
+            .on('transactionHash', async (txHash) => {
+              const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+              if (receipt) {
+                resolve(new this.web3.eth.Contract(abi, receipt.contractAddress));
+              }
+            })
             .on('receipt', (receipt) => {
               if (options.gas === receipt.gasUsed) {
                 reject('all gas used up');
