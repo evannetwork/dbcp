@@ -172,6 +172,13 @@ export class SignerInternal extends Logger implements SignerInterface {
 
         // submit via sendRawTransaction
         this.web3.eth.sendSignedTransaction(signedTx)
+          .on('transactionHash', async (txHash) => {
+            const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+            if (receipt) {
+              handleTxResult(null, receipt);
+            }
+          })
           .on('receipt', (receipt) => { handleTxResult(null, receipt); })
           .on('error', (error) => { handleTxResult(error); })
         ;
@@ -225,6 +232,13 @@ export class SignerInternal extends Logger implements SignerInterface {
 
         // submit via sendRawTransaction
         this.web3.eth.sendSignedTransaction(signedTx)
+          .on('transactionHash', async (txHash) => {
+            const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+            if (receipt) {
+              handleTxResult(null, receipt);
+            }
+          })
           .on('receipt', (receipt) => { handleTxResult(null, receipt); })
           .on('error', (error) => { handleTxResult(error); })
         ;
@@ -282,6 +296,13 @@ export class SignerInternal extends Logger implements SignerInterface {
 
           // submit via sendRawTransaction
           this.web3.eth.sendSignedTransaction(signedTx)
+            .on('transactionHash', async (txHash) => {
+              const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+              if (receipt) {
+                resolve(new this.web3.eth.Contract(abi, receipt.contractAddress));
+              }
+            })
             .on('receipt', (receipt) => {
               if (options.gas === receipt.gasUsed) {
                 reject('all gas used up');
