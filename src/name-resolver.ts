@@ -388,23 +388,25 @@ export class NameResolver extends Logger {
       // get last modified time
       .then(() => this.executor.executeContractCall(listContract, 'length'))
       .then((length) => {
-        if (length === '0') {
+        const listLength = length.toString();
+        if (listLength === '0') {
           return '0';
         } else {
           return this.executor.executeContractCall(listContract, 'lastModified');
         }
       })
       .then((result) => {
-        if (result === '0') {
+        const listLastModified = result.toString();
+        if (listLastModified === '0') {
           return [];
         } else {
-          lastModified = result;
+          lastModified = listLastModified;
           return this.executor
             .executeContractCall(listContract, 'length')
             // get all items
             .then((lengthString) => {
               // array of functions that retrieve an element as a promise
-              const length = parseInt(lengthString, 10);
+              const length = parseInt(lengthString.toString(), 10);
               const indices = [];
               if (reverse) {
                 const stop = Math.max(-1, length - 1 - count - offset);
@@ -433,7 +435,7 @@ export class NameResolver extends Logger {
             // check if collection has not been changed during retrieval and retry if needed
             .then(() => this.executor.executeContractCall(listContract, 'lastModified'))
             .then((newLastMofified) => {
-              if (lastModified === newLastMofified) {
+              if (lastModified === newLastMofified.toString()) {
                 return results;
               } else if (triesLeft) {
                 this.log(`getArrayFromIndexContract failed with ${lastModified !== newLastMofified}`, 'debug');
