@@ -15,13 +15,14 @@
 */
 
 import BigNumber = require('bignumber.js');
-import coder = require('web3-eth-abi');
 import Transaction = require('ethereumjs-tx');
+import { AbiCoder } from 'web3-eth-abi';
 
 import { SignerInterface } from './signer-interface';
 import { Logger, LoggerOptions } from '../common/logger';
 import { KeyStoreInterface } from '../account-store';
 
+const coder: AbiCoder = new AbiCoder();
 const nonces = {};
 
 /**
@@ -245,6 +246,7 @@ export class SignerInternal extends Logger implements SignerInterface {
               return;
             }
             if (receipt) {
+              resolved = true;
               handleTxResult(null, receipt);
             }
           })
@@ -253,6 +255,7 @@ export class SignerInternal extends Logger implements SignerInterface {
               // return if already resolved
               return;
             }
+            resolved = true;
             handleTxResult(null, receipt); })
           .on('error', (error) => { handleTxResult(error); })
         ;
