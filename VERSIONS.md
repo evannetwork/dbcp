@@ -4,9 +4,13 @@
 ### Features
 
 ### Fixes
-- improve support for `web3` `1.0.0-beta.55`
 
 ### Deprecations
+
+
+## Version 1.6.4
+### Fixes
+- improve support for `web3` `1.0.0-beta.55`
 
 
 ## Version 1.6.3
