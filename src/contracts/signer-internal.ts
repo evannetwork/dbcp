@@ -172,15 +172,32 @@ export class SignerInternal extends Logger implements SignerInterface {
         const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
 
         // submit via sendRawTransaction
+        let resolved = false;
         this.web3.eth.sendSignedTransaction(signedTx)
           .on('transactionHash', async (txHash) => {
+            if (resolved) {
+              // return if already resolved
+              return;
+            }
             const receipt = await this.web3.eth.getTransactionReceipt(txHash);
 
+            if (resolved) {
+              // return if resolved while waiting for getTransactionReceipt
+              return;
+            }
             if (receipt) {
+              resolved = true;
               handleTxResult(null, receipt);
             }
           })
-          .on('receipt', (receipt) => { handleTxResult(null, receipt); })
+          .on('receipt', (receipt) => {
+            if (resolved) {
+              // return if already resolved
+              return;
+            }
+            resolved = true;
+            handleTxResult(null, receipt);
+          })
           .on('error', (error) => { handleTxResult(error); })
         ;
       })
@@ -312,19 +329,35 @@ export class SignerInternal extends Logger implements SignerInterface {
           const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
 
           // submit via sendRawTransaction
+          let resolved = false;
           this.web3.eth.sendSignedTransaction(signedTx)
             .on('transactionHash', async (txHash) => {
+              if (resolved) {
+                // return if already resolved
+                return;
+              }
               const receipt = await this.web3.eth.getTransactionReceipt(txHash);
 
+              if (resolved) {
+                // return if resolved while waiting for getTransactionReceipt
+                return;
+              }
               if (receipt) {
+                resolved = true;
                 resolve(new this.web3.eth.Contract(abi, receipt.contractAddress));
               }
             })
             .on('receipt', (receipt) => {
+              if (resolved) {
+                // return if already resolved
+                return;
+              }
               if (options.gas === receipt.gasUsed) {
+                resolved = true;
                 reject('all gas used up');
               } else {
                 this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`)
+                resolved = true;
                 resolve(new this.web3.eth.Contract(abi, receipt.contractAddress));
               }
             })
