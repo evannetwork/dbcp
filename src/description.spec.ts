@@ -34,7 +34,7 @@ import { Unencrypted } from './encryption/unencrypted';
 
 use(chaiAsPromised);
 
-const dbcpTestDoman = 'dbcp.test.evan';
+const dbcpTestDoman = 'test.evan';
 const testAddressPrefix = 'testDapp';
 /* tslint:disable:quotemark */
 const sampleDescription = {
@@ -82,11 +82,6 @@ describe('Description handler', function() {
     loader = TestUtils.getContractLoader(web3);
 
     testAddressFoo = `${testAddressPrefix}.${dbcpTestDoman}`;
-  });
-
-  after(async () => {
-    await description.dfs.stop();
-    web3.currentProvider.connection.close();
   });
 
   describe('when validing used description', () => {
@@ -308,8 +303,8 @@ describe('Description handler', function() {
 
       // load contract via ENS address, expect it to use the interface defined at ENS address
       let loadedContract = await description.loadContract(testAddressFoo, accounts[0]);
-      expect(loadedContract.methods).to.haveOwnProperty('contractDescription');
-      expect(loadedContract.methods).not.to.haveOwnProperty('resolver');
+      expect(loadedContract.methods.contractDescription).to.be.ok;
+      expect(loadedContract.methods.resolver).not.to.be.ok;
 
       // set different description at contract
       const contractDescription = {
@@ -323,13 +318,13 @@ describe('Description handler', function() {
 
       // expect it to use its own interface, when loaded via its contract address
       loadedContract = await description.loadContract(testAddressFoo, accounts[0]);
-      expect(loadedContract.methods).to.haveOwnProperty('resolver');
-      expect(loadedContract.methods).not.to.haveOwnProperty('contractDescription');
+      expect(loadedContract.methods.contractDescription).not.to.be.ok;
+      expect(loadedContract.methods.resolver).to.be.ok;
 
       // load contract via ENS, expect it to (still) use the interface defined at the contract
       loadedContract = await description.loadContract(testAddressFoo, accounts[0]);
-      expect(loadedContract.methods).to.haveOwnProperty('resolver');
-      expect(loadedContract.methods).not.to.haveOwnProperty('contractDescription');
+      expect(loadedContract.methods.resolver).to.be.ok;
+      expect(loadedContract.methods.contractDescription).not.to.be.ok;
     });
   });
 });

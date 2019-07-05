@@ -44,7 +44,8 @@
     "ts-node": "3.3.0",
     "typescript": "2.6.2",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "web3": "1.0.0-beta.55"
   },
   "homepage": "https://dbcp.online/",
   "keywords": [
@@ -71,5 +72,5 @@
     "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.6.3"
+  "version": "1.6.4"
 }

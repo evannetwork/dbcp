@@ -28,7 +28,7 @@ import { TestUtils } from '../test/test-utils'
 const testUser = accounts[0];
 const fakeUser = '0x0000000000000000000000000000000000000123';
 const ensDomain = '0xa4f4bc00d00f32992d5115ca850962b66537252c8367317a7d70a85c59cc1954';
-const ensMainAccount = '0x4a6723fC5a926FA150bAeAf04bfD673B056Ba83D';
+const ensMainAccount = accounts[0];
 
 let contract;
 let web3;
@@ -91,10 +91,6 @@ describe('Executor handler', function() {
     contractLoader = TestUtils.getContractLoader(web3);
   });
 
-  after(() => {
-    web3.currentProvider.connection.close();
-  });
-
   it('should be able to be created', async () => {
     const executor = await TestUtils.getExecutor(web3);
     expect(executor).not.to.be.undefined;
@@ -120,17 +116,19 @@ describe('Executor handler', function() {
 
   it('should be able to call a contract method', async () => {
     const executor = await TestUtils.getExecutor(web3);
-    const loader = TestUtils.getContractLoader(web3);
-    const sampleContract = loader.loadContract('AbstractENS', TestUtils.getConfig().nameResolver.ensAddress);
-    const owner = await executor.executeContractCall(sampleContract, 'owner', ensDomain);
-    expect(owner).to.eq(ensMainAccount);
+    const owned = await executor.createContract('Owned', [], { from: accounts[0], gas: 500000 });
+    const owner = await executor.executeContractCall(owned, 'owner');
+    expect(owner).to.eq(accounts[0]);
   });
 
   it('should be able to call a contract method on a readonly executor', async () => {
-    const executor = await TestUtils.getExecutor(web3, true);
+    const executor1 = await TestUtils.getExecutor(web3);
+    const contract1 = await executor1.createContract('Owned', [], { from: accounts[0], gas: 500000 });
+
+    const executor2 = await TestUtils.getExecutor(web3, true);
     const loader = TestUtils.getContractLoader(web3);
-    const sampleContract = loader.loadContract('AbstractENS', TestUtils.getConfig().nameResolver.ensAddress);
-    const owner = await executor.executeContractCall(sampleContract, 'owner', ensDomain);
+    const contract2 = loader.loadContract('Owned', contract1.options.address);
+    const owner = await executor2.executeContractCall(contract2, 'owner');
     expect(owner).to.eq(ensMainAccount);
   });
 
@@ -364,7 +362,6 @@ describe('Executor handler', function() {
         [eventContract.options.address],
         { from: testUser, gas: 2000000, }
       );
-      console.dir(testContract);
       const result = await executor.executeContractTransaction(
         testContract,
         'sendEvent',

@@ -14,8 +14,8 @@
   limitations under the License.
 */
 
+const Web3 = require('web3');
 import IpfsApi = require('ipfs-api');
-import Web3 = require('web3');
 
 import { accountMap } from './accounts';
 import { accounts } from './accounts';
@@ -38,42 +38,44 @@ import { Unencrypted } from '../encryption/unencrypted';
 export const publicMailBoxExchange = 'mailboxKeyExchange';
 export const sampleContext = 'context sample';
 
-
-const web3Provider = <any>process.env.CHAIN_ENDPOINT || 'wss://testcore.evan.network/ws';
-const helperWeb3 = new Web3(null);
+const localWeb3 = new Web3(
+  <any>process.env.CHAIN_ENDPOINT || 'wss://testcore.evan.network/ws',
+  null,
+  { transactionConfirmationBlocks: 1 },
+);
 const sampleKeys = {};
 // dataKeys
-sampleKeys[helperWeb3.utils.soliditySha3(accounts[0])] =
+sampleKeys[localWeb3.utils.soliditySha3(accounts[0])] =
   '001de828935e8c7e4cb56fe610495cae63fb2612000000000000000000000000';    // plain acc0 key
-sampleKeys[helperWeb3.utils.soliditySha3(accounts[1])] =
+sampleKeys[localWeb3.utils.soliditySha3(accounts[1])] =
   '0030c5e7394585400b1fb193ddbcb45a37ab916e000000000000000000000011';    // plain acc1 key
-sampleKeys[helperWeb3.utils.soliditySha3(sampleContext)] =
+sampleKeys[localWeb3.utils.soliditySha3(sampleContext)] =
   '00000000000000000000000000000000000000000000000000000000005a3973';
-sampleKeys[helperWeb3.utils.soliditySha3(publicMailBoxExchange)] =
+sampleKeys[localWeb3.utils.soliditySha3(publicMailBoxExchange)] =
   '346c22768f84f3050f5c94cec98349b3c5cbfa0b7315304e13647a4918ffff22';    // accX <--> mailbox edge key
-sampleKeys[helperWeb3.utils.soliditySha3('wulfwulf.test')] =
+sampleKeys[localWeb3.utils.soliditySha3('wulfwulf.test')] =
   '00000000000000000000000000000000000000000000000000000000005a3973';
-sampleKeys[helperWeb3.utils.soliditySha3(accounts[2])] =
+sampleKeys[localWeb3.utils.soliditySha3(accounts[2])] =
   '00d1267b27c3a80080f9e1b6ba01de313b53ab58000000000000000000000022';
 
 // commKeys
-sampleKeys[helperWeb3.utils.soliditySha3.apply(helperWeb3.utils.soliditySha3,
-  [helperWeb3.utils.soliditySha3(accounts[0]), helperWeb3.utils.soliditySha3(accounts[0])].sort())] =
+sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
+  [localWeb3.utils.soliditySha3(accounts[0]), localWeb3.utils.soliditySha3(accounts[0])].sort())] =
     '001de828935e8c7e4cb56fe610495cae63fb2612000000000000000000000000';    // acc0 <--> acc0 edge key
-sampleKeys[helperWeb3.utils.soliditySha3.apply(helperWeb3.utils.soliditySha3,
-  [helperWeb3.utils.soliditySha3(accounts[0]), helperWeb3.utils.soliditySha3(accounts[1])].sort())] =
+sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
+  [localWeb3.utils.soliditySha3(accounts[0]), localWeb3.utils.soliditySha3(accounts[1])].sort())] =
     '001de828935e8c7e4cb50030c5e7394585400b1f000000000000000000000001';    // acc0 <--> acc1 edge key
-sampleKeys[helperWeb3.utils.soliditySha3.apply(helperWeb3.utils.soliditySha3,
-  [helperWeb3.utils.soliditySha3(accounts[0]), helperWeb3.utils.soliditySha3(accounts[2])].sort())] =
+sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
+  [localWeb3.utils.soliditySha3(accounts[0]), localWeb3.utils.soliditySha3(accounts[2])].sort())] =
     '001de828935e8c7e4cb500d1267b27c3a80080f9000000000000000000000002';    // acc0 <--> acc1 edge key
-sampleKeys[helperWeb3.utils.soliditySha3.apply(helperWeb3.utils.soliditySha3,
-  [helperWeb3.utils.soliditySha3(accounts[1]), helperWeb3.utils.soliditySha3(accounts[1])].sort())] =
+sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
+  [localWeb3.utils.soliditySha3(accounts[1]), localWeb3.utils.soliditySha3(accounts[1])].sort())] =
     '0030c5e7394585400b1fb193ddbcb45a37ab916e000000000000000000000011';
-sampleKeys[helperWeb3.utils.soliditySha3.apply(helperWeb3.utils.soliditySha3,
-  [helperWeb3.utils.soliditySha3(accounts[1]), helperWeb3.utils.soliditySha3(accounts[2])].sort())] =
+sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
+  [localWeb3.utils.soliditySha3(accounts[1]), localWeb3.utils.soliditySha3(accounts[2])].sort())] =
     '0030c5e7394585400b1f00d1267b27c3a80080f9000000000000000000000012';    // acc1 <--> acc2 edge key
-sampleKeys[helperWeb3.utils.soliditySha3.apply(helperWeb3.utils.soliditySha3,
-  [helperWeb3.utils.soliditySha3(accounts[2]), helperWeb3.utils.soliditySha3(accounts[2])].sort())] =
+sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
+  [localWeb3.utils.soliditySha3(accounts[2]), localWeb3.utils.soliditySha3(accounts[2])].sort())] =
     '00d1267b27c3a80080f9e1b6ba01de313b53ab58000000000000000000000022';
 
 
@@ -180,8 +182,7 @@ export class TestUtils {
     return nameResolver;
   }
 
-  static getWeb3(provider = web3Provider) {
-    // connect to web3
-    return new Web3(new Web3.providers.WebsocketProvider(provider));
+  static getWeb3() {
+    return localWeb3;
   }
 }

@@ -66,8 +66,7 @@ Examples in this document assume, that there is a instantiated runtime named `ru
 // see examples for configs
 const runtimeConfig = {...};
 // initialize dependencies
-const web3 = new Web3();
-web3.setProvider(new web3.providers.WebsocketProvider(runtimeConfig.web3Provider));
+const web3 = new Web3(runtimeConfig.web3Provider, null, { transactionConfirmationBlocks: 1 });
 const dfs = new Ipfs({ remoteNode: new IpfsApi(runtimeConfig.ipfs), });
 
 // create runtime
@@ -306,8 +305,7 @@ const { ContractLoader } = require('@evan.network/dbcp');
 const Web3 = require('web3');
 
 // web3 instance for ContractLoader
-const web3 = new Web3();
-web3.setProvider(new web3.providers.WebsocketProvider('...'));
+const web3 = new Web3('...', null, { transactionConfirmationBlocks: 1 });
 
 // custom log level 'info'
 const contractLoader = new ContractLoader({
@@ -597,8 +595,7 @@ const { ContractLoader } = require('@evan.network/dbcp');
 const Web3 = require('web3');
 
 // web3 instance for ContractLoader
-const web3 = new Web3();
-web3.setProvider(new web3.providers.WebsocketProvider('...'));
+const web3 = new Web3('...', null, { transactionConfirmationBlocks: 1 });
 
 // custom log level 'info'
 const contractLoader = new ContractLoader({ web3, logLevel: 'info', });

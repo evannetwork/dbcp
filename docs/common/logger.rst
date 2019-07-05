@@ -39,8 +39,8 @@ It can be useful for analyzing issues to increase the log level. You can do this
     const Web3 = require('web3');
 
     // web3 instance for ContractLoader
-    const web3 = new Web3();
-    web3.setProvider(new web3.providers.WebsocketProvider('...'));
+    const provider = new Web3.providers.WebsocketProvider('...''});
+    const web3 = new Web3(provider, null, { transactionConfirmationBlocks: 1 });
 
     // custom log level 'info'
     const contractLoader = new ContractLoader({ web3, logLevel: 'info', });
