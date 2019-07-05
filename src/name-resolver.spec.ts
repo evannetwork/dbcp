@@ -24,7 +24,7 @@ import { TestUtils } from './test/test-utils';
 
 const testAddressValue = '0x0000000000000000000000000000000000000123';
 const emptyAddressValue = '0x0000000000000000000000000000000000000000';
-const dbcpTestDomain = 'dbcp.test.evan';
+const dbcpTestDomain = 'test.evan';
 let web3;
 
 describe('NameResolver class', function() {
@@ -32,10 +32,6 @@ describe('NameResolver class', function() {
 
   before(() => {
     web3 = TestUtils.getWeb3();
-  });
-
-  after(() => {
-    web3.currentProvider.connection.close();
   });
 
   it('should be able to be created', async () => {
@@ -70,9 +66,7 @@ describe('NameResolver class', function() {
     const nameResolver = await TestUtils.getNameResolver(web3);
     const testAddress1 = `${Math.random().toString(32).substr(2)}.${dbcpTestDomain}`;
     const testAddress2 = `${Math.random().toString(32).substr(2)}.${testAddress1}`;
-    console.log(testAddress1)
     await nameResolver.setAddress(testAddress1, testAddressValue, accounts[0], accounts[0]);
-    console.log(testAddress2)
     await nameResolver.setAddress(testAddress2, testAddressValue, accounts[0], accounts[1]);
 
     let address;

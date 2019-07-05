@@ -31,10 +31,6 @@ describe('ContractLoader class', function() {
     web3 = TestUtils.getWeb3();
   });
 
-  after(() => {
-    web3.currentProvider.connection.close();
-  });
-
   it('should be able to be created', async () => {
     const loader = TestUtils.getContractLoader(web3);
     expect(loader).not.to.be.undefined;

@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- improve support for `web3` `1.0.0-beta.55`
 
 ### Deprecations
 
