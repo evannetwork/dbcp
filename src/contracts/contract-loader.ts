@@ -89,7 +89,7 @@ export class ContractLoader extends Logger {
     const contract = new this.web3.eth.Contract(JSON.parse(this.contracts[name].interface), address);
 
     // prevent memory leak of web3 beta 55
-    if(this.web3.eth.initiatedContracts) {
+    if (this.web3.eth.initiatedContracts) {
       this.web3.eth.initiatedContracts = [];
     }
 
