@@ -230,6 +230,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         this.getNonce(options.from),
       ])
       .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
+        this.log(`using gas price of ${gasPrice} Wei`, 'debug');
         /* eslint-disable no-underscore-dangle */
         const data = contract.methods[functionName](...functionArguments).encodeABI();
         /* eslint-enable no-underscore-dangle */

@@ -2,6 +2,7 @@
 
 ## Next Version
 ### Features
+- add support for `timeout` (adjusts transaction timeout) option to `Executor`
 
 ### Fixes
 
