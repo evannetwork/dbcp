@@ -91,6 +91,8 @@ Add it to your Node.js project:
 npm i @evan.network/dbcp
 ```
 
+Node.js version >= 10 is supported. The framework has been tested with Node.js 10, 11 and 12.
+
 ### Basic Usage
 #### Runtime
 The DBCP module library consists out of multiple libraries, that allow to work with contract descriptions and even to perform transactions on your smart contracts. To get a running instance for each of the modules, you can a `runtime` provided by the package with:

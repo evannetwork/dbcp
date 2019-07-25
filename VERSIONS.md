@@ -8,6 +8,11 @@
 ### Deprecations
 
 
+## Version 1.7.0
+### Features
+- add support for `timeout` (adjusts transaction timeout) option to `Executor`
+
+
 ## Version 1.6.4
 ### Fixes
 - improve support for `web3` `1.0.0-beta.55`

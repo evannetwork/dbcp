@@ -343,7 +343,7 @@ export class NameResolver extends Logger {
             .then(() => this.executor.executeContractCall(
               indexContract, retrievers.listLastModified, listHash))
             .then((newLastMofified) => {
-              if (lastModified === newLastMofified) {
+              if (lastModified.toString() === newLastMofified.toString()) {
                 return results;
               } else if (triesLeft) {
                 this.log(`getArrayFromIndexContract failed with ${lastModified !== newLastMofified}`, 'debug');

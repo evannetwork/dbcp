@@ -90,6 +90,9 @@ export class Executor extends Logger {
     }
     let options;
     options = this.defaultOptions ? Object.assign({}, this.defaultOptions) : null;
+    if (options) {
+      this.scrubOptions(options);
+    }
     if (args.length && typeof args[args.length - 1] === 'object') {
       options = Object.assign(options || {}, args[args.length - 1]);
       return contract.methods[functionName].apply(contract.methods, args.slice(0, args.length - 1)).call(options);
@@ -107,7 +110,8 @@ export class Executor extends Logger {
    * @param      {any}           contract           contract instance
    * @param      {string}        functionName       name of the contract function to call
    * @param      {any}           inputOptions       currently supported: from, gas, event,
-   *                                                getEventResult, eventTimeout, estimate, force
+   *                                                getEventResult, eventTimeout, estimate, force,
+   *                                                timeout
    * @param      {any[]}         functionArguments  optional arguments to pass to contract
    *                                                transaction
    * @return     {Promise<any>}  Promise, that resolves to: no result (if no event to watch was
@@ -138,15 +142,17 @@ export class Executor extends Logger {
     }
 
     // every argument beyond the third is an argument for the contract function
-    let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    let options = Object.assign(
+      { timeout: 300000 },
+      this.defaultOptions || {},
+      inputOptions,
+    );
+
+    // keep timeout before deletion
+    const transactionTimeout = options.eventTimeout || options.timeout;
 
     // strip unrelated option
-    const validProperties = ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'];
-    Object.keys(options).forEach((option) => {
-      if (!validProperties.includes(option)) {
-        delete options[option];
-      }
-    });
+    this.scrubOptions(options);
 
     let autoGas;
     if (inputOptions.autoGas) {
@@ -190,7 +196,8 @@ export class Executor extends Logger {
                   .unsubscribe({ subscription})
                   .then(() => { resolveStop(); })
                   .catch((ex) => {
-                    this.log(`error occurred while unsubscribing from transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
+                    this.log(`error occurred while unsubscribing from transaction event; ` +
+                      `${ex.message || ex}, ${ex.stack || ''}`, 'error');
                   })
                   .then(() => { isPending = false; })
                 ;
@@ -212,9 +219,9 @@ export class Executor extends Logger {
           if (isPending) {
             await stopWatching(true);
             logGas({ status: 'error', message: 'timeout' });
-            reject(new Error(`timeout during ${functionName}`));
+            reject(new Error(`timeout after ${transactionTimeout}ms during ${functionName}`));
           }
-        }, inputOptions.eventTimeout || 300000);
+        }, transactionTimeout);
 
         // if we wait for a 'result', pick this result from event watch and resolve the promise
         if (inputOptions.event) {
@@ -364,7 +371,13 @@ export class Executor extends Logger {
             return reject(`${functionName} failed: ${ex.message}`);
           }
         };
-        contract.methods[functionName].apply(contract.methods, initialArguments).estimateGas(Object.assign({}, options), (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); });
+        contract.methods[functionName]
+          .apply(contract.methods, initialArguments)
+          .estimateGas(
+            Object.assign({}, options),
+            (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); },
+          )
+        ;
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
         await stopWatching(true);
@@ -386,7 +399,18 @@ export class Executor extends Logger {
     if (!this.signer) {
       throw new Error('signer is undefined');
     }
-    let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    let options = Object.assign(
+      { timeout: 300000 },
+      this.defaultOptions || {},
+      inputOptions,
+    );
+
+    // keep timeout before deletion
+    const transactionTimeout = options.eventTimeout || options.timeout;
+
+    // strip unrelated option
+    this.scrubOptions(options);
+
     const logGas = (extraParams) => {
       const staticEntries = {
         from: options.from,
@@ -406,9 +430,9 @@ export class Executor extends Logger {
         setTimeout(() => {
           if (isPending) {
             logGas({ status: 'error', message: 'timeout' });
-            reject(new Error('timeout during executeSend'));
+            reject(new Error('timeout after ${transactionTimeout}ms during executeSend'));
           }
-        }, 300000);
+        }, transactionTimeout);
         let gasEstimated;
         const executeCallback = (err, receipt) => {
           if (err) {
@@ -473,9 +497,24 @@ export class Executor extends Logger {
   async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
     let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');
     }
     return this.signer.createContract(contractName, functionArguments, options);
+  }
+
+  /**
+   * Removes entries from options, that are not supported by web3.
+   *
+   * @param      {any}  options  options for web3
+   */
+  protected scrubOptions(options: any): void {
+    const validProperties = ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'];
+    Object.keys(options).forEach((option) => {
+      if (!validProperties.includes(option)) {
+        delete options[option];
+      }
+    });
   }
 }
