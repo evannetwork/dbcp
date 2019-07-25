@@ -2,11 +2,15 @@
 
 ## Next Version
 ### Features
-- add support for `timeout` (adjusts transaction timeout) option to `Executor`
 
 ### Fixes
 
 ### Deprecations
+
+
+## Version 1.7.0
+### Features
+- add support for `timeout` (adjusts transaction timeout) option to `Executor`
 
 
 ## Version 1.6.4
