@@ -14,7 +14,8 @@
   limitations under the License.
 */
 
-import BN = require('bn.js');
+
+import BigNumber = require('bignumber.js');
 import Transaction = require('ethereumjs-tx');
 import { AbiCoder } from 'web3-eth-abi';
 
@@ -162,7 +163,7 @@ export class SignerInternal extends Logger implements SignerInterface {
           gasPrice,
           gasLimit: options.gas || 53000,  // minimum gas cost
           to: options.to,
-          value: options.value ? ('0x' + (new BN(options.value, 10)).toString(16)) : 0,
+          value: options.value ? ('0x' + (new BigNumber(options.value, 10)).toString(16)) : 0,
           chainId: NaN,
         };
 
@@ -239,7 +240,7 @@ export class SignerInternal extends Logger implements SignerInterface {
           gasPrice,
           gasLimit: this.ensureHashWithPrefix(options.gas),
           to: contract.options.address,
-          value: options.value ? ('0x' + (new BN(options.value, 10)).toString(16)) : 0,
+          value: options.value ? ('0x' + (new BigNumber(options.value, 10)).toString(16)) : 0,
           data: this.ensureHashWithPrefix(data),
           chainId: NaN,
         };
