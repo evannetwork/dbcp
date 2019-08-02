@@ -5,6 +5,8 @@
 - update versions of dependencies
 
 ### Fixes
+- remove unnecessary dependencies
+- delete `scripts` folder
 
 ### Deprecations
 
