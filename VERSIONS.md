@@ -2,14 +2,19 @@
 
 ## Next Version
 ### Features
+
+### Fixes
+
+### Deprecations
+
+
+## Version 1.8.0
+### Features
 - update versions of dependencies
 
 ### Fixes
 - remove unnecessary dependencies
 - delete `scripts` folder
-
-### Deprecations
-
 
 ## Version 1.7.0
 ### Features
