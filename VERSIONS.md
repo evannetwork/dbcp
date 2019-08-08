@@ -8,6 +8,14 @@
 ### Deprecations
 
 
+## Version 1.8.0
+### Features
+- update versions of dependencies
+
+### Fixes
+- remove unnecessary dependencies
+- delete `scripts` folder
+
 ## Version 1.7.0
 ### Features
 - add support for `timeout` (adjusts transaction timeout) option to `Executor`

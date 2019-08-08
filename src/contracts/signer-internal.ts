@@ -14,6 +14,7 @@
   limitations under the License.
 */
 
+
 import BigNumber = require('bignumber.js');
 import Transaction = require('ethereumjs-tx');
 import { AbiCoder } from 'web3-eth-abi';
@@ -295,9 +296,9 @@ export class SignerInternal extends Logger implements SignerInterface {
    *                                arguments
    * @param      options            transaction arguments, having at least .from and .gas
    *
-   * @return     Promise, resolved when done
+   * @return     Promise<string>    contract address
    */
-  createContract(contractName: string, functionArguments: any[], options: any) {
+  createContract(contractName: string, functionArguments: any[], options: any): Promise<any> {
     this.log('will sign tx for contract creation', 'debug');
     const compiledContract = this.contractLoader.getCompiledContract(contractName);
     if (!compiledContract) {
