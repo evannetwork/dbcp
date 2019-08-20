@@ -42,12 +42,35 @@ export class SignerInternal extends Logger implements SignerInterface {
   contractLoader: any;
   web3: any;
 
+  /**
+   * Subscribe for new block header events. Set transactionHash mapped to a callback function, that
+   * is called, when the block is populated. When callback was called, the transactionhash
+   */
+  newBlockSubscription: any;
+  pendingTransactions: any = { };
+
   constructor(options: SignerInternalOptions) {
     super(options);
     this.accountStore = options.accountStore;
     this.contractLoader = options.contractLoader;
     this.config = options.config;
     this.web3 = options.web3;
+
+    // watch for new block subscribtions
+    this.newBlockSubscription = this.web3.eth
+      .subscribe('newBlockHeaders')
+      .on('data', async (blockHeader) => {
+        const blockDetails = await this.web3.eth.getBlock(blockHeader.number);
+
+        // iterate through all pending transactions and check if transaction was finished
+        Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
+          // if transaction was finished, call all the callbacks and delete the subscription
+          if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
+            this.pendingTransactions[transactionHash].forEach(callback => callback(blockHeader));
+            delete this.pendingTransactions[transactionHash];
+          }
+        });
+      });
   }
 
   /**
@@ -149,6 +172,65 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
 
+  /**
+   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in fast chains. In this
+   * case, load receipt for received transactionHashes manually and wait until blockHash is set.
+   *
+   * @param      {Web3}  web3      web3 instance
+   * @param      {any}   signedTx  signed transaction object
+   */
+  private async sendSignedTransaction(signedTx: any): Promise<any> {
+    let receipt: any;
+    let subscription: any;
+    let txHash: string;
+    let resolved: boolean = false;
+
+    // send the signed transaction and try to recieve an receipt
+    await new Promise((resolve, reject) => {
+      // Load last transaction receipt for the current txHash, if no valid receipt could be loaded
+      // before, resolve the callback function, else the original receipt event was received before
+      // and we never should resolve the callback function.
+      const checkReceipt = async () => {
+        if (!receipt || !receipt.blockHash) {
+          // load the receipt for the transaction hash
+          const newReceipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+          // if no receipt event was fired before, use the newly loaded receipt
+          if (!receipt || !receipt.blockHash) { 
+            receipt = newReceipt;
+          }
+
+          // if it's still not a valid receipt, wait for block header
+          if (!receipt || !receipt.blockHash) {
+            this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [ ];
+            this.pendingTransactions[txHash].push(() => checkReceipt());
+          } else {
+            !resolved && resolve();
+          }
+        } else {
+          !resolved && resolve();
+        }
+      };
+
+      this.web3.eth
+        .sendSignedTransaction(signedTx)
+        .on('transactionHash', (transactionHash) => {
+          txHash = transactionHash;
+          checkReceipt();
+        })
+        .on('receipt', (newReceipt) => {
+          if (!receipt || !receipt.blockHash) {
+            receipt = newReceipt;
+            checkReceipt();
+          }
+        })
+        .on('error', (error) => reject(error));
+    });
+
+    return receipt;
+  }
+
+
   signAndExecuteSend(options, handleTxResult) {
     this.log('will sign tx for eth for transaction', 'debug');
     Promise
@@ -157,7 +239,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
-      .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
         const txParams = {
           nonce,
           gasPrice,
@@ -173,34 +255,11 @@ export class SignerInternal extends Logger implements SignerInterface {
         const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
 
         // submit via sendRawTransaction
-        let resolved = false;
-        this.web3.eth.sendSignedTransaction(signedTx)
-          .on('transactionHash', async (txHash) => {
-            if (resolved) {
-              // return if already resolved
-              return;
-            }
-            const receipt = await this.web3.eth.getTransactionReceipt(txHash);
-
-            if (resolved) {
-              // return if resolved while waiting for getTransactionReceipt
-              return;
-            }
-            if (receipt) {
-              resolved = true;
-              handleTxResult(null, receipt);
-            }
-          })
-          .on('receipt', (receipt) => {
-            if (resolved) {
-              // return if already resolved
-              return;
-            }
-            resolved = true;
-            handleTxResult(null, receipt);
-          })
-          .on('error', (error) => { handleTxResult(error); })
-        ;
+        try {
+          handleTxResult(null, await this.sendSignedTransaction(signedTx));
+        } catch (ex) {
+          handleTxResult(ex);
+        }
       })
       .catch((ex) => {
         const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
@@ -230,7 +289,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
-      .then(([privateKey, gasPrice, nonce]: [string, number, number]) => {
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
         this.log(`using gas price of ${gasPrice} Wei`, 'debug');
         /* eslint-disable no-underscore-dangle */
         const data = contract.methods[functionName](...functionArguments).encodeABI();
@@ -251,33 +310,11 @@ export class SignerInternal extends Logger implements SignerInterface {
         const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
 
         // submit via sendRawTransaction
-        let resolved = false;
-        this.web3.eth.sendSignedTransaction(signedTx)
-          .on('transactionHash', async (txHash) => {
-            if (resolved) {
-              // return if already resolved
-              return;
-            }
-            const receipt = await this.web3.eth.getTransactionReceipt(txHash);
-
-            if (resolved) {
-              // return if resolved while waiting for getTransactionReceipt
-              return;
-            }
-            if (receipt) {
-              resolved = true;
-              handleTxResult(null, receipt);
-            }
-          })
-          .on('receipt', (receipt) => {
-            if (resolved) {
-              // return if already resolved
-              return;
-            }
-            resolved = true;
-            handleTxResult(null, receipt); })
-          .on('error', (error) => { handleTxResult(error); })
-        ;
+        try {
+          handleTxResult(null, await this.sendSignedTransaction(signedTx));
+        } catch (ex) {
+          handleTxResult(ex);
+        }
       })
       .catch((ex) => {
         const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
@@ -311,62 +348,34 @@ export class SignerInternal extends Logger implements SignerInterface {
         typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
         this.getNonce(options.from),
       ])
-      .then(([privateKey, gasPrice, nonce]: [string, number, number]) =>
-        new Promise((resolve, reject) => {
-          const abi = JSON.parse(compiledContract.interface);
-          const txParams = {
-            nonce,
-            gasPrice,
-            gasLimit: this.ensureHashWithPrefix(options.gas),
-            value: options.value || 0,
-            data: this.ensureHashWithPrefix(
-              `${compiledContract.bytecode}` +
-              `${this.encodeConstructorParams(abi, functionArguments)}`),
-            chainId: NaN,
-          };
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
+        const abi = JSON.parse(compiledContract.interface);
+        const txParams = {
+          nonce,
+          gasPrice,
+          gasLimit: this.ensureHashWithPrefix(options.gas),
+          value: options.value || 0,
+          data: this.ensureHashWithPrefix(
+            `${compiledContract.bytecode}` +
+            `${this.encodeConstructorParams(abi, functionArguments)}`),
+          chainId: NaN,
+        };
 
-          const txObject = new Transaction(txParams);
-          const privateKeyBuffer = Buffer.from(privateKey, 'hex');
-          txObject.sign(privateKeyBuffer);
-          const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
+        const txObject = new Transaction(txParams);
+        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+        txObject.sign(privateKeyBuffer);
+        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
 
-          // submit via sendRawTransaction
-          let resolved = false;
-          this.web3.eth.sendSignedTransaction(signedTx)
-            .on('transactionHash', async (txHash) => {
-              if (resolved) {
-                // return if already resolved
-                return;
-              }
-              const receipt = await this.web3.eth.getTransactionReceipt(txHash);
+        // submit via sendRawTransaction
+        const receipt = await this.sendSignedTransaction(signedTx);
 
-              if (resolved) {
-                // return if resolved while waiting for getTransactionReceipt
-                return;
-              }
-              if (receipt) {
-                resolved = true;
-                resolve(new this.web3.eth.Contract(abi, receipt.contractAddress));
-              }
-            })
-            .on('receipt', (receipt) => {
-              if (resolved) {
-                // return if already resolved
-                return;
-              }
-              if (options.gas === receipt.gasUsed) {
-                resolved = true;
-                reject('all gas used up');
-              } else {
-                this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`)
-                resolved = true;
-                resolve(new this.web3.eth.Contract(abi, receipt.contractAddress));
-              }
-            })
-            .on('error', (error) => { reject(error); })
-          ;
-        })
-      )
+        if (options.gas === receipt.gasUsed) {
+          throw new Error('all gas used up');
+        } else {
+          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`)
+          return new this.web3.eth.Contract(abi, receipt.contractAddress);
+        }
+      })
       .catch((ex) => {
         const msg = `could not sign contract creation of "${contractName}"; "${(ex.message || ex)}"`;
         this.log(msg, 'error');
@@ -374,6 +383,4 @@ export class SignerInternal extends Logger implements SignerInterface {
       })
     ;
   }
-
-
 }
