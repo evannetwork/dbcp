@@ -49,11 +49,6 @@ export class SignerInternal extends Logger implements SignerInterface {
   newBlockSubscription: any;
   pendingTransactions: any = { };
 
-  /**
-   * Block cache mapped to it's containing transactions
-   */
-  blocks: any = { };
-
   constructor(options: SignerInternalOptions) {
     super(options);
     this.accountStore = options.accountStore;
@@ -65,23 +60,21 @@ export class SignerInternal extends Logger implements SignerInterface {
     this.newBlockSubscription = this.web3.eth
       .subscribe('newBlockHeaders')
       .on('data', async (blockHeader) => {
-        const blockDetails = await this.web3.eth.getBlock(blockHeader.number);
+        const pendingTransactionHashes = Object.keys(this.pendingTransactions);
 
-        // cache block, if newBlockHeader event is triggered before transactionHash events are
-        // triggered
-        this.blocks[blockHeader.number] = blockDetails.transactions;
+        // only load block details, when pending transactions are open
+        if (pendingTransactionHashes.length !== 0) {
+          const blockDetails = await this.web3.eth.getBlock(blockHeader.number);
 
-        // clear old blocks, cache only last 200 blocks
-        delete this.blocks[blockHeader.number - 200];
-
-        // iterate through all pending transactions and check if transaction was finished
-        Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
-          // if transaction was finished, call all the callbacks and delete the subscription
-          if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
-            this.pendingTransactions[transactionHash].forEach(callback => callback(blockHeader));
-            delete this.pendingTransactions[transactionHash];
-          }
-        });
+          // iterate through all pending transactions and check if transaction was finished
+          Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
+            // if transaction was finished, call all the callbacks and delete the subscription
+            if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
+              this.pendingTransactions[transactionHash].forEach(callback => callback(blockHeader));
+              delete this.pendingTransactions[transactionHash];
+            }
+          });
+        }
       });
   }
 
@@ -214,23 +207,9 @@ export class SignerInternal extends Logger implements SignerInterface {
 
           // if it's still not a valid receipt, wait for block header
           if (!receipt || !receipt.blockHash) {
-            // search for old block headers and if the transactions was already mined
-            const blockHashes = Object.keys(this.blocks);
-            let found;
-            for (let i = blockHashes.length - 1; i !== -1; i--) {
-              if (this.blocks[blockHashes[i]].indexOf(txHash) !== -1) {
-                found = false;
-                break;
-              }
-            }
-
             // trigger the reload directly
-            if (found) {
-              checkReceipt();
-            } else {
-              this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [ ];
-              this.pendingTransactions[txHash].push(() => checkReceipt());
-            }
+            this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [ ];
+            this.pendingTransactions[txHash].push(() => checkReceipt());
           } else if (!resolved) {
             resolved = true;
             resolve();
