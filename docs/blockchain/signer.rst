@@ -289,6 +289,43 @@ Returns
 ``Promise`` resolves to ``void``: resolved when done.
 
 
+
+------------------------------------------------------------------------------
+
+.. _signer_signMessage:
+
+signMessage
+===================
+
+.. code-block:: javascript
+
+    signer.signMessage(accountId, message);
+
+sign given message with accounts private key
+
+----------
+Parameters
+----------
+
+#. ``accountId`` - ``string``: accountId to sign with
+#. ``message`` - ``string``: message to sign
+
+-------
+Returns
+-------
+
+``Promise`` resolves to ``string``: signature
+
+-------
+Example
+-------
+
+.. code-block:: javascript
+
+      const signature = await signer.signMessage(accountId, messageToSign);
+
+
+
 .. required for building markup
 
 

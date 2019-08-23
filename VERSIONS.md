@@ -2,6 +2,7 @@
 
 ## Next Version
 ### Features
+- add `signMessage` to signers interface to handle signing of messages without using private keys directly
 
 ### Fixes
 - improve `sendSignedTransaction` for `signer-internal` to handle correct `receipt` loading logic

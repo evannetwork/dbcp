@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { SignerInterface } from './signer-interface';
+import { SignerInterface, SignerSignedMessage } from './signer-interface';
 
 export class SignerExternal implements SignerInterface {
   signAndExecuteSend(options, handleTxResult) {
@@ -38,6 +38,10 @@ export class SignerExternal implements SignerInterface {
   };
 
   createContract(contractName: string, functionArguments: any[], options: any) {
+    throw new Error('not implemented');
+  }
+
+  signMessage(accountId: string, message: string): Promise<string> {
     throw new Error('not implemented');
   }
 }
