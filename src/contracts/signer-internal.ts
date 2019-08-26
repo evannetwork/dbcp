@@ -89,7 +89,6 @@ export class SignerInternal extends Logger implements SignerInterface {
     return this.accountStore.getPrivateKey(accountId);
   }
 
-
   /**
    * patch '0x' prefix to input if not already added, also casts numbers to hex string
    *
@@ -276,7 +275,6 @@ export class SignerInternal extends Logger implements SignerInterface {
     ;
   }
 
-
   /**
    * create, sing and submit a contract transaction with private key of options.from
    *
@@ -330,7 +328,6 @@ export class SignerInternal extends Logger implements SignerInterface {
       })
     ;
   }
-
 
   /**
    * creates a contract by contstructing creation transaction and signing it with private key of
@@ -390,5 +387,22 @@ export class SignerInternal extends Logger implements SignerInterface {
         throw ex;
       })
     ;
+  }
+
+
+  /**
+   * sign given message with accounts private key
+   *
+   * @param      {string}  accountId  accountId to sign with
+   * @param      {string}  message    message to sign
+   * @return     {Promise<SignerSignedMessage}  signature
+   */
+  public async signMessage(accountId: string, message: string): Promise<string> {
+    const privateKey =
+      await this.accountStore.getPrivateKey(accountId);
+    const { signature } =
+      await this.web3.eth.accounts.sign(message, `0x${privateKey}`);
+
+    return signature;
   }
 }
