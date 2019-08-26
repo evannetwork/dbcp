@@ -4,9 +4,13 @@
 ### Features
 
 ### Fixes
-- improve `sendSignedTransaction` for `signer-internal` to handle correct `receipt` loading logic
 
 ### Deprecations
+
+
+## Version 1.8.1
+### Fixes
+- improve `sendSignedTransaction` for `signer-internal` to handle correct `receipt` loading logic
 
 
 ## Version 1.8.0
