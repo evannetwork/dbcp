@@ -8,6 +8,11 @@
 ### Deprecations
 
 
+## Version 1.8.2
+### Fixes
+- fix missing `SignerSignedMessage`
+
+
 ## Version 1.8.1
 ### Features
 - add `signMessage` to signers interface to handle signing of messages without using private keys directly
