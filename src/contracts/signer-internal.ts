@@ -395,7 +395,7 @@ export class SignerInternal extends Logger implements SignerInterface {
    *
    * @param      {string}  accountId  accountId to sign with
    * @param      {string}  message    message to sign
-   * @return     {Promise<SignerSignedMessage}  signature
+   * @return     {Promise<string>}  signature
    */
   public async signMessage(accountId: string, message: string): Promise<string> {
     const privateKey =
