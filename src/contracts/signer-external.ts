@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { SignerInterface, SignerSignedMessage } from './signer-interface';
+import { SignerInterface } from './signer-interface';
 
 export class SignerExternal implements SignerInterface {
   signAndExecuteSend(options, handleTxResult) {
