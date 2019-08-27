@@ -8,6 +8,14 @@
 ### Deprecations
 
 
+## Version 1.8.1
+### Features
+- add `signMessage` to signers interface to handle signing of messages without using private keys directly
+
+### Fixes
+- improve `sendSignedTransaction` for `signer-internal` to handle correct `receipt` loading logic
+
+
 ## Version 1.8.0
 ### Features
 - update versions of dependencies

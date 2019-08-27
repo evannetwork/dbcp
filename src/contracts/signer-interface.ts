@@ -44,4 +44,13 @@ export interface SignerInterface {
    * @return     Promise, resolved when done
    */
   createContract(contractName: string, functionArguments: any[], options: any);
+
+  /**
+   * sign given message with accounts private key
+   *
+   * @param      {string}  accountId  accountId to sign with
+   * @param      {string}  message    message to sign
+   * @return     {Promise<string}  signature
+   */
+  signMessage(accountId: string, message: string): Promise<string>;
 }
