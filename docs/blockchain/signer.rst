@@ -330,7 +330,7 @@ Example
 
 
 .. |source contractLoader| replace:: ``ContractLoader``
-.. _source contractLoader: ../contracts/contract-loader
+.. _source contractLoader: ../contracts/contract-loader.html
 
 .. |source keyStoreinterface| replace:: ``KeyStoreInterface``
 .. _source keyStoreinterface: ../blockchain/account-store.html
