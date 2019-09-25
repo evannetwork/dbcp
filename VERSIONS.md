@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- fix missing blocks, that could not be retrieved after `newBlockHeaders` was triggered
 
 ### Deprecations
 
