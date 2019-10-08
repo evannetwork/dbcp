@@ -64,16 +64,25 @@ export class SignerInternal extends Logger implements SignerInterface {
 
         // only load block details, when pending transactions are open
         if (pendingTransactionHashes.length !== 0) {
-          const blockDetails = await this.web3.eth.getBlock(blockHeader.number);
+          const blockNumber = blockHeader.number;
+          const blockStart = Date.now();
+          const checkInterval = setInterval(async () => {
+            this.log(`checking for block ${blockNumber}`, 'debug');
+            const blockDetails = await this.web3.eth.getBlock(blockHeader.number);
+            if (blockDetails) {
+              clearInterval(checkInterval);
+              this.log(`received block details for block ${blockNumber} after ${Date.now() - blockStart}ms`, 'debug');
 
-          // iterate through all pending transactions and check if transaction was finished
-          Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
-            // if transaction was finished, call all the callbacks and delete the subscription
-            if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
-              this.pendingTransactions[transactionHash].forEach(callback => callback(blockHeader));
-              delete this.pendingTransactions[transactionHash];
+              // iterate through all pending transactions and check if transaction was finished
+              Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
+                // if transaction was finished, call all the callbacks and delete the subscription
+                if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
+                  this.pendingTransactions[transactionHash].forEach(callback => callback(blockHeader));
+                  delete this.pendingTransactions[transactionHash];
+                }
+              });
             }
-          });
+          }, 500);
         }
       });
   }
