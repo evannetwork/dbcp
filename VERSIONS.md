@@ -4,9 +4,13 @@
 ### Features
 
 ### Fixes
-- fix missing blocks, that could not be retrieved after `newBlockHeaders` was triggered
 
 ### Deprecations
+
+
+## Version 1.8.3
+### Fixes
+- fix missing blocks, that could not be retrieved after `newBlockHeaders` was triggered
 
 
 ## Version 1.8.2
