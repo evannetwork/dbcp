@@ -232,7 +232,8 @@ export class EventHub extends Logger {
           if (Object.keys(this.contractSubscriptions[contractId][eventName]).length === 0) {
             // stop listener
             return new Promise((resolve, reject) => {
-              if (this.eventEmitter[contractId][eventName].unsubscribe) {
+              if (this.eventEmitter[contractId][eventName] &&
+                  this.eventEmitter[contractId][eventName].unsubscribe) {
                 this.eventEmitter[contractId][eventName].unsubscribe((error, success) => {
                   delete this.eventEmitter[contractId][eventName];
                   if (!error && success) {
@@ -241,11 +242,14 @@ export class EventHub extends Logger {
                     reject(`unsubscribing failed; ${error || 'no reason given for failure'}`);
                   }
                 });
-              } else {
+              } else if(this.eventEmitter[contractId][eventName] &&
+                this.eventEmitter[contractId][eventName].stopWatching) {
                 this.eventEmitter[contractId][eventName].stopWatching(() => {
                   delete this.eventEmitter[contractId][eventName];
                   resolve();
                 });
+              } else {
+                this.log(`all events already removed for "${JSON.stringify(toRemove)}"`, 'debug');
               }
             });
           }
