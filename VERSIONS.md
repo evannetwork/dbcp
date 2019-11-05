@@ -4,9 +4,13 @@
 ### Features
 
 ### Fixes
-- fix creation of multiple containers at the same time
 
 ### Deprecations
+
+
+## Version 1.8.4
+### Fixes
+- fix creation of multiple containers at the same time
 
 
 ## Version 1.8.3
