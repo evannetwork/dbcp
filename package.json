@@ -55,5 +55,5 @@
     "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.8.3"
+  "version": "1.8.4"
 }
