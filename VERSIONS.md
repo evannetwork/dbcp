@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- fix creation of multiple containers at the same time
 
 ### Deprecations
 
