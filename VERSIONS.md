@@ -8,6 +8,11 @@
 ### Deprecations
 
 
+## Version 1.8.4
+### Fixes
+- fix creation of multiple containers at the same time
+
+
 ## Version 1.8.3
 ### Fixes
 - fix missing blocks, that could not be retrieved after `newBlockHeaders` was triggered
