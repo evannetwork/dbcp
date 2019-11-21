@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- add tests for parallel transactions to executor
 
 ### Deprecations
 
