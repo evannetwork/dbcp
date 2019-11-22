@@ -355,6 +355,9 @@ export class SignerInternal extends Logger implements SignerInterface {
     if (!compiledContract) {
       throw new Error(`cannot find contract description for contract "${contractName}"`);
     }
+    if (!compiledContract.bytecode) {
+      throw new Error(`Trying to create an instance of an abstract contract`);
+    }
 
     return Promise
       .all([

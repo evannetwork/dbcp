@@ -138,6 +138,7 @@ describe('Executor handler', function() {
 
   it('should be able to create a contract', async () => {
     const executor = await TestUtils.getExecutor(web3);
+    //console.log(executor)
     contract = await executor.createContract(
       'Owned',
       [],
@@ -147,6 +148,15 @@ describe('Executor handler', function() {
     const owner = await executor.executeContractCall(contract, 'owner');
     expect(owner).to.eq(testUser);
   });
+
+  it('should not be able to create a contract', async () => {
+    const executor = await TestUtils.getExecutor(web3);
+    await expect(executor.createContract(
+      'AbstractENS',
+      [],
+      { from: testUser, gas: 2000000, }
+    )).to.be.rejected;
+  });  
 
   it('should throw an error when trying to create a contract in readonly mode', async () => {
     const executor = await TestUtils.getExecutor(web3, true);
