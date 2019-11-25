@@ -149,7 +149,7 @@ describe('Executor handler', function() {
     expect(owner).to.eq(testUser);
   });
 
-  it('should not be able to create a contract', async () => {
+  it('should not be able to create a contract using an a instance of an abstract contract', async () => {
     const executor = await TestUtils.getExecutor(web3);
     const contractPromise = executor.createContract(
       'AbstractENS',
