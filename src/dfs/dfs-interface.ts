@@ -54,7 +54,7 @@ export interface DfsInterface {
   get(hash: string): Promise<Buffer>;
 
   /**
-   * removes a fle hash from the DFS
+   * removes a file hash from the DFS
    *
    * @return     {Promise<void>}  resolved when done
    */
