@@ -54,11 +54,11 @@ export interface DfsInterface {
   get(hash: string): Promise<Buffer>;
 
   /**
-   * close connection to the DFS
+   * removes a fle hash from the DFS
    *
    * @return     {Promise<void>}  resolved when done
    */
-  stop(): Promise<void>;
+  remove(hash: string): Promise<void>;
 }
 
 
