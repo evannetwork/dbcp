@@ -33,10 +33,6 @@ describe('IPFS handler', function() {
     ipfs = await TestUtils.getIpfs();
   });
 
-  after(async () => {
-    await ipfs.stop();
-  });
-
   it('should be able to add a file', async () => {
     const randomContent = Math.random().toString();
     const hash = await ipfs.add('test', Buffer.from(randomContent, 'utf-8'));

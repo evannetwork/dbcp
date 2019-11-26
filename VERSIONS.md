@@ -2,11 +2,15 @@
 
 ## Next Version
 ### Features
+- add `remove` function to `Dfs` interface
+- add `remove` function to `Ipfs`
 
 ### Fixes
 - add tests for parallel transactions to executor
 
 ### Deprecations
+- remove `stop` function from `Dfs` interface
+- remove `stop` function from `Ipfs`
 
 
 ## Version 1.8.4
