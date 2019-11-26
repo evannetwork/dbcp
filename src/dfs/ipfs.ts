@@ -176,7 +176,7 @@ export class Ipfs extends Logger implements DfsInterface {
   /**
    * get data from ipfs by ipfs hash
    *
-   * @param      {string}  hash          ipfs hash of the data
+   * @param      {string}  hash           ipfs hash of the data
    * @param      {boolean}  returnBuffer  should the function return the plain buffer (default false)
    *
    * @return     data as text
