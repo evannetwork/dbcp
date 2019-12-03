@@ -26,7 +26,7 @@ add
 
     dfs.add(name, data);
 
-add content to ipfs
+add content to dfs
 file content is converted to Buffer (in NodeJS) or an equivalent "polyfill" (in browsers)
 
 ----------
@@ -40,7 +40,7 @@ Parameters
 Returns
 -------
 
-``string``: ipfs hash of the data.
+``string``: hash of the data.
 
 -------
 Example
@@ -79,7 +79,7 @@ Parameters
 Returns
 -------
 
-``Promise`` resolves to ``string[]``: ipfs hash array of the data.
+``Promise`` resolves to ``string[]``: hash array of the data.
 
 -------
 Example
@@ -112,13 +112,13 @@ get
 
     dfs.get(hash, returnBuffer);
 
-get data from ipfs by ipfs hash
+get data from dfs by hash
 
 ----------
 Parameters
 ----------
 
-#. ``hash`` - ``string``: ipfs hash (or bytes32 encoded) of the data
+#. ``hash`` - ``string``: hash (or bytes32 encoded) of the data
 #. ``returnBuffer`` - ``bool``: should the function return the plain buffer, defaults to ``false``
 
 -------
@@ -137,6 +137,39 @@ Example
     console.log(fileBuffer.toString('utf-8'));
     // Output:
     // we have a cat called "Maika"
+
+------------------------------------------------------------------------------
+
+.. _dfs_remove:
+
+remove
+===================
+
+.. code-block:: javascript
+
+    dfs.remove(hash, returnBuffer);
+
+removes data by hash reference
+
+----------
+Parameters
+----------
+
+#. ``hash`` - ``string``: hash (or bytes32 encoded) of the data
+
+-------
+Returns
+-------
+
+``Promise`` resolves to ``void``: resolved when done
+
+-------
+Example
+-------
+
+.. code-block:: javascript
+
+    const fileBuffer = await runtime.dfs.remove('0x695adc2137f1f069ff697aa287d0eae486521925a23482f180b3ae4e6dbf8d70');
 
 ------------------------------------------------------------------------------
 

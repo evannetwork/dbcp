@@ -65,6 +65,10 @@ class MockedSigner implements SignerInterface {
     this.lastOptions = options;
     return mockContract;
   };
+
+  public async signMessage(accountId: string, message: string): Promise<string> {
+    throw new Error('not implemented');
+  }
 }
 
 
@@ -377,5 +381,24 @@ describe('Executor handler', function() {
       );
       expect(result).to.be.true;
     });
-  })
+  });
+
+  describe('when making actual transactions via blockchain', async () => {
+    let executor: Executor;
+
+    before(async () => {
+      executor = await TestUtils.getExecutor(web3);
+    });
+
+    it('can make transactions', async () => {
+      await expect(executor.executeSend({ from: accounts[0], to: accounts[1], value: 0, gas: 21e3 + 1 }))
+        .not.to.be.rejected;
+    });
+
+    it('can make multiple transactions', async () => {
+      await expect(Promise.all([...Array(50)].map(() =>
+        executor.executeSend({ from: accounts[0], to: accounts[1], value: 0, gas: 21e3 + 1 }))
+      )).not.to.be.rejected;
+    });
+  });
 });

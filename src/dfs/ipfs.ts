@@ -88,15 +88,11 @@ export class Ipfs extends Logger implements DfsInterface {
     }
   }
 
-  async stop(): Promise<any> {
-    return true;
-  }
-
   /**
-   * @brief      add content to ipfs
+   * add content to ipfs
    *
-   * @param      name  The name
-   * @param      data  The data
+   * @param      {string}  name    The name
+   * @param      {Buffer}  data    The data
    *
    * @return     ipfs hash of the data
    */
@@ -109,9 +105,9 @@ export class Ipfs extends Logger implements DfsInterface {
   }
 
   /**
-   * @brief      add multiple files to ipfs
+   * add multiple files to ipfs
    *
-   * @param      files  array with files to add
+   * @param      {FileToAdd}  files   array with files to add
    *
    * @return     ipfs hash array of the data
    */
@@ -143,9 +139,9 @@ export class Ipfs extends Logger implements DfsInterface {
   }
 
   /**
-   * @brief      pins file hashes on ipfs cluster
+   * pins file hashes on ipfs cluster
    *
-   * @param      hash  filehash of the pinned item
+   * @param      {string}  hash    filehash of the pinned item
    */
   async pinFileHash(hash: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
@@ -178,10 +174,10 @@ export class Ipfs extends Logger implements DfsInterface {
   }
 
   /**
-   * @brief      get data from ipfs by ipfs hash
+   * get data from ipfs by ipfs hash
    *
-   * @param      hash  ipfs hash of the data
-   * @param      returnBuffer  should the function return the plain buffer (default false)
+   * @param      {string}  hash           ipfs hash of the data
+   * @param      {boolean}  returnBuffer  should the function return the plain buffer (default false)
    *
    * @return     data as text
    */
@@ -233,5 +229,18 @@ export class Ipfs extends Logger implements DfsInterface {
       getRemoteHash,
       timeout
     ]);
+  };
+
+  /**
+   * Removes a hash from the DFS.
+   * 
+   *   Is not implemented caused by generalized IPFS implementation. File hash
+   *   pinning and unpinning is server structure related and must be implemented for special use
+   *   cases.
+   *
+   * @param      {string}  hash    hash that should be removed
+   */
+  async remove(hash: string): Promise<any> {
+    throw new Error('not implemented');
   };
 }
