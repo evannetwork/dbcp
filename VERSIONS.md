@@ -2,6 +2,14 @@
 
 ## Next Version
 ### Features
+
+### Fixes
+
+### Deprecations
+
+
+## Version 1.9.0
+### Features
 - add `remove` function to `Dfs` interface
 - add `remove` function to `Ipfs`
 
