@@ -2,6 +2,7 @@
 
 ## Next Version
 ### Features
+- add `getPublicKey` to `SignerInterface`
 
 ### Fixes
 

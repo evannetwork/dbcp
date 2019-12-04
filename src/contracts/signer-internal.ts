@@ -17,6 +17,7 @@
 
 import BigNumber = require('bignumber.js');
 import Transaction = require('ethereumjs-tx');
+import crypto = require('crypto-browserify');
 import { AbiCoder } from 'web3-eth-abi';
 
 import { SignerInterface } from './signer-interface';
@@ -96,6 +97,18 @@ export class SignerInternal extends Logger implements SignerInterface {
    */
   getPrivateKey(accountId: string) {
     return this.accountStore.getPrivateKey(accountId);
+  }
+
+  /**
+   * get public key for given account
+   *
+   * @param      {string}  accountId  account to get public key for
+   */
+  public async getPublicKey(accountId: string): Promise<string> {
+    const ecdh = crypto.createECDH('secp256k1');
+    ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
+    
+    return ecdh.getPublicKey().toString('hex');
   }
 
   /**

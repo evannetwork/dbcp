@@ -15,35 +15,51 @@
 */
 
 export interface SignerInterface {
+  /**
+   * creates a contract by contstructing creation transaction and signing it with private key of
+   * options.from
+   *
+   * @param      {string}  contractName       contract name
+   * @param      {any}     functionArguments  arguments for contract creation, pass empty Array if
+   *                                          no arguments
+   * @param      {any}     options            transaction arguments, having at least .from and .gas
+   */
+  createContract(contractName: string, functionArguments: any[], options: any): Promise<string>;
 
+  /**
+   * get public key for given account
+   *
+   * @param      {string}  accountId  account to get public key for
+   */
+  getPublicKey(accountId: string): Promise<string>;
+
+  /**
+   * send funds to a target
+   *
+   * @param      {any}       options         transaction arguments, having at least .from, .to, .gas
+   *                                         and .value
+   * @param      {function}  handleTxResult  callback(error, result)
+   */
   signAndExecuteSend(options, handleTxResult);
 
   /**
    * create, sing and submit a contract transaction with private key of options.from
    *
-   * @param      contract           contract instance from api.eth.loadContract(...)
-   * @param      functionName       function name
-   * @param      functionArguments  arguments for contract creation, pass empty Array if no
-   *                                arguments
-   * @param      options            transaction arguments, having at least .from and .gas
-   * @param      handleTxResult     callback(error, result)
-   *
-   * @return     Promise, resolved when done or resolves to event result if event given
+   * @param      {any}       contract           contract instance from api.eth.loadContract(...)
+   * @param      {string}    functionName       function name
+   * @param      {any}       functionArguments  arguments for contract creation, pass empty Array if
+   *                                            no arguments
+   * @param      {any}       options            transaction arguments, having at least .from and
+   *                                            .gas
+   * @param      {Function}  handleTxResult     callback(error, result)
    */
-  signAndExecuteTransaction(contract, functionName, functionArguments, options, handleTxResult);
-
-  /**
-   * creates a contract by contstructing creation transaction and signing it with private key of
-   * options.from
-   *
-   * @param      contractName       contract name
-   * @param      functionArguments  arguments for contract creation, pass empty Array if no
-   *                                arguments
-   * @param      options            transaction arguments, having at least .from and .gas
-   *
-   * @return     Promise, resolved when done
-   */
-  createContract(contractName: string, functionArguments: any[], options: any);
+  signAndExecuteTransaction(
+    contract: any,
+    functionName: string,
+    functionArguments: any[],
+    options: any,
+    handleTxResult: Function
+  );
 
   /**
    * sign given message with accounts private key
