@@ -1,5 +1,5 @@
 ================================================================================
-Signer
+Signer Internal
 ================================================================================
 
 .. list-table:: 
@@ -21,7 +21,7 @@ In most cases, you won't have to use the Signer objects directly yourself, as th
 
 ------------------------------------------------------------------------------
 
-.. _signer_constructor:
+.. _signerInternal_constructor:
 
 constructor
 ================================================================================
@@ -67,7 +67,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signer_getPrivateKey:
+.. _signerInternal_getPrivateKey:
 
 getPrivateKey
 ===================
@@ -100,7 +100,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signer_ensureHashWithPrefix:
+.. _signerInternal_ensureHashWithPrefix:
 
 ensureHashWithPrefix
 ====================
@@ -134,7 +134,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signer_getGasPricex:
+.. _signerInternal_getGasPricex:
 
 getGasPrice
 ===================
@@ -162,7 +162,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signer_getNonce:
+.. _signerInternal_getNonce:
 
 getNonce
 ===================
@@ -196,7 +196,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signer_signAndExecuteSend:
+.. _signerInternal_signAndExecuteSend:
 
 signAndExecuteSend
 ===================
@@ -233,7 +233,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signer_signAndExecuteTransaction:
+.. _signerInternal_signAndExecuteTransaction:
 
 signAndExecuteTransaction
 =========================
@@ -261,7 +261,7 @@ Parameters
 
 ------------------------------------------------------------------------------
 
-.. _signer_createContract:
+.. _signerInternal_createContract:
 
 createContract
 ===================
@@ -286,13 +286,13 @@ Parameters
 Returns
 -------
 
-``Promise`` resolves to ``void``: resolved when done.
+``Promise`` resolves to ``any``: web3 instance of new contract.
 
 
 
 ------------------------------------------------------------------------------
 
-.. _signer_signMessage:
+.. _signerInternal_signMessage:
 
 signMessage
 ===================
