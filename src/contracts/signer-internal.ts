@@ -107,7 +107,7 @@ export class SignerInternal extends Logger implements SignerInterface {
   public async getPublicKey(accountId: string): Promise<string> {
     const ecdh = crypto.createECDH('secp256k1');
     ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
-    
+
     return ecdh.getPublicKey().toString('hex');
   }
 
@@ -209,7 +209,7 @@ export class SignerInternal extends Logger implements SignerInterface {
     let receipt: any;
     let subscription: any;
     let txHash: string;
-    let resolved: boolean = false;
+    let resolved = false;
 
     // send the signed transaction and try to recieve an receipt
     await new Promise((resolve, reject) => {
@@ -222,7 +222,7 @@ export class SignerInternal extends Logger implements SignerInterface {
           const newReceipt = await this.web3.eth.getTransactionReceipt(txHash);
 
           // if no receipt event was fired before, use the newly loaded receipt
-          if (!receipt || !receipt.blockHash) { 
+          if (!receipt || !receipt.blockHash) {
             receipt = newReceipt;
           }
 

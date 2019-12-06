@@ -21,13 +21,15 @@ export function createExceptionLogger(log: Function, task: String) {
 }
 
 /**
-* run given function from this, use function(error, result) {...} callback for promise resolve/reject
-* can be used like: api.helpers.runFunctionAsPromise(fs, 'readFile', 'somefile.txt').then(content => console.log('file content: ' + content));
-*
+ * run given function from this, use function(error, result) {...} callback for promise
+ * resolve/reject can be used like: api.helpers.runFunctionAsPromise(fs, 'readFile',
+ * 'somefile.txt').then(content => console.log('file content: ' + content));
+ *
 * @param  {Object} funThis      the functions 'this' object
 * @param  {string} functionName name of the contract function to call
-* @return {Promise}             resolves to: {Object} (the result from the function(error, result) {...} callback)
-*/
+* @return {Promise}             resolves to: {Object} (the result from the
+ *                              function(error, result) {...} callback)
+ */
 export async function promisify(funThis, functionName, ...args): Promise<any> {
  let functionArguments = args.slice(0);
 
@@ -50,5 +52,5 @@ export async function promisify(funThis, functionName, ...args): Promise<any> {
 };
 
 export function obfuscate(text: string): string {
-  return text ? `${[...Array(text.length - 2)].map(()=>'x').join('')}${text.substr(text.length -2)}` : text;
+  return text ? `${[...Array(text.length - 2)].map(() => 'x').join('')}${text.substr(text.length - 2)}` : text;
 }

@@ -281,20 +281,36 @@ export class Executor extends Logger {
             options.from = inputOptions.from;
             // overwrite given gas with estimation plus autoGas factor
             if (autoGas) {
-              this.web3.eth.getBlock('latest', (error, result) => {
-                if (error) {
-                  reject(`could not get latest block for ${functionName}: ${error}; ${error.stack}`);
+              this.web3.eth.getBlock('latest', (blockError, result) => {
+                if (blockError) {
+                  reject(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`);
                 } else {
                   const currentLimit = result.gasLimit;
                   const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
                   // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
-                  logGas({ status: 'autoGas.estimation', gasEstimated: gasEstimated, gasGiven: gas, message: `estimated with ${autoGas}` });
+                  logGas({
+                    status: 'autoGas.estimation',
+                    gasEstimated: gasEstimated,
+                    gasGiven: gas,
+                    message: `estimated with ${autoGas}`,
+                  });
                   options.gas = gas;
-                  this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); });
+                  this.signer.signAndExecuteTransaction(
+                    contract,
+                    functionName,
+                    functionArguments.slice(0, -1), Object.assign({}, options),
+                    (...args) => {
+                      executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
+                  );
                 }
               });
             } else {
-              this.signer.signAndExecuteTransaction(contract, functionName, functionArguments.slice(0, -1), Object.assign({}, options), (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); });
+              this.signer.signAndExecuteTransaction(
+                contract,
+                functionName,
+                functionArguments.slice(0, -1), Object.assign({}, options),
+                (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
+              );
             }
           }
         };
@@ -336,7 +352,11 @@ export class Executor extends Logger {
                 } else if (eventResults[transactionHash]) {
                   await stopWatching();
                   if (inputOptions.getEventResult) {
-                    resolve(inputOptions.getEventResult(eventResults[transactionHash], eventResults[transactionHash].args ||  eventResults[transactionHash].returnValues));
+                    resolve(inputOptions.getEventResult(
+                      eventResults[transactionHash],
+                      eventResults[transactionHash].args ||
+                        eventResults[transactionHash].returnValues
+                    ));
                   } else {
                     resolve(eventResults[transactionHash]);
                   }

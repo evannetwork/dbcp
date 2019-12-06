@@ -180,15 +180,15 @@ export class EventHub extends Logger {
           this.eventEmitter[contractId] = {};
         }
         this.contractSubscriptions[contractId][eventName][subscription] = (event) => {
-          let chain;
+          let innerChain;
           if (event.event === eventName) {
             const filterResult = filterFunction(event);
             if (filterResult && filterResult.hasOwnProperty('then')) {
-              chain = filterResult;
+              innerChain = filterResult;
             } else {
-              chain = Promise.resolve(filterResult);
+              innerChain = Promise.resolve(filterResult);
             }
-            chain = chain
+            innerChain = innerChain
               .then((match) => {
                 if (match) {
                   return onEvent(event);
@@ -199,9 +199,9 @@ export class EventHub extends Logger {
               })
             ;
           } else {
-            chain = Promise.resolve();
+            innerChain = Promise.resolve();
           }
-          return chain;
+          return innerChain;
         };
         this.subscriptionToContractMapping[subscription] = [contractId, eventName];
         this.ensureSubscription(contractId, eventName, eventTarget, fromBlock);
@@ -242,7 +242,7 @@ export class EventHub extends Logger {
                     reject(`unsubscribing failed; ${error || 'no reason given for failure'}`);
                   }
                 });
-              } else if(this.eventEmitter[contractId][eventName] &&
+              } else if (this.eventEmitter[contractId][eventName] &&
                 this.eventEmitter[contractId][eventName].stopWatching) {
                 this.eventEmitter[contractId][eventName].stopWatching(() => {
                   delete this.eventEmitter[contractId][eventName];
