@@ -5,6 +5,8 @@
 - add `getPublicKey` to `SignerInterface`
 
 ### Fixes
+- add interfaces used in exported classes to export list
+  - adds `AccountStoreOptions`, `KeyStoreInterface`
 
 ### Deprecations
 
