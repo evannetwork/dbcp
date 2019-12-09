@@ -58,7 +58,8 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
         this.log(`key lookup: commKey for "${info.originator}", info "${JSON.stringify(info)}"`, 'debug');
         key = await this.profile.getContactKey(info.originator, 'commKey');
         if (!key) {
-          this.log(`no key found for "${JSON.stringify(info)}"; only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
+          this.log(`no key found for "${JSON.stringify(info)}"; ` +
+            `only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
           return Promise.resolve(null);
         } else {
           this.log(`key found: "${obfuscate(key)}"`, 'debug');

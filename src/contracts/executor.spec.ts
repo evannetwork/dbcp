@@ -56,7 +56,9 @@ class MockedSigner implements SignerInterface {
     handleTxResult(null, { gasUsed: 53000, });
   };
 
-  public async signAndExecuteTransaction(contract, functionName, functionArguments, options, handleTxResult) {
+  public async signAndExecuteTransaction(
+    innerContract, functionName, functionArguments, options, handleTxResult
+  ) {
     this.lastOptions = options;
     handleTxResult(null, { gasUsed: 53000, });
   };
@@ -108,7 +110,7 @@ describe('Executor handler', function() {
   it('should be able to set a custom log function', async () => {
     return new Promise<void>(async (resolve) => {
       const logFn = (message) => {
-        if(message === 'test') {
+        if (message === 'test') {
           resolve();
         }
       }

@@ -32,7 +32,7 @@ const requestWindowSize = 10;
 let ipfsAPI;
 
 
-/** 
+/**
  * ipfs instance options
  */
 export interface IpfsOptions extends LoggerOptions {
@@ -224,7 +224,7 @@ export class Ipfs extends Logger implements DfsInterface {
       .catch((ex: any) => {
         this.log(`error while getting ipfs hash ${ipfsHash}`);
       })
-    ; 
+    ;
     return Promise.race([
       getRemoteHash,
       timeout
@@ -233,7 +233,7 @@ export class Ipfs extends Logger implements DfsInterface {
 
   /**
    * Removes a hash from the DFS.
-   * 
+   *
    *   Is not implemented caused by generalized IPFS implementation. File hash
    *   pinning and unpinning is server structure related and must be implemented for special use
    *   cases.

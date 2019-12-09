@@ -14,6 +14,12 @@
   limitations under the License.
 */
 
+/**
+ * create a simple function to log exceptions
+ *
+ * @param      {Function}  log     logger function
+ * @param      {String}    task    task name
+ */
 export function createExceptionLogger(log: Function, task: String) {
   return (ex) => {
     log(`error occurred while ${task}; ${ex.message || ex}${ex.stack || ''}`, 'error');
@@ -21,13 +27,27 @@ export function createExceptionLogger(log: Function, task: String) {
 }
 
 /**
-* run given function from this, use function(error, result) {...} callback for promise resolve/reject
-* can be used like: api.helpers.runFunctionAsPromise(fs, 'readFile', 'somefile.txt').then(content => console.log('file content: ' + content));
-*
+ * obfuscates strings by replacing each character but the last two with 'x'
+ *
+ * @param      {string}  text    text to obfuscate
+ * @return     {string}  obfuscated text
+ */
+export function obfuscate(text: string): string {
+  return text
+    ? `${[...Array(text.length - 2)].map(() => 'x').join('')}${text.substr(text.length - 2)}`
+    : text;
+}
+
+/**
+ * run given function from this, use function(error, result) {...} callback for promise
+ * resolve/reject can be used like: api.helpers.runFunctionAsPromise(fs, 'readFile',
+ * 'somefile.txt').then(content => console.log('file content: ' + content));
+ *
 * @param  {Object} funThis      the functions 'this' object
 * @param  {string} functionName name of the contract function to call
-* @return {Promise}             resolves to: {Object} (the result from the function(error, result) {...} callback)
-*/
+* @return {Promise}             resolves to: {Object} (the result from the
+ *                              function(error, result) {...} callback)
+ */
 export async function promisify(funThis, functionName, ...args): Promise<any> {
  let functionArguments = args.slice(0);
 
@@ -47,8 +67,4 @@ export async function promisify(funThis, functionName, ...args): Promise<any> {
      reject(ex.message);
    }
  });
-};
-
-export function obfuscate(text: string): string {
-  return text ? `${[...Array(text.length - 2)].map(()=>'x').join('')}${text.substr(text.length -2)}` : text;
 }
