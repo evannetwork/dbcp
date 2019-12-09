@@ -14,10 +14,28 @@
   limitations under the License.
 */
 
+/**
+ * create a simple function to log exceptions
+ *
+ * @param      {Function}  log     logger function
+ * @param      {String}    task    task name
+ */
 export function createExceptionLogger(log: Function, task: String) {
   return (ex) => {
     log(`error occurred while ${task}; ${ex.message || ex}${ex.stack || ''}`, 'error');
   }
+}
+
+/**
+ * obfuscates strings by replacing each character but the last two with 'x'
+ *
+ * @param      {string}  text    text to obfuscate
+ * @return     {string}  obfuscated text
+ */
+export function obfuscate(text: string): string {
+  return text
+    ? `${[...Array(text.length - 2)].map(() => 'x').join('')}${text.substr(text.length - 2)}`
+    : text;
 }
 
 /**
@@ -49,8 +67,4 @@ export async function promisify(funThis, functionName, ...args): Promise<any> {
      reject(ex.message);
    }
  });
-};
-
-export function obfuscate(text: string): string {
-  return text ? `${[...Array(text.length - 2)].map(() => 'x').join('')}${text.substr(text.length - 2)}` : text;
 }
