@@ -300,7 +300,8 @@ export class Executor extends Logger {
                     functionName,
                     functionArguments.slice(0, -1), Object.assign({}, options),
                     (...args) => {
-                      executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
+                      executeCallback.apply(this, args).catch((ex) => { reject(ex); });
+                    },
                   );
                 }
               });
