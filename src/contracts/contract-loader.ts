@@ -26,7 +26,6 @@ export interface ContractLoaderOptions extends LoggerOptions {
 
 export class ContractLoader extends Logger {
   // taken from filted solc output
-  /* tslint:disable:quotemark max-line-length */
   static readonly defaultAbis = {
     "AbstractENS":
       {
@@ -54,7 +53,6 @@ export class ContractLoader extends Logger {
         "bytecode": ""
       },
   };
-  /* tslint:enable:quotemark max-line-length */
   contracts: any;
   web3: any;
 
