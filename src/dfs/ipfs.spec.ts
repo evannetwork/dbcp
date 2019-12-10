@@ -15,8 +15,8 @@
 */
 
 import 'mocha';
+import * as IpfsApi from 'ipfs-api';
 import { expect } from 'chai';
-import IpfsApi = require('ipfs-api');
 
 import { Ipfs } from './ipfs'
 import { InMemoryCache } from './in-memory-cache'
@@ -58,10 +58,10 @@ describe('IPFS handler', function() {
     ];
     const hashes = await ipfs.addMultiple(randomContents.map(content => (
       { path: content, content: Buffer.from(content, 'utf-8')}
-     )));
+    )));
     expect(hashes).not.to.be.undefined;
     let hashesToCheck = randomContents.length;
-    for (let [index, hash] of hashes.entries()) {
+    for (const [ , hash ] of hashes.entries()) {
       expect(randomContents).to.contain(await ipfs.get(hash));
       hashesToCheck--;
     }

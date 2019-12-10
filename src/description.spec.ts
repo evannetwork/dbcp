@@ -16,16 +16,12 @@
 
 import 'mocha';
 import { expect, use, } from 'chai';
-import chaiAsPromised = require('chai-as-promised');
+import * as chaiAsPromised from 'chai-as-promised';
 
 import { accounts } from './test/accounts';
-import { config } from './config';
-import { ContractLoader } from './contracts/contract-loader';
 import { CryptoProvider } from './encryption/crypto-provider';
 import { Description } from './description'
-import { Envelope } from './encryption/envelope';
 import { Executor } from './contracts/executor';
-import { Ipfs } from './dfs/ipfs';
 import { KeyProvider } from './encryption/key-provider';
 import { NameResolver } from './name-resolver';
 import { TestUtils } from './test/test-utils';
@@ -65,9 +61,7 @@ const sampleKey = '346c22768f84f3050f5c94cec98349b3c5cbfa0b7315304e13647a49181fd
 let description: Description;
 let testAddressFoo;
 let executor: Executor;
-let loader: ContractLoader;
 let web3;
-let dfs;
 let nameResolver: NameResolver;
 
 describe('Description handler', function() {
@@ -172,7 +166,6 @@ describe('Description handler', function() {
       description.keyProvider = keyProvider;
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
-      const cryptoInfo = cryptor.getCryptoInfo(nameResolver.soliditySha3(accounts[1]));
       cryptoConfig['unencrypted'] = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
@@ -262,7 +255,7 @@ describe('Description handler', function() {
           {},
           sampleDescription,
           { abis: { own: JSON.parse(sampleInterfaceDescribed), },
-        }),
+          }),
       };
       await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
 
@@ -275,7 +268,7 @@ describe('Description handler', function() {
           {},
           sampleDescription,
           { abis: { own: JSON.parse(sampleInterfaceAbstractENS), },
-        }),
+          }),
       };
       await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
 
@@ -297,7 +290,7 @@ describe('Description handler', function() {
           {},
           sampleDescription,
           { abis: { own: JSON.parse(sampleInterfaceDescribed), },
-        }),
+          }),
       };
       await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
 
@@ -312,7 +305,7 @@ describe('Description handler', function() {
           {},
           sampleDescription,
           { abis: { own: JSON.parse(sampleInterfaceAbstractENS), },
-        }),
+          }),
       };
       await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
 

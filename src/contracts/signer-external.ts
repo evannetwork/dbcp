@@ -17,13 +17,11 @@
 import { SignerInterface } from './signer-interface';
 
 export class SignerExternal implements SignerInterface {
-  public async createContract(
-    contractName: string, functionArguments: any[], options: any
-  ): Promise<string> {
+  public async createContract(): Promise<string> {
     throw new Error('not implemented');
   }
 
-  public async getPublicKey(accountId: string): Promise<string> {
+  public async getPublicKey(): Promise<string> {
     throw new Error('not implemented');
   }
 
@@ -34,9 +32,7 @@ export class SignerExternal implements SignerInterface {
   public signAndExecuteTransaction(
     contract, functionName, functionArguments, options, handleTxResult
   ) {
-    const execution = contract.methods[functionName]
-      .apply(contract.methods, functionArguments)
-      .send(options);
+    const execution = contract.methods[functionName](...functionArguments).send(options);
     execution
       .on('confirmation', (confirmation, receipt) => {
         if (confirmation === 0) {
@@ -49,7 +45,7 @@ export class SignerExternal implements SignerInterface {
       .on('error', (error) => { handleTxResult(error); })
   };
 
-  public async signMessage(accountId: string, message: string): Promise<string> {
+  public async signMessage(): Promise<string> {
     throw new Error('not implemented');
   }
 }

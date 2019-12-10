@@ -16,7 +16,7 @@
 
 import 'mocha';
 import { expect, use } from 'chai';
-import chaiAsPromised = require('chai-as-promised');
+import * as chaiAsPromised from 'chai-as-promised';
 
 import { accounts } from '../test/accounts';
 import { ContractLoader } from './contract-loader';
@@ -27,7 +27,6 @@ import { TestUtils } from '../test/test-utils'
 
 const testUser = accounts[0];
 const fakeUser = '0x0000000000000000000000000000000000000123';
-const ensDomain = '0xa4f4bc00d00f32992d5115ca850962b66537252c8367317a7d70a85c59cc1954';
 const ensMainAccount = accounts[0];
 
 let contract;
@@ -39,7 +38,7 @@ const mockContract = {
   methods: {
     owner: () => ({
       call: (options) => { mockContract.lastOptions = options; },
-      send: (options) => { },
+      send: () => { /* do nothing in mocked send */ },
       estimateGas: (options, cb) => { cb(null, 53000); },
     }),
   }
@@ -51,24 +50,29 @@ use(chaiAsPromised);
 class MockedSigner implements SignerInterface {
   public lastOptions;
 
+  public async createContract(contractName: string, functionArguments: any[], options: any
+  ): Promise<any> {
+    this.lastOptions = options;
+    return mockContract;
+  }
+
+  public async getPublicKey(): Promise<string> {
+    throw new Error('not implemented');
+  }
+
   public async signAndExecuteSend(options, handleTxResult) {
     this.lastOptions = options;
     handleTxResult(null, { gasUsed: 53000, });
-  };
+  }
 
   public async signAndExecuteTransaction(
     innerContract, functionName, functionArguments, options, handleTxResult
   ) {
     this.lastOptions = options;
     handleTxResult(null, { gasUsed: 53000, });
-  };
+  }
 
-  public async createContract(contractName: string, functionArguments: any[], options: any) {
-    this.lastOptions = options;
-    return mockContract;
-  };
-
-  public async signMessage(accountId: string, message: string): Promise<string> {
+  public async signMessage(): Promise<string> {
     throw new Error('not implemented');
   }
 }
@@ -86,7 +90,6 @@ describe('Executor handler', function() {
 
   before(() => {
     web3 = TestUtils.getWeb3();
-    const accountStore = TestUtils.getAccountStore({});
     mockedSigner = new MockedSigner()
     mockedExecutor = new Executor({
       config: {},
@@ -187,7 +190,7 @@ describe('Executor handler', function() {
       { from: testUser, gas: 2000000, }
     );
     expect(contract).not.to.be.undefined;
-    let owner = await executor.executeContractCall(contract, 'owner');
+    const owner = await executor.executeContractCall(contract, 'owner');
     expect(owner).to.eq(testUser);
 
     // try to transfer ownership with read only executor
@@ -212,7 +215,7 @@ describe('Executor handler', function() {
       expect(mockedSigner.lastOptions.gasPrice).to.eq(defaultOptions.gasPrice);
     });
 
-     it('should prefer passed options over default options', async () => {
+    it('should prefer passed options over default options', async () => {
       mockedSigner.lastOptions = {};
       mockContract.lastOptions = {};
       await mockedExecutor.createContract('Owned', [], { from: accounts[0], gas: 100000 });
@@ -322,8 +325,8 @@ describe('Executor handler', function() {
         interface: '[{"constant":false,"inputs":[],"name":"fireEvent","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"fired","type":"bool"}],"name":"EventFired","type":"event"}]',
         bytecode: '6080604052348015600f57600080fd5b5060c28061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680634185df15146044575b600080fd5b348015604f57600080fd5b5060566058565b005b7fdc08654ff747985731f0a10bd9f24cd18ec81389c8e34195040b16e3aaf21a506001604051808215151515815260200191505060405180910390a15600a165627a7a7230582054ebefb381fda1c30f8359f45e7a8bb81f00a4256f7dc35ac40ea5800bac85030029'
       };
-      (<any>executor.signer).contractLoader.contracts['TestContract'] = eventHub.contractLoader.contracts['TestContract'];
-      (<any>executor.signer).contractLoader.contracts['TestContractEvent'] = eventHub.contractLoader.contracts['TestContractEvent'];
+      (executor.signer as any).contractLoader.contracts['TestContract'] = eventHub.contractLoader.contracts['TestContract'];
+      (executor.signer as any).contractLoader.contracts['TestContractEvent'] = eventHub.contractLoader.contracts['TestContractEvent'];
       const testContract = await executor.createContract(
         'TestContractEvent',
         [],
@@ -356,8 +359,8 @@ describe('Executor handler', function() {
         interface: '[{"constant":false,"inputs":[],"name":"fireEvent","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"fired","type":"bool"}],"name":"EventFired","type":"event"}]',
         bytecode: '6080604052348015600f57600080fd5b5060c28061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680634185df15146044575b600080fd5b348015604f57600080fd5b5060566058565b005b7fdc08654ff747985731f0a10bd9f24cd18ec81389c8e34195040b16e3aaf21a506001604051808215151515815260200191505060405180910390a15600a165627a7a7230582054ebefb381fda1c30f8359f45e7a8bb81f00a4256f7dc35ac40ea5800bac85030029'
       };
-      (<any>executor.signer).contractLoader.contracts['TestContract'] = eventHub.contractLoader.contracts['TestContract'];
-      (<any>executor.signer).contractLoader.contracts['TestContractEvent'] = eventHub.contractLoader.contracts['TestContractEvent'];
+      (executor.signer as any).contractLoader.contracts['TestContract'] = eventHub.contractLoader.contracts['TestContract'];
+      (executor.signer as any).contractLoader.contracts['TestContractEvent'] = eventHub.contractLoader.contracts['TestContractEvent'];
       const eventContract = await executor.createContract(
         'TestContractEvent',
         [],

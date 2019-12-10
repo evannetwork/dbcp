@@ -17,7 +17,6 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { ContractLoader } from './contract-loader';
 import { TestUtils } from '../test/test-utils'
 
 const sampleContractName = 'AbstractENS';

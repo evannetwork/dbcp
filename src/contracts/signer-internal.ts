@@ -133,7 +133,7 @@ export class SignerInternal extends Logger implements SignerInterface {
    *
    * @return     hex string with gas price
    */
-   getGasPrice() {
+  getGasPrice() {
     let chain;
     if (this.config.gasPrice) {
       chain = Promise.resolve(this.config.gasPrice);
@@ -207,7 +207,6 @@ export class SignerInternal extends Logger implements SignerInterface {
    */
   private async sendSignedTransaction(signedTx: any): Promise<any> {
     let receipt: any;
-    let subscription: any;
     let txHash: string;
     let resolved = false;
 

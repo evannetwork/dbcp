@@ -92,14 +92,14 @@ export class Logger {
     this.logLevel = (options && typeof options.logLevel !== 'undefined') ? options.logLevel : LogLevel.error;
     this.logLogLevel = (options && typeof options.logLogLevel !== 'undefined') ? options.logLogLevel : LogLevel.error;
     if (options && options.logLevel) {
-      this.logLevel = LogLevel[<string>options.logLevel];
+      this.logLevel = LogLevel[options.logLevel as string];
     } else  if (typeof global !== 'undefined' &&
-        (<any>global).localStorage &&
-        (<any>global).localStorage['bc-dev-logs']) {
+        (global as any).localStorage &&
+        (global as any).localStorage['bc-dev-logs']) {
       // enable dev logs for browserified sources
-      this.logLevel = LogLevel[<string>(<any>global).localStorage['bc-dev-logs']];
+      this.logLevel = LogLevel[(global as any).localStorage['bc-dev-logs'] as string];
     } else if (process.env.DBCP_LOGLEVEL) {
-      this.logLevel = LogLevel[<string>process.env.DBCP_LOGLEVEL];
+      this.logLevel = LogLevel[process.env.DBCP_LOGLEVEL as string];
     } else {
       this.logLevel = LogLevel.error;
     }

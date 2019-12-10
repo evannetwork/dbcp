@@ -18,7 +18,6 @@ import * as https from 'https';
 import { setTimeout, clearTimeout } from 'timers';
 import bs58 = require('bs58');
 import prottle = require('prottle');
-import _ = require('lodash');
 
 import { FileToAdd, DfsInterface, DfsCacheInterface } from './dfs-interface';
 import { Logger, LoggerOptions } from '../common/logger';
@@ -28,9 +27,6 @@ import utils = require('./../common/utils');
 const IPFS_TIMEOUT = 120000;
 const runFunctionAsPromise = utils.promisify;
 const requestWindowSize = 10;
-
-let ipfsAPI;
-
 
 /**
  * ipfs instance options
@@ -125,7 +121,7 @@ export class Ipfs extends Logger implements DfsInterface {
         return fileHash;
       });
     } catch (ex) {
-      let msg = `could not add file to ipfs: ${ex.message || ex}`;
+      const msg = `could not add file to ipfs: ${ex.message || ex}`;
       this.log(msg);
       throw new Error(msg);
     }
@@ -153,14 +149,14 @@ export class Ipfs extends Logger implements DfsInterface {
       };
       const req = https.request(options, (res) => {
         res.setEncoding('utf8')
-        res.on('data', (chunk) => {  })
+        res.on('data', () => { /* ingore returned data */ })
         res.on('end', async () => {
           resolve()
         })
       })
-       req.on('error', (e) => {
-         reject(e);
-       });
+      req.on('error', (e) => {
+        reject(e);
+      });
 
       req.on('timeout', () => {
         this.log(`timeout during pinning of hash "${hash}"`);
@@ -192,7 +188,7 @@ export class Ipfs extends Logger implements DfsInterface {
     this.log(`Getting IPFS Hash ${ipfsHash}`, 'debug');
 
     if (this.cache) {
-      let buffer = await this.cache.get(ipfsHash);
+      const buffer = await this.cache.get(ipfsHash);
       if (buffer) {
         if (returnBuffer) {
           return Buffer.from(buffer);
@@ -203,7 +199,7 @@ export class Ipfs extends Logger implements DfsInterface {
     }
 
     const timeout = new Promise((resolve, reject) => {
-      let wait = setTimeout(() => {
+      const wait = setTimeout(() => {
         clearTimeout(wait);
 
         reject(new Error(`error while getting ipfs hash ${ipfsHash}: rejected after ${ IPFS_TIMEOUT }ms`));
@@ -221,7 +217,7 @@ export class Ipfs extends Logger implements DfsInterface {
           return ret;
         }
       })
-      .catch((ex: any) => {
+      .catch(() => {
         this.log(`error while getting ipfs hash ${ipfsHash}`);
       })
     ;
@@ -240,7 +236,7 @@ export class Ipfs extends Logger implements DfsInterface {
    *
    * @param      {string}  hash    hash that should be removed
    */
-  async remove(hash: string): Promise<any> {
+  async remove(): Promise<any> {
     throw new Error('not implemented');
   };
 }

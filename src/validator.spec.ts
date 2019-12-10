@@ -18,7 +18,6 @@ import 'mocha';
 import { expect } from 'chai';
 
 import { Validator } from './validator';
-import { TestUtils } from './test/test-utils';
 
 
 describe('Validation helper', function() {
@@ -79,7 +78,7 @@ describe('Validation helper', function() {
     /* tslint:enable: quotemark */
 
     try {
-      const validator = new Validator({schema: testSchema});
+      new Validator({schema: testSchema});
     } catch (e) {
       expect(e).to.be.an('error');
     }

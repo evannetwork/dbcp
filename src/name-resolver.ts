@@ -118,11 +118,11 @@ export class NameResolver extends Logger {
    * @return     Promise, that resolves to {string} address
    */
   public async setAddressOrContent(
-      name: string,
-      value: string,
-      accountId: string,
-      domainOwnerId: string,
-      type: string): Promise<void> {
+    name: string,
+    value: string,
+    accountId: string,
+    domainOwnerId: string,
+    type: string): Promise<void> {
     // decide which setter to use
     let setter;
     switch (type) {
@@ -133,7 +133,7 @@ export class NameResolver extends Logger {
     const split = name.split('.');
     const parentName = split.slice(1).join('.');
     const getOptions = () => { return {from: accountId, gas: 200000}; };
-    let finalNodeOwner = domainOwnerId || accountId;
+    const finalNodeOwner = domainOwnerId || accountId;
     let nodeNotDirectlyOwned;
 
     // ensure ownership of node or its parent
@@ -166,7 +166,7 @@ export class NameResolver extends Logger {
 
     // ensure resolver for node
     let resolverAddress = await this.executor.executeContractCall(
-        this.ensContract, 'resolver', this.namehash(name));
+      this.ensContract, 'resolver', this.namehash(name));
 
     // set value to resolver
     if (value) {
@@ -467,12 +467,12 @@ export class NameResolver extends Logger {
    * @return     {Promise<any[]>}  array with results
    */
   public async getArrayFromUintMapping(
-      contract: any,
-      countRetriever: Function,
-      elementRetriever: Function,
-      count = 10,
-      offset = 0,
-      reverse = false): Promise<any[]> {
+    contract: any,
+    countRetriever: Function,
+    elementRetriever: Function,
+    count = 10,
+    offset = 0,
+    reverse = false): Promise<any[]> {
     let results = [];
     const length = parseInt(await countRetriever(), 10);
     if (length !== 0) {
@@ -524,17 +524,13 @@ export class NameResolver extends Logger {
     function dropPrefix0x(input: string): string {
       return input.replace(/^0x/, '');
     }
-    // Reject empty names:
-    let name;
     let node = '';
     for (let i = 0; i < 32; i++) {
       node += '00'
     }
 
-    name = inputName;
-
-    if (name) {
-      const labels = name.split('.');
+    if (inputName) {
+      const labels = inputName.split('.');
 
       for (let i = labels.length - 1; i >= 0; i--) {
         const labelSha = this.sha3(labels[i])
