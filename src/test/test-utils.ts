@@ -129,7 +129,7 @@ export class TestUtils {
     if (isReadonly) {
       return new Executor({log: customLogger});
     } else {
-      const accountStore = this.getAccountStore({});
+      const accountStore = this.getAccountStore();
       const signer = new SignerInternal({
         accountStore,
         contractLoader: this.getContractLoader(web3),

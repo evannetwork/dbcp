@@ -38,7 +38,7 @@
   "homepage": "https://dbcp.online/",
   "husky": {
     "hooks": {
-      "pre-commit": "eslint --ext .js,.ts -c .eslintrc.js ./src"
+      "pre-commit": "eslint --ext .js,.ts -c .eslintrc.js ./src && yarn build"
     }
   },
   "keywords": [
