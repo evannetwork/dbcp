@@ -82,14 +82,14 @@ export class Description extends Logger {
 
     if (address.startsWith('0x')) {
       // address is contract address
-      contractDescription = await this.getDescriptionFromContract(address);
+      contractDescription = await this.getDescriptionFromContract(address, accountId);
     } else {
       // address is ENS address
       const contractAddress = await this.nameResolver.getAddress(address);
       if (contractAddress && contractAddress !== '0x0000000000000000000000000000000000000000') {
         try {
           // got address from ENS, try to check this contract for a description
-          contractDescription = await this.getDescriptionFromContract(contractAddress);
+          contractDescription = await this.getDescriptionFromContract(contractAddress, accountId);
         } catch (ex) {
           // calling this may fail, tried to receive description from contract, but it was invalid
           // we will retry loading contractDescription from getDescriptionFromEns
@@ -119,7 +119,8 @@ export class Description extends Logger {
    * @param      {string}    accountId        account, that is used for descrypting private content
    * @return     {Envelope}  description as an Envelope
    */
-  public async getDescriptionFromContract(contractAddress: string): Promise<Envelope> {
+  public async getDescriptionFromContract(contractAddress: string, accountId: string
+  ): Promise<Envelope> {
     let result = null;
     const contract = this.contractLoader.loadContract('Described', contractAddress);
     const hash = await this.executor.executeContractCall(contract, 'contractDescription');
@@ -134,7 +135,7 @@ export class Description extends Logger {
             Buffer.from(result.private, this.encodingEncrypted), { key, });
           result.private = privateData;
         } catch (e) {
-          result.private = new Error('wrong_key');
+          result.private = new Error(`wrong key for ${accountId}`);
         }
       }
     }
