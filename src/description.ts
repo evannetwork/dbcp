@@ -29,13 +29,13 @@ import { Validator } from './validator';
  * options for Description module
  */
 export interface DescriptionOptions extends LoggerOptions {
-  contractLoader: ContractLoader,
-  dfs: DfsInterface,
-  executor: Executor,
-  nameResolver: NameResolver,
-  web3: any,
-  cryptoProvider?: CryptoProvider,
-  keyProvider?: KeyProviderInterface,
+  contractLoader: ContractLoader;
+  dfs: DfsInterface;
+  executor: Executor;
+  nameResolver: NameResolver;
+  web3: any;
+  cryptoProvider?: CryptoProvider;
+  keyProvider?: KeyProviderInterface;
 }
 
 /**
@@ -119,7 +119,8 @@ export class Description extends Logger {
    * @param      {string}    accountId        account, that is used for descrypting private content
    * @return     {Envelope}  description as an Envelope
    */
-  public async getDescriptionFromContract(contractAddress: string, accountId: string): Promise<Envelope> {
+  public async getDescriptionFromContract(contractAddress: string, accountId: string
+  ): Promise<Envelope> {
     let result = null;
     const contract = this.contractLoader.loadContract('Described', contractAddress);
     const hash = await this.executor.executeContractCall(contract, 'contractDescription');
@@ -132,9 +133,9 @@ export class Description extends Logger {
           const key = await this.keyProvider.getKey(result.cryptoInfo);
           const privateData = await cryptor.decrypt(
             Buffer.from(result.private, this.encodingEncrypted), { key, });
-            result.private = privateData;
+          result.private = privateData;
         } catch (e) {
-          result.private = new Error('wrong_key');
+          result.private = new Error(`wrong key for ${accountId}`);
         }
       }
     }
@@ -173,8 +174,6 @@ export class Description extends Logger {
    */
   public async loadContract(address: string, accountId: string): Promise<any> {
     let contractAddress;
-    let contractDescription;
-
     if (address.startsWith('0x')) {
       contractAddress = address;
     } else {
@@ -184,8 +183,7 @@ export class Description extends Logger {
       }
     }
 
-    contractDescription = await this.getDescription(address, accountId);
-
+    const contractDescription = await this.getDescription(address, accountId);
     if (!contractDescription) {
       throw new Error(`could not find contract description (dbcp) for address "${address}"`);
     }
@@ -227,8 +225,9 @@ export class Description extends Logger {
    * @param      {string}           accountId        ETH account id
    * @return     {Promise}          resolved when done
    */
-  public async setDescriptionToContract(contractAddress: string, envelope: Envelope|string, accountId: string):
-      Promise<void> {
+  public async setDescriptionToContract(
+    contractAddress: string, envelope: Envelope|string, accountId: string
+  ): Promise<void> {
     let hash;
     if (typeof envelope === 'string') {
       hash = envelope;
@@ -269,9 +268,9 @@ export class Description extends Logger {
    * @param      {string}           accountId   ETH account id
    * @return     {Promise}          resolved when done
    */
-  public async setDescriptionToEns(ensAddress: string, envelope: Envelope|string, accountId: string):
-      Promise<void> {
-    let promises = [];
+  public async setDescriptionToEns(ensAddress: string, envelope: Envelope|string, accountId: string
+  ): Promise<void> {
+    const promises = [];
     if (typeof envelope === 'string') {
       promises.push(envelope);
     } else {

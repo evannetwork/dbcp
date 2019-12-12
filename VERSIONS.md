@@ -6,6 +6,7 @@
 
 ### Fixes
 - add interfaces used in exported classes to export list
+- update pre-commit hook to use eslint for typescript
 
 ### Deprecations
 

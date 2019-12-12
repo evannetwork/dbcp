@@ -41,10 +41,9 @@ export class Unencrypted extends Logger implements Cryptor {
   /**
    * create new crypto info for this cryptor
    *
-   * @param      {string}      originator  originator or context of the encryption
    * @return     {CryptoInfo}  details about encryption for originator with this cryptor
    */
-  getCryptoInfo(originator: string): CryptoInfo {
+  getCryptoInfo(): CryptoInfo {
     return Object.assign({}, this.options);
   }
 
@@ -61,10 +60,9 @@ export class Unencrypted extends Logger implements Cryptor {
    * 'encrypt' a message (serializes message)
    *
    * @param      {Buffer}  message  The message
-   * @param      {any}     options  cryptor options
    * @return     {Buffer}  encrypted message
    */
-  async encrypt(message: any, options: any): Promise<Buffer> {
+  async encrypt(message: any): Promise<Buffer> {
     return Buffer.from(JSON.stringify(message), this.encodingUnencrypted);
   }
 
@@ -72,10 +70,9 @@ export class Unencrypted extends Logger implements Cryptor {
    * 'decrypt' a message (deserializes message)
    *
    * @param      {Buffer}  message  The message
-   * @param      {any}     options  decryption options
    * @return     {Buffer}  decrypted message
    */
-  async decrypt(message: Buffer, options: any): Promise<any> {
+  async decrypt(message: Buffer): Promise<any> {
     return JSON.parse(message.toString(this.encodingUnencrypted));
   }
 }

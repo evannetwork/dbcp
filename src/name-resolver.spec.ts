@@ -19,8 +19,8 @@ import { expect } from 'chai';
 
 import { accounts } from './test/accounts';
 import { config } from './config';
-import { NameResolver } from './name-resolver';
 import { TestUtils } from './test/test-utils';
+
 
 const testAddressValue = '0x0000000000000000000000000000000000000123';
 const emptyAddressValue = '0x0000000000000000000000000000000000000000';

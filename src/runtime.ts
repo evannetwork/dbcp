@@ -33,16 +33,16 @@ import { Unencrypted } from './encryption/unencrypted';
  * runtime for interacting with dbcp, including helpers for transactions & co
  */
 export interface Runtime {
-  accountStore: AccountStore,
-  contractLoader: ContractLoader,
-  cryptoProvider: CryptoProvider,
-  description: Description,
-  dfs: DfsInterface,
-  executor: Executor,
-  keyProvider: KeyProvider,
-  nameResolver: NameResolver,
-  signer: SignerInterface,
-  web3: any,
+  accountStore: AccountStore;
+  contractLoader: ContractLoader;
+  cryptoProvider: CryptoProvider;
+  description: Description;
+  dfs: DfsInterface;
+  executor: Executor;
+  keyProvider: KeyProvider;
+  nameResolver: NameResolver;
+  signer: SignerInterface;
+  web3: any;
 };
 
 /**

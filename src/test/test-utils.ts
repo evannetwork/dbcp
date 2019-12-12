@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-const Web3 = require('web3');
+import * as Web3 from 'web3';
 import IpfsApi = require('ipfs-api');
 
 import { accountMap } from './accounts';
@@ -31,15 +31,15 @@ import { Ipfs } from '../dfs/ipfs';
 import { KeyProvider } from '../encryption/key-provider';
 import { Logger } from '../common/logger';
 import { NameResolver } from '../name-resolver';
-import { setTimeout } from 'timers';
 import { SignerInternal } from '../contracts/signer-internal';
 import { Unencrypted } from '../encryption/unencrypted';
 
 export const publicMailBoxExchange = 'mailboxKeyExchange';
 export const sampleContext = 'context sample';
 
-const localWeb3 = new Web3(
-  <any>process.env.CHAIN_ENDPOINT || 'wss://testcore.evan.network/ws',
+// due to issues with typings in web3 remove type from Web3
+const localWeb3 = new (Web3 as any)(
+  (process.env.CHAIN_ENDPOINT as any) || 'wss://testcore.evan.network/ws',
   null,
   { transactionConfirmationBlocks: 1 },
 );
@@ -80,7 +80,7 @@ sampleKeys[localWeb3.utils.soliditySha3.apply(localWeb3.utils.soliditySha3,
 
 
 export class TestUtils {
-  static getAccountStore(options): AccountStore {
+  static getAccountStore(): AccountStore {
     return new AccountStore({ accounts: accountMap, });
   }
 
@@ -129,7 +129,7 @@ export class TestUtils {
     if (isReadonly) {
       return new Executor({log: customLogger});
     } else {
-      const accountStore = this.getAccountStore({});
+      const accountStore = this.getAccountStore();
       const signer = new SignerInternal({
         accountStore,
         contractLoader: this.getContractLoader(web3),

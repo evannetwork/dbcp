@@ -14,7 +14,6 @@
   limitations under the License.
 */
 
-/* tslint:disable:quotemark */
 const definitions = {
   1: {
     "$id": "dbcpVersion_1",
@@ -223,6 +222,5 @@ const definitions = {
     "required": ["name", "description", "author", "version", "dbcpVersion"]
   },
 };
-/* tslint:enable:quotemark */
 
 export default definitions;

@@ -18,12 +18,10 @@ import 'mocha';
 import { expect } from 'chai';
 
 import { Validator } from './validator';
-import { TestUtils } from './test/test-utils';
 
 
 describe('Validation helper', function() {
   it('should be able to validate a simple schema', () => {
-    /* tslint:disable: quotemark */
     const testSchema = {
       "$id": "testSchema",
       "type": "object",
@@ -32,7 +30,6 @@ describe('Validation helper', function() {
         "bar": { "type": "integer" }
       }
     };
-    /* tslint:enable: quotemark */
     const validator = new Validator({schema: testSchema});
 
     const result = validator.validate({
@@ -44,7 +41,6 @@ describe('Validation helper', function() {
   });
 
   it('should be able to validate a simple schema as wrong input', () => {
-    /* tslint:disable: quotemark */
     const testSchema = {
       "$id": "testSchema",
       "type": "object",
@@ -53,7 +49,6 @@ describe('Validation helper', function() {
         "bar": { "type": "integer" }
       }
     };
-    /* tslint:enable: quotemark */
     const validator = new Validator({schema: testSchema});
 
     const result = validator.validate({
@@ -67,7 +62,6 @@ describe('Validation helper', function() {
   });
 
   it('should be return an error if a wrong schema is given', () => {
-    /* tslint:disable: quotemark */
     const testSchema = {
       "$id": "testSchema",
       "type": "object",
@@ -76,10 +70,9 @@ describe('Validation helper', function() {
         "bar": { "type": "integer" }
       }
     };
-    /* tslint:enable: quotemark */
 
     try {
-      const validator = new Validator({schema: testSchema});
+      new Validator({schema: testSchema});
     } catch (e) {
       expect(e).to.be.an('error');
     }

@@ -23,10 +23,10 @@ import { SignerInterface } from './signer-interface';
  * options for executor instance
  */
 export interface ExecutorOptions extends LoggerOptions {
-  config?: any,
-  defaultOptions?: any,
-  signer?: SignerInterface,
-  web3?: any,
+  config?: any;
+  defaultOptions?: any;
+  signer?: SignerInterface;
+  web3?: any;
 }
 
 
@@ -95,11 +95,11 @@ export class Executor extends Logger {
     }
     if (args.length && typeof args[args.length - 1] === 'object') {
       options = Object.assign(options || {}, args[args.length - 1]);
-      return contract.methods[functionName].apply(contract.methods, args.slice(0, args.length - 1)).call(options);
+      return contract.methods[functionName](...args.slice(0, -1)).call(options);
     } else if (options) {
-      return contract.methods[functionName].apply(contract.methods, args).call(options);
+      return contract.methods[functionName](...args).call(options);
     } else {
-      return contract.methods[functionName].apply(contract.methods, args).call();
+      return contract.methods[functionName](...args).call();
     }
   }
 
@@ -142,7 +142,7 @@ export class Executor extends Logger {
     }
 
     // every argument beyond the third is an argument for the contract function
-    let options = Object.assign(
+    const options = Object.assign(
       { timeout: 300000 },
       this.defaultOptions || {},
       inputOptions,
@@ -231,7 +231,7 @@ export class Executor extends Logger {
                 inputOptions.event.target,
                 inputOptions.event.targetAddress || contract.options.address,
                 inputOptions.event.eventName,
-                (event) => true,
+                () => true,
                 (event) => {
                   if (transactionHash === event.transactionHash) {
                     // if we have a retriever function, use it, otherwise return entire event object
@@ -261,62 +261,7 @@ export class Executor extends Logger {
         functionArguments.push(options);
         // const estimationArguments = functionArguments.slice();
         let gasEstimated;
-        let executeCallback;
-        const estimationCallback = async (error, gasAmount) => {
-          gasEstimated = gasAmount;
-          if (error) {
-            await stopWatching(true);
-            logGas({ status: 'error', message: `could not estimate; ${error}` });
-            reject(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`);
-          } else if (inputOptions.estimate) {
-            await stopWatching();
-            resolve(gasAmount);
-          } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
-            await stopWatching(true);
-            logGas({ status: 'error', message: 'out of gas estimated' });
-            reject(`transaction ${functionName} by ${options.from} would most likely fail`);
-          } else {
-            // execute contract function
-            // recover original from, as estimate converts from to lower case
-            options.from = inputOptions.from;
-            // overwrite given gas with estimation plus autoGas factor
-            if (autoGas) {
-              this.web3.eth.getBlock('latest', (blockError, result) => {
-                if (blockError) {
-                  reject(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`);
-                } else {
-                  const currentLimit = result.gasLimit;
-                  const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
-                  // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
-                  logGas({
-                    status: 'autoGas.estimation',
-                    gasEstimated: gasEstimated,
-                    gasGiven: gas,
-                    message: `estimated with ${autoGas}`,
-                  });
-                  options.gas = gas;
-                  this.signer.signAndExecuteTransaction(
-                    contract,
-                    functionName,
-                    functionArguments.slice(0, -1), Object.assign({}, options),
-                    (...args) => {
-                      executeCallback.apply(this, args).catch((ex) => { reject(ex); });
-                    },
-                  );
-                }
-              });
-            } else {
-              this.signer.signAndExecuteTransaction(
-                contract,
-                functionName,
-                functionArguments.slice(0, -1), Object.assign({}, options),
-                (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
-              );
-            }
-          }
-        };
-
-        executeCallback = async (err, receipt) => {
+        const executeCallback = async (err, receipt) => {
           if (err) {
             return reject(`${functionName} failed: ${err}`);
           }
@@ -392,8 +337,61 @@ export class Executor extends Logger {
             return reject(`${functionName} failed: ${ex.message}`);
           }
         };
-        contract.methods[functionName]
-          .apply(contract.methods, initialArguments)
+
+        const estimationCallback = async (error, gasAmount) => {
+          gasEstimated = gasAmount;
+          if (error) {
+            await stopWatching(true);
+            logGas({ status: 'error', message: `could not estimate; ${error}` });
+            reject(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`);
+          } else if (inputOptions.estimate) {
+            await stopWatching();
+            resolve(gasAmount);
+          } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
+            await stopWatching(true);
+            logGas({ status: 'error', message: 'out of gas estimated' });
+            reject(`transaction ${functionName} by ${options.from} would most likely fail`);
+          } else {
+            // execute contract function
+            // recover original from, as estimate converts from to lower case
+            options.from = inputOptions.from;
+            // overwrite given gas with estimation plus autoGas factor
+            if (autoGas) {
+              this.web3.eth.getBlock('latest', (blockError, result) => {
+                if (blockError) {
+                  reject(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`);
+                } else {
+                  const currentLimit = result.gasLimit;
+                  const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
+                  // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
+                  logGas({
+                    status: 'autoGas.estimation',
+                    gasEstimated: gasEstimated,
+                    gasGiven: gas,
+                    message: `estimated with ${autoGas}`,
+                  });
+                  options.gas = gas;
+                  this.signer.signAndExecuteTransaction(
+                    contract,
+                    functionName,
+                    functionArguments.slice(0, -1), Object.assign({}, options),
+                    (...args) => {
+                      executeCallback.apply(this, args).catch((ex) => { reject(ex); });
+                    },
+                  );
+                }
+              });
+            } else {
+              this.signer.signAndExecuteTransaction(
+                contract,
+                functionName,
+                functionArguments.slice(0, -1), Object.assign({}, options),
+                (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
+              );
+            }
+          }
+        };
+        contract.methods[functionName](...initialArguments)
           .estimateGas(
             Object.assign({}, options),
             (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); },
@@ -420,7 +418,7 @@ export class Executor extends Logger {
     if (!this.signer) {
       throw new Error('signer is undefined');
     }
-    let options = Object.assign(
+    const options = Object.assign(
       { timeout: 300000 },
       this.defaultOptions || {},
       inputOptions,
@@ -517,7 +515,7 @@ export class Executor extends Logger {
    */
   async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
-    let options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    const options = Object.assign({}, this.defaultOptions || {}, inputOptions);
     this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');

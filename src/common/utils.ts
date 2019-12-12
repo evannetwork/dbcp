@@ -20,7 +20,7 @@
  * @param      {Function}  log     logger function
  * @param      {String}    task    task name
  */
-export function createExceptionLogger(log: Function, task: String) {
+export function createExceptionLogger(log: Function, task: string) {
   return (ex) => {
     log(`error occurred while ${task}; ${ex.message || ex}${ex.stack || ''}`, 'error');
   }
@@ -49,22 +49,22 @@ export function obfuscate(text: string): string {
  *                              function(error, result) {...} callback)
  */
 export async function promisify(funThis, functionName, ...args): Promise<any> {
- let functionArguments = args.slice(0);
+  const functionArguments = args.slice(0);
 
- return new Promise(function(resolve, reject) {
-   try {
-     // add callback function to arguments
-     functionArguments.push(function(error, result) {
-       if (error) {
-         reject(error);
-       } else {
-         resolve(result);
-       }
-     });
-     // run function
-     funThis[functionName].apply(funThis, functionArguments);
-   } catch (ex) {
-     reject(ex.message);
-   }
- });
+  return new Promise(function(resolve, reject) {
+    try {
+      // add callback function to arguments
+      functionArguments.push(function(error, result) {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+      // run function
+      funThis[functionName](...functionArguments);
+    } catch (ex) {
+      reject(ex.message);
+    }
+  });
 }
