@@ -95,7 +95,7 @@ export class Executor extends Logger {
     }
     if (args.length && typeof args[args.length - 1] === 'object') {
       options = Object.assign(options || {}, args[args.length - 1]);
-      return contract.methods[functionName](...args.slice(0, args.length - 1)).call(options);
+      return contract.methods[functionName](...args.slice(0, -1)).call(options);
     } else if (options) {
       return contract.methods[functionName](...args).call(options);
     } else {
