@@ -147,7 +147,7 @@ remove
 
 .. code-block:: javascript
 
-    dfs.remove(hash, returnBuffer);
+    dfs.remove(hash);
 
 removes data by hash reference
 
