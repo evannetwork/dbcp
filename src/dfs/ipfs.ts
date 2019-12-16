@@ -236,7 +236,9 @@ export class Ipfs extends Logger implements DfsInterface {
    *
    * @param      {string}  hash    hash that should be removed
    */
-  async remove(): Promise<any> {
+  // keep interface compatibility
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async remove(hash: string): Promise<any> {
     throw new Error('not implemented');
   };
 }
