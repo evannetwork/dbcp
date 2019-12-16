@@ -56,6 +56,8 @@ export interface DfsInterface {
   /**
    * removes a file hash from the DFS
    *
+   * @param      {string}  hash    reference to the file in the DFS, format may differ depending on
+   *                               the type of DFS
    * @return     {Promise<void>}  resolved when done
    */
   remove(hash: string): Promise<void>;

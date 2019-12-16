@@ -41,9 +41,12 @@ export class Unencrypted extends Logger implements Cryptor {
   /**
    * create new crypto info for this cryptor
    *
+   * @param      {string}      originator  originator or context of the encryption
    * @return     {CryptoInfo}  details about encryption for originator with this cryptor
    */
-  getCryptoInfo(): CryptoInfo {
+  // keep interface compatibility
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getCryptoInfo(originator: string): CryptoInfo {
     return Object.assign({}, this.options);
   }
 

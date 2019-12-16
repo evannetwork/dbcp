@@ -71,8 +71,6 @@ describe('Description handler', function() {
     nameResolver = await TestUtils.getNameResolver(web3);
     executor = await TestUtils.getExecutor(web3);
     executor.eventHub = await TestUtils.getEventHub(web3);
-    loader = TestUtils.getContractLoader(web3);
-
     testAddressFoo = `${testAddressPrefix}.${dbcpTestDoman}`;
   });
 
