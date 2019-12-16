@@ -138,7 +138,6 @@ describe('Executor handler', function() {
 
   it('should be able to create a contract', async () => {
     const executor = await TestUtils.getExecutor(web3);
-    //console.log(executor)
     contract = await executor.createContract(
       'Owned',
       [],
