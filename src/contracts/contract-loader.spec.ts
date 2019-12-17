@@ -17,13 +17,13 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { TestUtils } from '../test/test-utils'
+import { TestUtils } from '../test/test-utils';
 
 const sampleContractName = 'AbstractENS';
 const sampleContractAddress = '0x112234455C3a32FD11230C42E7Bccd4A84e02010';
 let web3;
 
-describe('ContractLoader class', function() {
+describe('ContractLoader class', function () {
   this.timeout(60000);
 
   before(() => {

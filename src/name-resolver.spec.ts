@@ -27,7 +27,7 @@ const emptyAddressValue = '0x0000000000000000000000000000000000000000';
 const dbcpTestDomain = 'test.evan';
 let web3;
 
-describe('NameResolver class', function() {
+describe('NameResolver class', function () {
   this.timeout(600000);
 
   before(() => {
@@ -42,7 +42,8 @@ describe('NameResolver class', function() {
   it('should be able to resolve an ENS name', async () => {
     const nameResolver = await TestUtils.getNameResolver(web3);
     const address = await nameResolver.getAddress(
-      nameResolver.getDomainName(config.nameResolver.domains.root));
+      nameResolver.getDomainName(config.nameResolver.domains.root),
+    );
     expect(address).to.not.eq('0x0000000000000000000000000000000000000000');
     expect(address).to.not.eq('0x0');
     expect(address).to.not.eq('0x');

@@ -23,7 +23,7 @@
 export function createExceptionLogger(log: Function, task: string) {
   return (ex) => {
     log(`error occurred while ${task}; ${ex.message || ex}${ex.stack || ''}`, 'error');
-  }
+  };
 }
 
 /**
@@ -51,10 +51,10 @@ export function obfuscate(text: string): string {
 export async function promisify(funThis, functionName, ...args): Promise<any> {
   const functionArguments = args.slice(0);
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(((resolve, reject) => {
     try {
       // add callback function to arguments
-      functionArguments.push(function(error, result) {
+      functionArguments.push((error, result) => {
         if (error) {
           reject(error);
         } else {
@@ -66,5 +66,5 @@ export async function promisify(funThis, functionName, ...args): Promise<any> {
     } catch (ex) {
       reject(ex.message);
     }
-  });
+  }));
 }

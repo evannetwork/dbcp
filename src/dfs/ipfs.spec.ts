@@ -18,15 +18,14 @@ import 'mocha';
 import * as IpfsApi from 'ipfs-api';
 import { expect } from 'chai';
 
-import { Ipfs } from './ipfs'
-import { InMemoryCache } from './in-memory-cache'
-import { TestUtils } from '../test/test-utils'
-
+import { Ipfs } from './ipfs';
+import { InMemoryCache } from './in-memory-cache';
+import { TestUtils } from '../test/test-utils';
 
 
 let ipfs: Ipfs;
 
-describe('IPFS handler', function() {
+describe('IPFS handler', function () {
   this.timeout(300000);
 
   before(async () => {
@@ -56,12 +55,12 @@ describe('IPFS handler', function() {
       Math.random().toString(),
       Math.random().toString(),
     ];
-    const hashes = await ipfs.addMultiple(randomContents.map(content => (
-      { path: content, content: Buffer.from(content, 'utf-8')}
+    const hashes = await ipfs.addMultiple(randomContents.map((content) => (
+      { path: content, content: Buffer.from(content, 'utf-8') }
     )));
     expect(hashes).not.to.be.undefined;
     let hashesToCheck = randomContents.length;
-    for (const [ , hash ] of hashes.entries()) {
+    for (const [, hash] of hashes.entries()) {
       expect(randomContents).to.contain(await ipfs.get(hash));
       hashesToCheck--;
     }
@@ -87,8 +86,8 @@ describe('IPFS handler', function() {
   });
 
   it('should set the cache when passed via options', async () => {
-    const remoteNode = IpfsApi({host: 'ipfs.test.evan.network', port: '443', protocol: 'https'});
-    const cachedIpfs = new Ipfs({ remoteNode, cache: new InMemoryCache()});
+    const remoteNode = IpfsApi({ host: 'ipfs.test.evan.network', port: '443', protocol: 'https' });
+    const cachedIpfs = new Ipfs({ remoteNode, cache: new InMemoryCache() });
     expect(cachedIpfs.cache).to.be.ok;
-  })
+  });
 });

@@ -14,11 +14,11 @@
   limitations under the License.
 */
 
-import prottle = require('prottle');
-
 import { Executor } from './contracts/executor';
 import { ContractLoader } from './contracts/contract-loader';
 import { Logger, LoggerOptions } from './common/logger';
+
+import prottle = require('prottle');
 
 const requestWindowSize = 200;
 
@@ -39,9 +39,13 @@ export interface NameResolverOptions extends LoggerOptions {
  */
 export class NameResolver extends Logger {
   config: any;
+
   contractLoader: ContractLoader;
+
   ensContract: any;
+
   executor: Executor;
+
   web3: any;
 
   constructor(options: any) {
@@ -52,9 +56,9 @@ export class NameResolver extends Logger {
     this.web3 = options.web3;
     this.ensContract = this.contractLoader.loadContract('AbstractENS', this.config.ensAddress);
 
-    this.log(`nameresolver uses ens root domain ` +
-      `"${this.getDomainName(this.config.domains.root)}" ` +
-      ` and ENS at ${this.config.ensAddress}`, 'notice');
+    this.log('nameresolver uses ens root domain '
+      + `"${this.getDomainName(this.config.domains.root)}" `
+      + ` and ENS at ${this.config.ensAddress}`, 'notice');
   }
 
   /**
@@ -79,9 +83,8 @@ export class NameResolver extends Logger {
     if (resolver !== '0x0000000000000000000000000000000000000000') {
       const contract = this.contractLoader.loadContract('PublicResolver', resolver);
       return this.executor.executeContractCall(contract, getter, node);
-    } else {
-      return null;
     }
+    return null;
   }
 
   /**
@@ -92,7 +95,7 @@ export class NameResolver extends Logger {
    * @return     Promise, that resolves to {string} address
    */
   public async getAddress(name: string) {
-    return this.getAddressOrContent(name, 'address')
+    return this.getAddressOrContent(name, 'address');
   }
 
   /**
@@ -103,7 +106,7 @@ export class NameResolver extends Logger {
    * @return     Promise, that resolves to {string} address
    */
   public async getContent(name: string) {
-    return this.getAddressOrContent(name, 'content')
+    return this.getAddressOrContent(name, 'content');
   }
 
   /**
@@ -122,7 +125,8 @@ export class NameResolver extends Logger {
     value: string,
     accountId: string,
     domainOwnerId: string,
-    type: string): Promise<void> {
+    type: string,
+  ): Promise<void> {
     // decide which setter to use
     let setter;
     switch (type) {
@@ -132,17 +136,19 @@ export class NameResolver extends Logger {
     }
     const split = name.split('.');
     const parentName = split.slice(1).join('.');
-    const getOptions = () => { return {from: accountId, gas: 200000}; };
+    const getOptions = () => ({ from: accountId, gas: 200000 });
     const finalNodeOwner = domainOwnerId || accountId;
     let nodeNotDirectlyOwned;
 
     // ensure ownership of node or its parent
     let nameOwner = await this.executor.executeContractCall(
-      this.ensContract, 'owner', this.namehash(name));
+      this.ensContract, 'owner', this.namehash(name),
+    );
     if (nameOwner !== accountId) {
       // currently not owner of node; check parent node
       const parentOwner = await this.executor.executeContractCall(
-        this.ensContract, 'owner', this.namehash(parentName));
+        this.ensContract, 'owner', this.namehash(parentName),
+      );
       if (parentOwner !== accountId) {
         const msg = `cannot set ens value neither node "${name}" nor its parent owned by "${accountId}"`;
         this.log(msg, 'error');
@@ -166,7 +172,8 @@ export class NameResolver extends Logger {
 
     // ensure resolver for node
     let resolverAddress = await this.executor.executeContractCall(
-      this.ensContract, 'resolver', this.namehash(name));
+      this.ensContract, 'resolver', this.namehash(name),
+    );
 
     // set value to resolver
     if (value) {
@@ -176,20 +183,23 @@ export class NameResolver extends Logger {
         if (split.length > 2) {
           // level 3 domains (foo.bar.top) use parent domains resolver as fallback
           resolverAddress = await this.executor.executeContractCall(
-            this.ensContract, 'resolver', this.namehash(parentName));
+            this.ensContract, 'resolver', this.namehash(parentName),
+          );
         }
         if (resolverAddress === '0x0000000000000000000000000000000000000000') {
           // if no parent resolver was found or if we have a level 2 domain (bar.top), use default
           resolverAddress = this.config.ensResolver;
         }
         await this.executor.executeContractTransaction(
-          this.ensContract, 'setResolver', getOptions(), this.namehash(name), resolverAddress);
+          this.ensContract, 'setResolver', getOptions(), this.namehash(name), resolverAddress,
+        );
       }
       const resolver = await this.contractLoader.loadContract('PublicResolver', resolverAddress);
 
       // actually set address / content
       await this.executor.executeContractTransaction(
-        resolver, setter, getOptions(), this.namehash(name), value);
+        resolver, setter, getOptions(), this.namehash(name), value,
+      );
     }
 
     // if node should be owned by another account, set ownership to this
@@ -259,7 +269,8 @@ export class NameResolver extends Logger {
    */
   public async getFactory(contractName: string) {
     const factoryDomain = [contractName].concat(
-      this.config.domains.factory.map(label => this.config.labels[label])).join('.').toLowerCase();
+      this.config.domains.factory.map((label) => this.config.labels[label]),
+    ).join('.').toLowerCase();
     return this.getAddress(factoryDomain);
   }
 
@@ -272,11 +283,11 @@ export class NameResolver extends Logger {
    */
   public getDomainName(domainConfig: string[] | string, ...subLabels) {
     if (Array.isArray(domainConfig)) {
-      return subLabels.filter(label => label).concat(domainConfig.map(
-        label => this.config.labels[label])).join('.').toLowerCase();
-    } else {
-      return domainConfig;
+      return subLabels.filter((label) => label).concat(domainConfig.map(
+        (label) => this.config.labels[label],
+      )).join('.').toLowerCase();
     }
+    return domainConfig;
   }
 
   /**
@@ -301,8 +312,8 @@ export class NameResolver extends Logger {
       listLength: 'listLength',
     },
     chain = Promise.resolve(),
-    triesLeft = 10) {
-
+    triesLeft = 10,
+  ) {
     let lastModified;
     const results = [];
     const bytes32address = /^0x0{24}(.*)/;
@@ -313,51 +324,43 @@ export class NameResolver extends Logger {
       .then((length) => {
         if (length === '0') {
           return '0';
-        } else {
-          return this.executor.executeContractCall(indexContract, retrievers.listLastModified, listHash);
         }
+        return this.executor.executeContractCall(indexContract, retrievers.listLastModified, listHash);
       })
       .then((result) => {
         if (result === '0') {
           return [];
-        } else {
-          lastModified = result;
-          return this.executor
-            .executeContractCall(indexContract, retrievers.listLength, listHash)
-            // get all items
-            .then((length) => {
-              // array of functions that retrieve an element as a promise
-              const retrievals = [...Array(parseInt(length, 10))].map((_, i) => {
-                return () => {
-                  return this.executor
-                    .executeContractCall(indexContract, retrievers.listEntryGet, listHash, i)
-                    // convert zero-patched byte32 address to address or keep them as bytes32
-                    .then(element => { results.push(element.replace(bytes32address, '0x$1')); })
-                  ;
-                };
-              });
-              // run these function sequentially, chain .then()s, return result array
-              return retrievals.reduce((innerChain, fun) => innerChain.then(fun), chain);
-            })
-            // check if collection has not been changed during retrieval and retry if needed
-            .then(() => this.executor.executeContractCall(
-              indexContract, retrievers.listLastModified, listHash))
-            .then((newLastMofified) => {
-              if (lastModified.toString() === newLastMofified.toString()) {
-                return results;
-              } else if (triesLeft) {
-                this.log(`getArrayFromIndexContract failed with ${lastModified !== newLastMofified}`, 'debug');
-                return this.getArrayFromIndexContract(
-                  indexContract, listHash, retrievers, chain, triesLeft - 1);
-              } else {
-                this.log(`getArrayFromIndexContract couldn\'t complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
-                throw new Error('max tries for retrieving index data exceeded');
-              }
-            })
-          ;
         }
-      })
-    ;
+        lastModified = result;
+        return this.executor
+          .executeContractCall(indexContract, retrievers.listLength, listHash)
+        // get all items
+          .then((length) => {
+            // array of functions that retrieve an element as a promise
+            const retrievals = [...Array(parseInt(length, 10))].map((_, i) => () => this.executor
+              .executeContractCall(indexContract, retrievers.listEntryGet, listHash, i)
+            // convert zero-patched byte32 address to address or keep them as bytes32
+              .then((element) => { results.push(element.replace(bytes32address, '0x$1')); }));
+              // run these function sequentially, chain .then()s, return result array
+            return retrievals.reduce((innerChain, fun) => innerChain.then(fun), chain);
+          })
+        // check if collection has not been changed during retrieval and retry if needed
+          .then(() => this.executor.executeContractCall(
+            indexContract, retrievers.listLastModified, listHash,
+          ))
+          .then((newLastMofified) => {
+            if (lastModified.toString() === newLastMofified.toString()) {
+              return results;
+            } if (triesLeft) {
+              this.log(`getArrayFromIndexContract failed with ${lastModified !== newLastMofified}`, 'debug');
+              return this.getArrayFromIndexContract(
+                indexContract, listHash, retrievers, chain, triesLeft - 1,
+              );
+            }
+            this.log(`getArrayFromIndexContract couldn\'t complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
+            throw new Error('max tries for retrieving index data exceeded');
+          });
+      });
   }
 
   /**
@@ -378,8 +381,8 @@ export class NameResolver extends Logger {
     offset = 0,
     reverse = false,
     chain = Promise.resolve(),
-    triesLeft = 10) {
-
+    triesLeft = 10,
+  ) {
     let lastModified;
     const results = [];
     const bytes32address = /^0x0{24}(.*)/;
@@ -391,65 +394,56 @@ export class NameResolver extends Logger {
         const listLength = length.toString();
         if (listLength === '0') {
           return '0';
-        } else {
-          return this.executor.executeContractCall(listContract, 'lastModified');
         }
+        return this.executor.executeContractCall(listContract, 'lastModified');
       })
       .then((result) => {
         const listLastModified = result.toString();
         if (listLastModified === '0') {
           return [];
-        } else {
-          lastModified = listLastModified;
-          return this.executor
-            .executeContractCall(listContract, 'length')
-            // get all items
-            .then((lengthString) => {
-              // array of functions that retrieve an element as a promise
-              const length = parseInt(lengthString.toString(), 10);
-              const indices = [];
-              if (reverse) {
-                const stop = Math.max(-1, length - 1 - count - offset);
-                for (let i = (length - 1 - offset); i > stop; i--) {
-                  indices.push(i);
-                }
-              } else {
-                const stop = Math.min(count, length);
-                for (let i = offset; i < stop; i++) {
-                  indices.push(i);
-                }
-              }
-
-              const retrievals = indices.map((i) => {
-                return () => {
-                  return this.executor
-                    .executeContractCall(listContract, 'get', i)
-                    // convert zero-patched byte32 address to address or keep them as bytes32
-                    .then(element => results.push(element.replace(bytes32address, '0x$1')))
-                  ;
-                };
-              });
-              // run these function sequentially, chain .then()s, return result array
-              return prottle(requestWindowSize, retrievals);
-            })
-            // check if collection has not been changed during retrieval and retry if needed
-            .then(() => this.executor.executeContractCall(listContract, 'lastModified'))
-            .then((newLastMofified) => {
-              if (lastModified === newLastMofified.toString()) {
-                return results;
-              } else if (triesLeft) {
-                this.log(`getArrayFromIndexContract failed with ${lastModified !== newLastMofified}`, 'debug');
-                return this.getArrayFromListContract(
-                  listContract, count, offset, reverse, chain, triesLeft - 1);
-              } else {
-                this.log(`getArrayFromIndexContract couldn\'t complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
-                throw new Error('max tries for retrieving index data exceeded');
-              }
-            })
-          ;
         }
-      })
-    ;
+        lastModified = listLastModified;
+        return this.executor
+          .executeContractCall(listContract, 'length')
+        // get all items
+          .then((lengthString) => {
+            // array of functions that retrieve an element as a promise
+            const length = parseInt(lengthString.toString(), 10);
+            const indices = [];
+            if (reverse) {
+              const stop = Math.max(-1, length - 1 - count - offset);
+              for (let i = (length - 1 - offset); i > stop; i--) {
+                indices.push(i);
+              }
+            } else {
+              const stop = Math.min(count, length);
+              for (let i = offset; i < stop; i++) {
+                indices.push(i);
+              }
+            }
+
+            const retrievals = indices.map((i) => () => this.executor
+              .executeContractCall(listContract, 'get', i)
+            // convert zero-patched byte32 address to address or keep them as bytes32
+              .then((element) => results.push(element.replace(bytes32address, '0x$1'))));
+              // run these function sequentially, chain .then()s, return result array
+            return prottle(requestWindowSize, retrievals);
+          })
+        // check if collection has not been changed during retrieval and retry if needed
+          .then(() => this.executor.executeContractCall(listContract, 'lastModified'))
+          .then((newLastMofified) => {
+            if (lastModified === newLastMofified.toString()) {
+              return results;
+            } if (triesLeft) {
+              this.log(`getArrayFromIndexContract failed with ${lastModified !== newLastMofified}`, 'debug');
+              return this.getArrayFromListContract(
+                listContract, count, offset, reverse, chain, triesLeft - 1,
+              );
+            }
+            this.log(`getArrayFromIndexContract couldn\'t complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
+            throw new Error('max tries for retrieving index data exceeded');
+          });
+      });
   }
 
   /**
@@ -472,7 +466,8 @@ export class NameResolver extends Logger {
     elementRetriever: Function,
     count = 10,
     offset = 0,
-    reverse = false): Promise<any[]> {
+    reverse = false,
+  ): Promise<any[]> {
     let results = [];
     const length = parseInt(await countRetriever(), 10);
     if (length !== 0) {
@@ -484,7 +479,8 @@ export class NameResolver extends Logger {
       // array of functions that retrieve an element as a promise and set it in then
       results = new Array(indicesToGet.length);
       const retrievals = indicesToGet.map(
-        (i, j) => async () => elementRetriever(i).then((elem) => { results[j] = elem; }));
+        (i, j) => async () => elementRetriever(i).then((elem) => { results[j] = elem; }),
+      );
       // run these function windowed, chain .then()s, return result array
       if (retrievals.length) {
         await prottle(requestWindowSize, retrievals);
@@ -511,7 +507,7 @@ export class NameResolver extends Logger {
    * @return     {string}  hashed output
    */
   public soliditySha3(...args) {
-    return this.web3.utils.soliditySha3.apply(this.web3.utils.soliditySha3, args)
+    return this.web3.utils.soliditySha3.apply(this.web3.utils.soliditySha3, args);
   }
 
   /**
@@ -526,14 +522,14 @@ export class NameResolver extends Logger {
     }
     let node = '';
     for (let i = 0; i < 32; i++) {
-      node += '00'
+      node += '00';
     }
 
     if (inputName) {
       const labels = inputName.split('.');
 
       for (let i = labels.length - 1; i >= 0; i--) {
-        const labelSha = this.sha3(labels[i])
+        const labelSha = this.sha3(labels[i]);
         const buffer = new Buffer(dropPrefix0x(node) + dropPrefix0x(labelSha), 'hex');
         node = this.sha3(buffer);
       }

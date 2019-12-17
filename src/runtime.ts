@@ -43,7 +43,7 @@ export interface Runtime {
   nameResolver: NameResolver;
   signer: SignerInterface;
   web3: any;
-};
+}
 
 /**
  * create new runtime instance
@@ -55,12 +55,14 @@ export interface Runtime {
  */
 export async function createDefaultRuntime(web3: any, dfs: DfsInterface, runtimeConfig: any): Promise<Runtime> {
   // web3 contract interfaces
-  const contractLoader = new ContractLoader({ web3, });
+  const contractLoader = new ContractLoader({ web3 });
 
   // executor
-  const accountStore = new AccountStore({ accounts: runtimeConfig.accountMap, });
-  const signer = new SignerInternal({ accountStore, contractLoader, config: {}, web3, });
-  const executor = new Executor({ config, signer, web3, });
+  const accountStore = new AccountStore({ accounts: runtimeConfig.accountMap });
+  const signer = new SignerInternal({
+    accountStore, contractLoader, config: {}, web3,
+  });
+  const executor = new Executor({ config, signer, web3 });
   await executor.init({});
   const nameResolver = new NameResolver({
     config: config.nameResolver,
@@ -76,7 +78,7 @@ export async function createDefaultRuntime(web3: any, dfs: DfsInterface, runtime
   executor.eventHub = eventHub;
 
   // description
-  const cryptoConfig = { unencrypted: new Unencrypted(), };
+  const cryptoConfig = { unencrypted: new Unencrypted() };
   const cryptoProvider = new CryptoProvider(cryptoConfig);
   const keyProvider = new KeyProvider(runtimeConfig.keyConfig);
   const description = new Description({
@@ -102,4 +104,4 @@ export async function createDefaultRuntime(web3: any, dfs: DfsInterface, runtime
     signer,
     web3,
   };
-};
+}

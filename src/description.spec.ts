@@ -15,12 +15,12 @@
 */
 
 import 'mocha';
-import { expect, use, } from 'chai';
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { accounts } from './test/accounts';
 import { CryptoProvider } from './encryption/crypto-provider';
-import { Description } from './description'
+import { Description } from './description';
 import { Executor } from './contracts/executor';
 import { KeyProvider } from './encryption/key-provider';
 import { NameResolver } from './name-resolver';
@@ -33,26 +33,26 @@ use(chaiAsPromised);
 const dbcpTestDoman = 'test.evan';
 const testAddressPrefix = 'testDapp';
 const sampleDescription = {
-  "name": "test description",
-  "description": "description used in tests.",
-  "author": "description test user",
-  "version": "0.0.1",
-  "dbcpVersion": 2,
-  "dapp": {
-    "dependencies": {
-      "angular-core": "^1.0.0",
-      "angular-libs": "^1.0.0"
+  name: 'test description',
+  description: 'description used in tests.',
+  author: 'description test user',
+  version: '0.0.1',
+  dbcpVersion: 2,
+  dapp: {
+    dependencies: {
+      'angular-core': '^1.0.0',
+      'angular-libs': '^1.0.0',
     },
-    "entrypoint": "task.js",
-    "files": [
-      "task.js",
-      "task.css"
+    entrypoint: 'task.js',
+    files: [
+      'task.js',
+      'task.css',
     ],
-    "origin": "Qm...",
-    "primaryColor": "#e87e23",
-    "secondaryColor": "#fffaf5",
-    "standalone": true,
-    "type": "dapp"
+    origin: 'Qm...',
+    primaryColor: '#e87e23',
+    secondaryColor: '#fffaf5',
+    standalone: true,
+    type: 'dapp',
   },
 };
 const sampleKey = '346c22768f84f3050f5c94cec98349b3c5cbfa0b7315304e13647a49181fd1ef';
@@ -62,7 +62,7 @@ let executor: Executor;
 let web3;
 let nameResolver: NameResolver;
 
-describe('Description handler', function() {
+describe('Description handler', function () {
   this.timeout(300000);
 
   before(async () => {
@@ -76,63 +76,67 @@ describe('Description handler', function() {
 
   describe('when validing used description', () => {
     it('should allow valid description', async () => {
-      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
-      const descriptionEnvelope = { public: Object.assign({}, sampleDescription), };
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
+      const descriptionEnvelope = { public: { ...sampleDescription } };
       await description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
     });
 
     it('should reject invalid description', async () => {
-      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
       let descriptionEnvelope;
       let promise;
 
       // missing property
-      descriptionEnvelope = { public: Object.assign({}, sampleDescription), };
+      descriptionEnvelope = { public: { ...sampleDescription } };
       delete descriptionEnvelope.public.version;
       promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
       await expect(promise).to.be.rejected;
 
       // additional property
-      descriptionEnvelope = { public: Object.assign({}, sampleDescription), };
+      descriptionEnvelope = { public: { ...sampleDescription } };
       descriptionEnvelope.public.newPropery = 123;
       promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
       await expect(promise).to.be.rejected;
 
       // wrong type
-      descriptionEnvelope = { public: Object.assign({}, sampleDescription), };
+      descriptionEnvelope = { public: { ...sampleDescription } };
       descriptionEnvelope.public.version = 123;
       promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
       await expect(promise).to.be.rejected;
 
       // additional sub property
-      descriptionEnvelope = { public: Object.assign({}, sampleDescription), };
-      descriptionEnvelope.public.dapp = Object.assign({}, descriptionEnvelope.public.dapp, { newProperty: 123, });
+      descriptionEnvelope = { public: { ...sampleDescription } };
+      descriptionEnvelope.public.dapp = { ...descriptionEnvelope.public.dapp, newProperty: 123 };
       promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
       await expect(promise).to.be.rejected;
     });
 
     it('should be able to hold versions history', async () => {
-      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000, });
-      const descriptionEnvelope = { public: Object.assign({}, sampleDescription, {
-        versions: {
-          '0.7.0': 'Qmf...',
-          '0.8.0': 'Qmu...',
-          '0.9.0': 'Qmx...',
-        }
-      }), };
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
+      const descriptionEnvelope = {
+        public: {
+          ...sampleDescription,
+          versions: {
+            '0.7.0': 'Qmf...',
+            '0.8.0': 'Qmu...',
+            '0.9.0': 'Qmx...',
+          },
+        },
+      };
       await description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
     });
 
     it('should reject invalid versions history keys', async () => {
-      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
       const descriptionEnvelope = {
-        public: Object.assign({}, sampleDescription, {
+        public: {
+          ...sampleDescription,
           versions: {
             '0.7.X': 'Qmf...',
             '0.YAZ.0': 'Qmu...',
-            'latest': 'Qmx...',
-          }
-        }),
+            latest: 'Qmx...',
+          },
+        },
       };
       const setPromise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
       expect(setPromise).to.be.rejected;
@@ -141,14 +145,14 @@ describe('Description handler', function() {
 
   describe('when working with ENS descriptions', () => {
     it('should be able to set and get unencrypted content for ENS addresses', async () => {
-      await description.setDescriptionToEns(testAddressFoo, { public: sampleDescription, }, accounts[0]);
+      await description.setDescriptionToEns(testAddressFoo, { public: sampleDescription }, accounts[0]);
       const content = await description.getDescriptionFromEns(testAddressFoo);
-      expect(content).to.deep.eq({ public: sampleDescription, });
+      expect(content).to.deep.eq({ public: sampleDescription });
     });
 
     it('should be able to set and get unencrypted content for ENS addresses including special characters', async () => {
       const sampleDescriptionSpecialCharacters = {
-        public: Object.assign({}, sampleDescription, { name: 'Special Characters !"§$%&/()=?ÜÄÖ', }),
+        public: { ...sampleDescription, name: 'Special Characters !"§$%&/()=?ÜÄÖ' },
       };
       await description.setDescriptionToEns(testAddressFoo, sampleDescriptionSpecialCharacters, accounts[0]);
       const content = await description.getDescriptionFromEns(testAddressFoo);
@@ -162,7 +166,7 @@ describe('Description handler', function() {
       description.keyProvider = keyProvider;
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
-      cryptoConfig['unencrypted'] = cryptor;
+      cryptoConfig.unencrypted = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
       const secureDescription = {
@@ -179,7 +183,7 @@ describe('Description handler', function() {
 
   describe('when working with contract descriptions', () => {
     it('should be able to set a description on a created contract', async () => {
-      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
       const keyConfig = {};
       keyConfig[nameResolver.soliditySha3(contract.options.address)] = sampleKey;
       const keyProvider = new KeyProvider(keyConfig);
@@ -187,26 +191,26 @@ describe('Description handler', function() {
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
       const cryptoInfo = cryptor.getCryptoInfo(nameResolver.soliditySha3(contract.options.address));
-      cryptoConfig['unencrypted'] = cryptor;
+      cryptoConfig.unencrypted = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
       const envelope = {
-        cryptoInfo: cryptoInfo,
-        public: Object.assign({}, sampleDescription),
+        cryptoInfo,
+        public: { ...sampleDescription },
         private: {
           i18n: {
             name: {
               en: 'name of the example',
               de: 'Name des Beispiels',
-            }
-          }
-        }
+            },
+          },
+        },
       };
       await description.setDescriptionToContract(contract.options.address, envelope, accounts[0]);
     });
 
     it('should be able to get a description from a created contract', async () => {
-      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
       const keyConfig = {};
       keyConfig[nameResolver.soliditySha3(contract.options.address)] = sampleKey;
       const keyProvider = new KeyProvider(keyConfig);
@@ -214,20 +218,20 @@ describe('Description handler', function() {
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
       const cryptoInfo = cryptor.getCryptoInfo(nameResolver.soliditySha3(contract.options.address));
-      cryptoConfig['unencrypted'] = cryptor;
+      cryptoConfig.unencrypted = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
       const envelope = {
-        cryptoInfo: cryptoInfo,
+        cryptoInfo,
         public: sampleDescription,
         private: {
           i18n: {
             name: {
               en: 'name of the example',
               de: 'Name des Beispiels',
-            }
-          }
-        }
+            },
+          },
+        },
       };
       await description.setDescriptionToContract(contract.options.address, envelope, accounts[0]);
       const contractDescription = await description
@@ -242,16 +246,16 @@ describe('Description handler', function() {
 
     it('should prefer a smart contracts description over an ENS address description, when getting descriptions', async () => {
       // create a contract with a description
-      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
 
       // link ENS address to it, set description at ENS sddress
       await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[0], accounts[0]);
       const ensDescription = {
-        public: Object.assign(
-          {},
-          sampleDescription,
-          { abis: { own: JSON.parse(sampleInterfaceDescribed), },
-          }),
+        public: {
+
+          ...sampleDescription,
+          abis: { own: JSON.parse(sampleInterfaceDescribed) },
+        },
       };
       await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
 
@@ -260,11 +264,11 @@ describe('Description handler', function() {
 
       // set different description at contract
       const contractDescription = {
-        public: Object.assign(
-          {},
-          sampleDescription,
-          { abis: { own: JSON.parse(sampleInterfaceAbstractENS), },
-          }),
+        public: {
+
+          ...sampleDescription,
+          abis: { own: JSON.parse(sampleInterfaceAbstractENS) },
+        },
       };
       await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
 
@@ -277,16 +281,16 @@ describe('Description handler', function() {
 
     it('should prefer a smart contracts description over an ENS address description, when loading contract instances', async () => {
       // create a contract
-      const contract = await executor.createContract('Described', [], {from: accounts[0], gas: 1000000, });
+      const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
 
       // link ENS address to it, set description at ENS sddress
       await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[0], accounts[0]);
       const ensDescription = {
-        public: Object.assign(
-          {},
-          sampleDescription,
-          { abis: { own: JSON.parse(sampleInterfaceDescribed), },
-          }),
+        public: {
+
+          ...sampleDescription,
+          abis: { own: JSON.parse(sampleInterfaceDescribed) },
+        },
       };
       await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
 
@@ -297,11 +301,11 @@ describe('Description handler', function() {
 
       // set different description at contract
       const contractDescription = {
-        public: Object.assign(
-          {},
-          sampleDescription,
-          { abis: { own: JSON.parse(sampleInterfaceAbstractENS), },
-          }),
+        public: {
+
+          ...sampleDescription,
+          abis: { own: JSON.parse(sampleInterfaceAbstractENS) },
+        },
       };
       await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
 

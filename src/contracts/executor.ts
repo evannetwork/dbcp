@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import { EventHub } from './../event-hub';
+import { EventHub } from '../event-hub';
 import { Logger, LoggerOptions } from '../common/logger';
 import { SignerInterface } from './signer-interface';
 
@@ -37,9 +37,13 @@ export interface ExecutorOptions extends LoggerOptions {
  */
 export class Executor extends Logger {
   config: any;
+
   defaultOptions: any;
+
   eventHub: EventHub;
+
   signer: SignerInterface;
+
   web3: any;
 
   /**
@@ -74,33 +78,33 @@ export class Executor extends Logger {
    *                                           parameter
    * @return     {Promise<any>}  resolves to: {Object} contract calls result
    */
-  async executeContractCall(contract: any, functionName: string, ...args): Promise<any>  {
+  async executeContractCall(contract: any, functionName: string, ...args): Promise<any> {
     this.log(`starting contract call "${functionName}"`, 'debug');
-    if (!contract.options.address ||
-        contract.options.address === '0x0000000000000000000000000000000000000000') {
-      throw new Error(`trying to execute contract call "${functionName}" ` +
-        'against invalid contract address');
+    if (!contract.options.address
+        || contract.options.address === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`trying to execute contract call "${functionName}" `
+        + 'against invalid contract address');
     }
     if (!contract.methods[functionName]) {
-      throw new Error(`contract does not support method "${functionName}", ` +
-        `supported methods are ${Object.keys(contract.methods)}`);
+      throw new Error(`contract does not support method "${functionName}", `
+        + `supported methods are ${Object.keys(contract.methods)}`);
     }
     if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
     }
     let options;
-    options = this.defaultOptions ? Object.assign({}, this.defaultOptions) : null;
+    options = this.defaultOptions ? ({ ...this.defaultOptions }) : null;
     if (options) {
       this.scrubOptions(options);
     }
     if (args.length && typeof args[args.length - 1] === 'object') {
       options = Object.assign(options || {}, args[args.length - 1]);
       return contract.methods[functionName](...args.slice(0, -1)).call(options);
-    } else if (options) {
-      return contract.methods[functionName](...args).call(options);
-    } else {
-      return contract.methods[functionName](...args).call();
     }
+    if (options) {
+      return contract.methods[functionName](...args).call(options);
+    }
+    return contract.methods[functionName](...args).call();
   }
 
   /**
@@ -129,24 +133,24 @@ export class Executor extends Logger {
       throw new Error('signer is undefined');
     }
     if (!contract.methods[functionName]) {
-      throw new Error(`contract does not support method "${functionName}", ` +
-        `supported methods are ${Object.keys(contract.methods)}`);
+      throw new Error(`contract does not support method "${functionName}", `
+        + `supported methods are ${Object.keys(contract.methods)}`);
     }
     if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
     }
-    if (!contract.options.address ||
-        contract.options.address === '0x0000000000000000000000000000000000000000') {
-      throw new Error(`trying to execute contract transaction "${functionName}" ` +
-        'against invalid contract address');
+    if (!contract.options.address
+        || contract.options.address === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`trying to execute contract transaction "${functionName}" `
+        + 'against invalid contract address');
     }
 
     // every argument beyond the third is an argument for the contract function
-    const options = Object.assign(
-      { timeout: 300000 },
-      this.defaultOptions || {},
-      inputOptions,
-    );
+    const options = {
+      timeout: 300000,
+      ...this.defaultOptions || {},
+      ...inputOptions,
+    };
 
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
@@ -178,7 +182,7 @@ export class Executor extends Logger {
       };
       const level = 'gasLog';
       this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), level);
-    }
+    };
     return new Promise(async (resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
       let isPending = true;
@@ -187,31 +191,28 @@ export class Executor extends Logger {
 
       // timeout and event listener with this
       let subscription;
-      const stopWatching = async (isError?) => {
-        return new Promise((resolveStop) => {
-          setTimeout(() => {
-            if (inputOptions.event && subscription) {
-              if (this.eventHub) {
-                this.eventHub
-                  .unsubscribe({ subscription})
-                  .then(() => { resolveStop(); })
-                  .catch((ex) => {
-                    this.log(`error occurred while unsubscribing from transaction event; ` +
-                      `${ex.message || ex}, ${ex.stack || ''}`, 'error');
-                  })
-                  .then(() => { isPending = false; })
-                ;
-              } else {
-                isPending = false;
-                reject('passed an event to a transaction but no event hub registered');
-              }
+      const stopWatching = async (isError?) => new Promise((resolveStop) => {
+        setTimeout(() => {
+          if (inputOptions.event && subscription) {
+            if (this.eventHub) {
+              this.eventHub
+                .unsubscribe({ subscription })
+                .then(() => { resolveStop(); })
+                .catch((ex) => {
+                  this.log('error occurred while unsubscribing from transaction event; '
+                      + `${ex.message || ex}, ${ex.stack || ''}`, 'error');
+                })
+                .then(() => { isPending = false; });
             } else {
               isPending = false;
-              resolveStop();
+              reject('passed an event to a transaction but no event hub registered');
             }
-          }, isError ? 1000 : 0);
-        });
-      }
+          } else {
+            isPending = false;
+            resolveStop();
+          }
+        }, isError ? 1000 : 0);
+      });
 
       try {
         // timeout rejects promise if not already done so
@@ -245,13 +246,12 @@ export class Executor extends Logger {
                     // hold the evenTransaction and trigger resolve within execution callback
                     eventResults[event.transactionHash] = event;
                   }
-                }
+                },
               )
               .then((result) => { subscription = result; })
               .catch((ex) => {
                 this.log(`error occurred while subscribing to transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
-              })
-            ;
+              });
           } else {
             throw new Error('passed an event to a transaction but no event hub registered');
           }
@@ -270,7 +270,9 @@ export class Executor extends Logger {
             transactionHash = receipt && receipt.transactionHash ? receipt.transactionHash : '';
             if (err) {
               this.log(`${functionName} failed: ${err.message || err}`, 'error');
-              logGas({ status: 'error', message: 'transaction submit error', gasEstimated, transactionHash });
+              logGas({
+                status: 'error', message: 'transaction submit error', gasEstimated, transactionHash,
+              });
               reject(err);
             } else {
               let optionsGas;
@@ -280,7 +282,9 @@ export class Executor extends Logger {
                 optionsGas = parseInt(options.gas, 10);
               }
               if (optionsGas !== receipt.gasUsed) {
-                logGas({ status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash });
+                logGas({
+                  status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash,
+                });
                 // log autoGas entry
                 if (autoGas) {
                   logGas({
@@ -300,8 +304,8 @@ export class Executor extends Logger {
                   if (inputOptions.getEventResult) {
                     resolve(inputOptions.getEventResult(
                       eventResults[transactionHash],
-                      eventResults[transactionHash].args ||
-                        eventResults[transactionHash].returnValues
+                      eventResults[transactionHash].args
+                        || eventResults[transactionHash].returnValues,
                     ));
                   } else {
                     resolve(eventResults[transactionHash]);
@@ -366,7 +370,7 @@ export class Executor extends Logger {
                   // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
                   logGas({
                     status: 'autoGas.estimation',
-                    gasEstimated: gasEstimated,
+                    gasEstimated,
                     gasGiven: gas,
                     message: `estimated with ${autoGas}`,
                   });
@@ -374,7 +378,7 @@ export class Executor extends Logger {
                   this.signer.signAndExecuteTransaction(
                     contract,
                     functionName,
-                    functionArguments.slice(0, -1), Object.assign({}, options),
+                    functionArguments.slice(0, -1), { ...options },
                     (...args) => {
                       executeCallback.apply(this, args).catch((ex) => { reject(ex); });
                     },
@@ -385,7 +389,7 @@ export class Executor extends Logger {
               this.signer.signAndExecuteTransaction(
                 contract,
                 functionName,
-                functionArguments.slice(0, -1), Object.assign({}, options),
+                functionArguments.slice(0, -1), { ...options },
                 (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
               );
             }
@@ -393,10 +397,9 @@ export class Executor extends Logger {
         };
         contract.methods[functionName](...initialArguments)
           .estimateGas(
-            Object.assign({}, options),
+            { ...options },
             (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); },
-          )
-        ;
+          );
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
         await stopWatching(true);
@@ -418,11 +421,11 @@ export class Executor extends Logger {
     if (!this.signer) {
       throw new Error('signer is undefined');
     }
-    const options = Object.assign(
-      { timeout: 300000 },
-      this.defaultOptions || {},
-      inputOptions,
-    );
+    const options = {
+      timeout: 300000,
+      ...this.defaultOptions || {},
+      ...inputOptions,
+    };
 
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
@@ -440,7 +443,7 @@ export class Executor extends Logger {
         transactionHash: null,
       };
       this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), 'gasLog');
-    }
+    };
     return new Promise<void>((resolve, reject) => {
       let isPending = true;
       let transactionHash;
@@ -460,7 +463,9 @@ export class Executor extends Logger {
           try {
             if (err) {
               this.log(`executeSend failed: ${err.message || err}`, 'error');
-              logGas({ status: 'error', message: 'transaction submit error', gasEstimated, transactionHash });
+              logGas({
+                status: 'error', message: 'transaction submit error', gasEstimated, transactionHash,
+              });
               reject(err);
             } else {
               let optionsGas;
@@ -470,7 +475,9 @@ export class Executor extends Logger {
                 optionsGas = parseInt(options.gas, 10);
               }
               if (optionsGas !== receipt.gasUsed) {
-                logGas({ status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash });
+                logGas({
+                  status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash,
+                });
                 // if no event to watch for was given, resolve promise here
                 isPending = false;
                 resolve();
@@ -515,7 +522,7 @@ export class Executor extends Logger {
    */
   async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
-    const options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    const options = { ...this.defaultOptions || {}, ...inputOptions };
     this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');

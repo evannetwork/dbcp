@@ -30,7 +30,7 @@ export class SignerExternal implements SignerInterface {
   }
 
   public signAndExecuteTransaction(
-    contract, functionName, functionArguments, options, handleTxResult
+    contract, functionName, functionArguments, options, handleTxResult,
   ) {
     const execution = contract.methods[functionName](...functionArguments).send(options);
     execution
@@ -42,8 +42,8 @@ export class SignerExternal implements SignerInterface {
           }, 6000);
         }
       })
-      .on('error', (error) => { handleTxResult(error); })
-  };
+      .on('error', (error) => { handleTxResult(error); });
+  }
 
   public async signMessage(): Promise<string> {
     throw new Error('not implemented');
