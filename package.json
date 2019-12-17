@@ -27,6 +27,8 @@
     "chai-as-promised": "^7.1.1",
     "common-shakeify": "^0.6.2",
     "eslint": "^6.1.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-plugin-import": "^2.19.1",
     "gulp": "^3.9.1",
     "husky": "^2.2.0",
     "mocha": "^6.2.0",
