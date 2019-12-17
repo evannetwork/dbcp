@@ -38,7 +38,7 @@
   "homepage": "https://dbcp.online/",
   "husky": {
     "hooks": {
-      "pre-commit": "eslint --ext .js,.ts -c .eslintrc.js ./src && yarn build"
+      "pre-commit": "eslint --ext .js,.ts -c .eslintrc.js ./src && yarn build-test"
     }
   },
   "keywords": [
@@ -58,6 +58,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build-test": "tsc -p ./tsconfig-test.json",
     "deploy": "node scripts/deploy.js",
     "test": "npm run build && mocha --inspect -r ts-node/register src/**/*.spec.ts src/*.spec.ts",
     "testunit": "npm run build && mocha --inspect -r ts-node/register $*",
