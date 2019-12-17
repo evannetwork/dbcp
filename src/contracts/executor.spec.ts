@@ -153,6 +153,17 @@ describe('Executor handler', function() {
     expect(owner).to.eq(testUser);
   });
 
+  it('should not be able to create a contract using an a instance of an abstract contract', async () => {
+    const executor = await TestUtils.getExecutor(web3);
+    const contractPromise = executor.createContract(
+      'AbstractENS',
+      [],
+      { from: testUser, gas: 2000000, }
+    );
+    await expect(contractPromise)
+      .to.be.rejectedWith('Trying to create an instance of an abstract contract');
+  });  
+
   it('should throw an error when trying to create a contract in readonly mode', async () => {
     const executor = await TestUtils.getExecutor(web3, true);
     try {
