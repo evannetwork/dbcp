@@ -122,7 +122,7 @@ export class Executor extends Logger {
    *                             given), the event (if event but no getEventResult was given), the
    *                             value returned by getEventResult(eventObject)
    */
-  async executeContractTransaction(contract: any, functionName: string, inputOptions: any, ...functionArguments: any[]): Promise<any> {
+  public async executeContractTransaction(contract: any, functionName: string, inputOptions: any, ...functionArguments: any[]): Promise<any> {
     // autoGas 1.1 ==> if truthy, enables autoGas 1.1 ==> adds 10% to estimated value capped to current block
     // maximum minus 4* the allowed derivation per block - The protocol allows the miner of a block
     // to adjust the block gas limit by a factor of 1/1024 (0.0976%) in either direction.
@@ -205,7 +205,7 @@ export class Executor extends Logger {
                 .then(() => { isPending = false; });
             } else {
               isPending = false;
-              reject('passed an event to a transaction but no event hub registered');
+              reject(new Error('passed an event to a transaction but no event hub registered'));
             }
           } else {
             isPending = false;
@@ -263,7 +263,7 @@ export class Executor extends Logger {
         let gasEstimated;
         const executeCallback = async (err, receipt) => {
           if (err) {
-            return reject(`${functionName} failed: ${err}`);
+            reject(new Error(`${functionName} failed: ${err}`));
           }
           try {
             // keep transaction hash for checking agains it in event
@@ -338,7 +338,7 @@ export class Executor extends Logger {
               }
             }
           } catch (ex) {
-            return reject(`${functionName} failed: ${ex.message}`);
+            reject(new Error(`${functionName} failed: ${ex.message}`));
           }
         };
 
@@ -347,14 +347,14 @@ export class Executor extends Logger {
           if (error) {
             await stopWatching(true);
             logGas({ status: 'error', message: `could not estimate; ${error}` });
-            reject(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`);
+            reject(new Error(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`));
           } else if (inputOptions.estimate) {
             await stopWatching();
             resolve(gasAmount);
           } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
             await stopWatching(true);
             logGas({ status: 'error', message: 'out of gas estimated' });
-            reject(`transaction ${functionName} by ${options.from} would most likely fail`);
+            reject(new Error(`transaction ${functionName} by ${options.from} would most likely fail`));
           } else {
             // execute contract function
             // recover original from, as estimate converts from to lower case
@@ -363,7 +363,7 @@ export class Executor extends Logger {
             if (autoGas) {
               this.web3.eth.getBlock('latest', (blockError, result) => {
                 if (blockError) {
-                  reject(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`);
+                  reject(new Error(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`));
                 } else {
                   const currentLimit = result.gasLimit;
                   const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
@@ -452,13 +452,13 @@ export class Executor extends Logger {
         setTimeout(() => {
           if (isPending) {
             logGas({ status: 'error', message: 'timeout' });
-            reject(new Error('timeout after ${transactionTimeout}ms during executeSend'));
+            reject(new Error(`timeout after ${transactionTimeout}ms during executeSend`));
           }
         }, transactionTimeout);
         let gasEstimated;
         const executeCallback = (err, receipt) => {
           if (err) {
-            return reject(`executeSend failed: ${err}`);
+            reject(new Error(`executeSend failed: ${err}`));
           }
           try {
             if (err) {
@@ -496,7 +496,7 @@ export class Executor extends Logger {
               }
             }
           } catch (ex) {
-            return reject(`executeSend failed: ${ex.message}`);
+            reject(new Error(`executeSend failed: ${ex.message}`));
           }
         };
         this.signer.signAndExecuteSend(options, executeCallback);
@@ -520,7 +520,7 @@ export class Executor extends Logger {
    *                                                .gas
    * @return     {Promise<any>}  new contract
    */
-  async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
+  public async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
     const options = { ...this.defaultOptions || {}, ...inputOptions };
     this.scrubOptions(options);

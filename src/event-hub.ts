@@ -115,12 +115,14 @@ export class EventHub extends Logger {
         eventName,
         filterFunction,
         (event) => {
+          let innerChain = Promise.resolve();
           if (!alreadyFired) {
             alreadyFired = true;
-            return Promise.resolve()
+            innerChain = innerChain
               .then(() => onEvent(event))
               .then(() => this.unsubscribe({ subscription }));
           }
+          return innerChain;
         },
         fromBlock,
       )
@@ -204,6 +206,7 @@ export class EventHub extends Logger {
                 if (match) {
                   return onEvent(event);
                 }
+                return null;
               })
               .catch((ex) => {
                 this.log(`error occurred while handling contract event; ${ex.message || ex}${ex.stack || ''}`, 'error');

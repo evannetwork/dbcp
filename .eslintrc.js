@@ -17,5 +17,7 @@ module.exports =  {
     '@typescript-eslint/indent': ['error', 2],
     '@typescript-eslint/explicit-function-return-type': ['off'],
     '@typescript-eslint/no-explicit-any': ['off'],
+    // rule additions for airbnb
+    'class-methods-use-this': ['off']  // *may* require further adjustments to instance usage
   },
 };
