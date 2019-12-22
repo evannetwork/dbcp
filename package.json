@@ -70,7 +70,8 @@
     "test": "npm run build && mocha --inspect -r ts-node/register src/**/*.spec.ts src/*.spec.ts",
     "testunit": "npm run build && mocha --inspect -r ts-node/register $*",
     "testunitbail": "npm run build && mocha -b --inspect -r ts-node/register $*",
-    "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*"
+    "testunitbrk": "npm run build && mocha --inspect-brk -r ts-node/register $*",
+    "testunitcoverage": "env-cmd --fallback -f ./.env.local npm run build && nyc -r lcov -e .ts -x \"**/*.spec.ts\" -x \"lib\" mocha --exit -r ts-node/register $TESTSPECS && nyc report --reporter=text-lcov | coveralls"
   },
   "types": "./dist/index.d.ts",
   "version": "1.9.0"
