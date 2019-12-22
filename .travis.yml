@@ -39,7 +39,7 @@ before_install:
     docker pull evannetwork/testcore-snapshot
     docker save -o "$filename" evannetwork/testcore-snapshot
   - git clone https://github.com/evannetwork/testcore-config.git && cd testcore-config
-  - docker run -d -p 8546:8546 -p 8545:8545 -v /home/travis/build/evannetwork/api-blockchain-core/testcore-config/testcore.json:/root/parity/spec.json -u root evannetwork/testcore-snapshot --chain /root/parity/spec.json --jsonrpc-interface all --unsafe-expose
+  - docker run -d -p 8546:8546 -p 8545:8545 -v /home/travis/build/evannetwork/dbcp/testcore-config/testcore.json:/root/parity/spec.json -u root evannetwork/testcore-snapshot --chain /root/parity/spec.json --jsonrpc-interface all --unsafe-expose
   - export CC="gcc-5" && export CXX="g++-5" && export LINK="gcc-5" && export LINKXX="g++-5"
   - npm install -g npm@latest
   - cd ..
