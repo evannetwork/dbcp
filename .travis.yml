@@ -10,7 +10,7 @@ matrix:
       - TESTSPECS='src/**/*.spec.ts'
       - CHAIN_ENDPOINT='ws://localhost:7545'
     script:
-      - npm run testunit
+      - npm run testunitcoverage
 
 services:
   - docker
