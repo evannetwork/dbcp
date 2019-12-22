@@ -106,7 +106,7 @@ export class Description extends Logger {
         }
       }
       if (!contractDescription) {
-        // either no address set at ENS or this contract had no description, check ENS for description
+        // no address set at ENS or the contract had no description, check ENS for description
         contractDescription = await this.getDescriptionFromEns(address);
       }
     }
@@ -127,7 +127,10 @@ export class Description extends Logger {
    * @param      {string}    accountId        account, that is used for descrypting private content
    * @return     {Envelope}  description as an Envelope
    */
-  public async getDescriptionFromContract(contractAddress: string, accountId: string): Promise<Envelope> {
+  public async getDescriptionFromContract(
+    contractAddress: string,
+    accountId: string,
+  ): Promise<Envelope> {
     let result = null;
     const contract = this.contractLoader.loadContract('Described', contractAddress);
     const hash = await this.executor.executeContractCall(contract, 'contractDescription');
@@ -197,9 +200,13 @@ export class Description extends Logger {
       throw new Error(`could not find contract description (dbcp) for address "${address}"`);
     }
     let ownAbi;
-    if (contractDescription.private && contractDescription.private.abis && contractDescription.private.abis.own) {
+    if (contractDescription.private
+        && contractDescription.private.abis
+        && contractDescription.private.abis.own) {
       ownAbi = contractDescription.private.abis.own;
-    } else if (contractDescription.public && contractDescription.public.abis && contractDescription.public.abis.own) {
+    } else if (contractDescription.public
+               && contractDescription.public.abis
+               && contractDescription.public.abis.own) {
       ownAbi = contractDescription.public.abis.own;
     } else {
       throw new Error('could not find own abi for contract in description (dbcp)');
@@ -215,7 +222,11 @@ export class Description extends Logger {
    * @param      {string}           accountId  ETH account id
    * @return     {Promise}          resolved when done
    */
-  public async setDescription(address: string, envelope: Envelope|string, accountId: string): Promise<void> {
+  public async setDescription(
+    address: string,
+    envelope: Envelope|string,
+    accountId: string,
+  ): Promise<void> {
     if (address.startsWith('0x')) {
       // address is contract address
       return this.setDescriptionToContract(address, envelope, accountId);
@@ -229,7 +240,8 @@ export class Description extends Logger {
    *
    * @param      {string}           contractAddress  The contract address where description will be
    *                                                 stored
-   * @param      {Envelope|string}  envelope         description as an envelope or a presaved description hash
+   * @param      {Envelope|string}  envelope         description as an envelope
+   *                                                 or a presaved description hash
    * @param      {string}           accountId        ETH account id
    * @return     {Promise}          resolved when done
    */
@@ -277,7 +289,11 @@ export class Description extends Logger {
    * @param      {string}           accountId   ETH account id
    * @return     {Promise}          resolved when done
    */
-  public async setDescriptionToEns(ensAddress: string, envelope: Envelope|string, accountId: string): Promise<void> {
+  public async setDescriptionToEns(
+    ensAddress: string,
+    envelope: Envelope|string,
+    accountId: string,
+  ): Promise<void> {
     const promises = [];
     if (typeof envelope === 'string') {
       promises.push(envelope);
@@ -301,9 +317,10 @@ export class Description extends Logger {
           const encrypted = await cryptor.encrypt(content.private, { key });
           content.private = encrypted.toString(this.encodingEncrypted);
         }
-        return await this.dfs.add(
+        const descriptionHash = await this.dfs.add(
           'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope),
         );
+        return descriptionHash;
       })());
     }
     promises.push(this.executor.executeContractCall(
@@ -332,7 +349,9 @@ export class Description extends Logger {
       this.log('dbcpVersion not set, using fallback of version 1', 'warning');
       combinedDescription.dbcpVersion = combinedDescription.dbcpVersion || 1;
     }
-    const validator = new Validator({ schema: descriptionSchemas[combinedDescription.dbcpVersion] });
+    const validator = new Validator({
+      schema: descriptionSchemas[combinedDescription.dbcpVersion],
+    });
     this.log(`validating DBCP definition with schema version ${combinedDescription.dbcpVersion}`, 'info');
     return validator.validate(combinedDescription);
   }

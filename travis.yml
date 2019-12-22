@@ -1,0 +1,51 @@
+language: node_js
+
+sudo: required
+
+matrix:
+  include:
+  - name: "tests"
+    node_js: "11"
+    env:
+      - TESTSPECS='src/**/*.spec.ts'
+      - CHAIN_ENDPOINT='ws://localhost:7545'
+    script:
+      - npm run testunit
+
+services:
+  - docker
+
+cache:
+  npm: false
+  directories:
+    - docker-cache
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-5
+      - g++-5
+
+notifications:
+  webhooks: https://coveralls.io/webhook
+
+before_install:
+  - |
+    filename=docker-cache/saved_images.tar
+    if [[ -f "$filename" ]]; then docker load < "$filename"; fi
+    mkdir -p docker-cache
+    docker pull evannetwork/testcore-snapshot
+    docker save -o "$filename" evannetwork/testcore-snapshot
+  - git clone https://github.com/evannetwork/testcore-config.git && cd testcore-config
+  - docker run -d -p 8546:8546 -p 8545:8545 -v /home/travis/build/evannetwork/api-blockchain-core/testcore-config/testcore.json:/root/parity/spec.json -u root evannetwork/testcore-snapshot --chain /root/parity/spec.json --jsonrpc-interface all --unsafe-expose
+  - export CC="gcc-5" && export CXX="g++-5" && export LINK="gcc-5" && export LINKXX="g++-5"
+  - npm install -g npm@latest
+  - cd ..
+  - git clone https://github.com/trufflesuite/ganache-cli.git && cd ganache-cli && npm install && cd node_modules && rm -rf ganache-core && git clone https://github.com/trufflesuite/ganache-core.git && cd ganache-core && npm i && cd /home/travis/build/evannetwork/dbcp
+install:
+  - cd /home/travis/build/evannetwork/dbcp
+  - npm install
+  - cd ganache-cli && node cli.js --allowUnlimitedContractSize --gasLimit 0xE4E1C0 -p 7545 -f http://localhost:8545 > /dev/null &
+  - cd /home/travis/build/evannetwork/dbcp

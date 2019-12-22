@@ -72,6 +72,7 @@ describe('Validation helper', () => {
     };
 
     try {
+      // eslint-disable-next-line no-new
       new Validator({ schema: testSchema });
     } catch (e) {
       expect(e).to.be.an('error');

@@ -117,10 +117,11 @@ export class Ipfs extends Logger implements DfsInterface {
         throw new Error('no hash was returned');
       }
       remoteFiles = remoteFiles.map((fileHash) => {
-        if (!fileHash.hash) {
-          fileHash.hash = fileHash.Hash;
+        const hashParam = fileHash;
+        if (!hashParam.hash) {
+          hashParam.hash = hashParam.Hash;
         }
-        return fileHash;
+        return hashParam;
       });
     } catch (ex) {
       const msg = `could not add file to ipfs: ${ex.message || ex}`;
@@ -130,9 +131,13 @@ export class Ipfs extends Logger implements DfsInterface {
     if (this.cache) {
       await Promise.all(remoteFiles.map((remoteFile, i) => {
         this.cache.add(remoteFile.hash, files[i].content);
+        return remoteFile;
       }));
     }
-    await prottle(requestWindowSize, remoteFiles.map((fileHash) => () => this.pinFileHash(fileHash.hash)));
+    await prottle(
+      requestWindowSize,
+      remoteFiles.map((fileHash) => () => this.pinFileHash(fileHash.hash)),
+    );
     return remoteFiles.map((remoteFile) => Ipfs.ipfsHashToBytes32(remoteFile.hash));
   }
 
@@ -142,7 +147,7 @@ export class Ipfs extends Logger implements DfsInterface {
    * @param      {string}  hash    filehash of the pinned item
    */
   async pinFileHash(hash: string): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const options = {
         hostname: 'ipfs.test.evan.network',
         port: '443',
@@ -175,7 +180,7 @@ export class Ipfs extends Logger implements DfsInterface {
    * get data from ipfs by ipfs hash
    *
    * @param      {string}  hash           ipfs hash of the data
-   * @param      {boolean}  returnBuffer  should the function return the plain buffer (default false)
+   * @param      {boolean} returnBuffer  should the function return the plain buffer (default false)
    *
    * @return     data as text
    */

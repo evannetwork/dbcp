@@ -28,7 +28,6 @@ export * from './dfs/ipfs';
 export * from './encryption/crypto-provider';
 export * from './encryption/cryptor';
 export * from './encryption/envelope';
-export * from './encryption/envelope';
 export * from './encryption/key-provider';
 export * from './encryption/key-provider-interface';
 export * from './encryption/unencrypted';

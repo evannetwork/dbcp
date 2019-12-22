@@ -78,6 +78,8 @@ export class Logger {
         default:
           logFunction = 'log';
       }
+      // disable rule because this is essential
+      // eslint-disable-next-line no-console
       console[logFunction](`[${level || 'info'}] ${message}`);
     };
   }

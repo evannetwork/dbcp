@@ -24,6 +24,7 @@ import { Logger } from '../common/logger';
  *
  * @class      Unencrypted (name)
  */
+// eslint-disable-next-line import/prefer-default-export
 export class Unencrypted extends Logger implements Cryptor {
   static defaultOptions = {};
 

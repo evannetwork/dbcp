@@ -24,10 +24,10 @@ import { TestUtils } from './test/test-utils';
 
 const testAddressValue = '0x0000000000000000000000000000000000000123';
 const emptyAddressValue = '0x0000000000000000000000000000000000000000';
-const dbcpTestDomain = 'test.evan';
+const dbcpTestDomain = 'testDapp.evan';
 let web3;
 
-describe('NameResolver class', function () {
+describe('NameResolver class', function test() {
   this.timeout(600000);
 
   before(() => {
@@ -51,14 +51,14 @@ describe('NameResolver class', function () {
 
   it('should be able to set an ENS name', async () => {
     const nameResolver = await TestUtils.getNameResolver(web3);
-    const testAddress = `foo.${dbcpTestDomain}`;
-    await nameResolver.setAddress(testAddress, testAddressValue, accounts[0], accounts[0]);
+    const testAddress = `${dbcpTestDomain}`;
+    await nameResolver.setAddress(testAddress, testAddressValue, accounts[1], accounts[1]);
 
     let address;
     address = await nameResolver.getAddress(testAddress);
     expect(address).to.eq(testAddressValue);
 
-    await nameResolver.setAddress(testAddress, emptyAddressValue, accounts[0], accounts[0]);
+    await nameResolver.setAddress(testAddress, emptyAddressValue, accounts[1], accounts[1]);
     address = await nameResolver.getAddress(testAddress);
     expect(address).to.eq(emptyAddressValue);
   });
@@ -67,8 +67,8 @@ describe('NameResolver class', function () {
     const nameResolver = await TestUtils.getNameResolver(web3);
     const testAddress1 = `${Math.random().toString(32).substr(2)}.${dbcpTestDomain}`;
     const testAddress2 = `${Math.random().toString(32).substr(2)}.${testAddress1}`;
-    await nameResolver.setAddress(testAddress1, testAddressValue, accounts[0], accounts[0]);
-    await nameResolver.setAddress(testAddress2, testAddressValue, accounts[0], accounts[1]);
+    await nameResolver.setAddress(testAddress1, testAddressValue, accounts[1], accounts[1]);
+    await nameResolver.setAddress(testAddress2, testAddressValue, accounts[1], accounts[1]);
 
     let address;
     address = await nameResolver.getAddress(testAddress1);

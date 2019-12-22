@@ -14,6 +14,7 @@
   limitations under the License.
 */
 
+// eslint-disable-next-line import/no-cycle
 import { Executor } from './contracts/executor';
 import { ContractLoader } from './contracts/contract-loader';
 import { Logger, LoggerOptions } from './common/logger';
@@ -297,8 +298,8 @@ export class NameResolver extends Logger {
    * @param      listHash       bytes32 namehash like api.nameResolver.sha3('ServiceContract')
    * @param      retrievers     (optional) overwrites for index or index like contract property
    *                            retrievals
-   * @param      chain          (optional) Promise, for chaining multiple requests (should be omitted when
-   *                            called 'from outside', defaults to Promise.resolve())
+   * @param      chain          (optional) Promise, for chaining multiple requests (should be
+   *                            omitted when called 'from outside', defaults to Promise.resolve())
    * @param      triesleft      (optional) tries left before quitting
    *
    * @return     Promise, that resolves to: {Array} list of addresses
@@ -325,7 +326,11 @@ export class NameResolver extends Logger {
         if (length === '0') {
           return '0';
         }
-        return this.executor.executeContractCall(indexContract, retrievers.listLastModified, listHash);
+        return this.executor.executeContractCall(
+          indexContract,
+          retrievers.listLastModified,
+          listHash,
+        );
       })
       .then((result) => {
         if (result === '0') {
@@ -357,7 +362,7 @@ export class NameResolver extends Logger {
                 indexContract, listHash, retrievers, chain, triesLeft - 1,
               );
             }
-            this.log(`getArrayFromIndexContract couldn\'t complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
+            this.log(`getArrayFromIndexContract couldn't complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
             throw new Error('max tries for retrieving index data exceeded');
           });
       });
@@ -412,12 +417,12 @@ export class NameResolver extends Logger {
             const indices = [];
             if (reverse) {
               const stop = Math.max(-1, length - 1 - count - offset);
-              for (let i = (length - 1 - offset); i > stop; i--) {
+              for (let i = (length - 1 - offset); i > stop; i -= 1) {
                 indices.push(i);
               }
             } else {
               const stop = Math.min(count, length);
-              for (let i = offset; i < stop; i++) {
+              for (let i = offset; i < stop; i += 1) {
                 indices.push(i);
               }
             }
@@ -440,7 +445,7 @@ export class NameResolver extends Logger {
                 listContract, count, offset, reverse, chain, triesLeft - 1,
               );
             }
-            this.log(`getArrayFromIndexContract couldn\'t complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
+            this.log(`getArrayFromIndexContract couldn't complete after 10 tries with ${lastModified !== newLastMofified}`, 'warning');
             throw new Error('max tries for retrieving index data exceeded');
           });
       });
@@ -521,16 +526,16 @@ export class NameResolver extends Logger {
       return input.replace(/^0x/, '');
     }
     let node = '';
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < 32; i += 1) {
       node += '00';
     }
 
     if (inputName) {
       const labels = inputName.split('.');
 
-      for (let i = labels.length - 1; i >= 0; i--) {
+      for (let i = labels.length - 1; i >= 0; i -= 1) {
         const labelSha = this.sha3(labels[i]);
-        const buffer = new Buffer(dropPrefix0x(node) + dropPrefix0x(labelSha), 'hex');
+        const buffer = Buffer.from(dropPrefix0x(node) + dropPrefix0x(labelSha), 'hex');
         node = this.sha3(buffer);
       }
     } else {

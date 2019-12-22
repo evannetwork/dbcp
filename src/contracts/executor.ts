@@ -14,6 +14,7 @@
   limitations under the License.
 */
 
+// eslint-disable-next-line import/no-cycle
 import { EventHub } from '../event-hub';
 import { Logger, LoggerOptions } from '../common/logger';
 import { SignerInterface } from './signer-interface';
@@ -122,8 +123,14 @@ export class Executor extends Logger {
    *                             given), the event (if event but no getEventResult was given), the
    *                             value returned by getEventResult(eventObject)
    */
-  public async executeContractTransaction(contract: any, functionName: string, inputOptions: any, ...functionArguments: any[]): Promise<any> {
-    // autoGas 1.1 ==> if truthy, enables autoGas 1.1 ==> adds 10% to estimated value capped to current block
+  public async executeContractTransaction(
+    contract: any,
+    functionName: string,
+    inputOptions: any,
+    ...functionArguments: any[]
+  ): Promise<any> {
+    // autoGas 1.1 ==> if truthy, enables
+    // autoGas 1.1 ==> adds 10% to estimated value capped to current block
     // maximum minus 4* the allowed derivation per block - The protocol allows the miner of a block
     // to adjust the block gas limit by a factor of 1/1024 (0.0976%) in either direction.
     // (http://hudsonjameson.com/2017-06-27-accounts-transactions-gas-ethereum/) makes it
@@ -171,6 +178,7 @@ export class Executor extends Logger {
     const logGas = (extraParams) => {
       const staticEntries = {
         arguments: initialArguments,
+        // eslint-disable-next-line no-underscore-dangle
         contract: contract.address || contract._address,
         from: inputOptions.from,
         gasEstimated: null,
@@ -183,7 +191,7 @@ export class Executor extends Logger {
       const level = 'gasLog';
       this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), level);
     };
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
       let isPending = true;
       let transactionHash;
@@ -351,7 +359,8 @@ export class Executor extends Logger {
           } else if (inputOptions.estimate) {
             await stopWatching();
             resolve(gasAmount);
-          } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
+          } else if (!inputOptions.force
+            && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
             await stopWatching(true);
             logGas({ status: 'error', message: 'out of gas estimated' });
             reject(new Error(`transaction ${functionName} by ${options.from} would most likely fail`));
@@ -366,8 +375,9 @@ export class Executor extends Logger {
                   reject(new Error(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`));
                 } else {
                   const currentLimit = result.gasLimit;
-                  const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
-                  // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
+                  const gas = Math.floor(
+                    Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)),
+                  );
                   logGas({
                     status: 'autoGas.estimation',
                     gasEstimated,
@@ -402,9 +412,10 @@ export class Executor extends Logger {
           );
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
-        await stopWatching(true);
-        logGas({ status: 'error', message: 'transaction could not be started' });
-        reject(ex);
+        stopWatching(true).then(() => {
+          logGas({ status: 'error', message: 'transaction could not be started' });
+          reject(ex);
+        });
       }
     });
   }
@@ -520,7 +531,11 @@ export class Executor extends Logger {
    *                                                .gas
    * @return     {Promise<any>}  new contract
    */
-  public async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
+  public async createContract(
+    contractName: string,
+    functionArguments: any[],
+    inputOptions: any,
+  ): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
     const options = { ...this.defaultOptions || {}, ...inputOptions };
     this.scrubOptions(options);
@@ -536,10 +551,11 @@ export class Executor extends Logger {
    * @param      {any}  options  options for web3
    */
   protected scrubOptions(options: any): void {
+    const param = options;
     const validProperties = ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'];
-    Object.keys(options).forEach((option) => {
+    Object.keys(param).forEach((option) => {
       if (!validProperties.includes(option)) {
-        delete options[option];
+        delete param[option];
       }
     });
   }

@@ -84,7 +84,7 @@ export class TestUtils {
   static getCryptoProvider() {
     const unencryptedCryptor = new Unencrypted();
     const cryptoConfig = {};
-    cryptoConfig.unencrypted = unencryptedCryptor;
+    (cryptoConfig as any).unencrypted = unencryptedCryptor;
     return new CryptoProvider(cryptoConfig);
   }
 

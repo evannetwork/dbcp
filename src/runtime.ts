@@ -53,7 +53,11 @@ export interface Runtime {
  * @param      {any}               runtimeConfig  configuration values
  * @return     {Promise<Runtime>}  runtime instance
  */
-export async function createDefaultRuntime(web3: any, dfs: DfsInterface, runtimeConfig: any): Promise<Runtime> {
+export async function createDefaultRuntime(
+  web3: any,
+  dfs: DfsInterface,
+  runtimeConfig: any,
+): Promise<Runtime> {
   // web3 contract interfaces
   const contractLoader = new ContractLoader({ web3 });
 

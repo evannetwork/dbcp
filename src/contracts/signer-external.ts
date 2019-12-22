@@ -16,6 +16,7 @@
 
 import { SignerInterface } from './signer-interface';
 
+// eslint-disable-next-line import/prefer-default-export
 export class SignerExternal implements SignerInterface {
   public async createContract(): Promise<string> {
     throw new Error('not implemented');

@@ -30,7 +30,7 @@ import { Unencrypted } from './encryption/unencrypted';
 
 use(chaiAsPromised);
 
-const dbcpTestDoman = 'test.evan';
+const dbcpTestDoman = 'evan';
 const testAddressPrefix = 'testDapp';
 const sampleDescription = {
   name: 'test description',
@@ -62,7 +62,7 @@ let executor: Executor;
 let web3;
 let nameResolver: NameResolver;
 
-describe('Description handler', function () {
+describe('Description handler', function test() {
   this.timeout(300000);
 
   before(async () => {
@@ -78,7 +78,11 @@ describe('Description handler', function () {
     it('should allow valid description', async () => {
       const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
       const descriptionEnvelope = { public: { ...sampleDescription } };
-      await description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      await description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
     });
 
     it('should reject invalid description', async () => {
@@ -89,25 +93,41 @@ describe('Description handler', function () {
       // missing property
       descriptionEnvelope = { public: { ...sampleDescription } };
       delete descriptionEnvelope.public.version;
-      promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      promise = description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
       await expect(promise).to.be.rejected;
 
       // additional property
       descriptionEnvelope = { public: { ...sampleDescription } };
       descriptionEnvelope.public.newPropery = 123;
-      promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      promise = description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
       await expect(promise).to.be.rejected;
 
       // wrong type
       descriptionEnvelope = { public: { ...sampleDescription } };
       descriptionEnvelope.public.version = 123;
-      promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      promise = description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
       await expect(promise).to.be.rejected;
 
       // additional sub property
       descriptionEnvelope = { public: { ...sampleDescription } };
       descriptionEnvelope.public.dapp = { ...descriptionEnvelope.public.dapp, newProperty: 123 };
-      promise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      promise = description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
       await expect(promise).to.be.rejected;
     });
 
@@ -123,7 +143,11 @@ describe('Description handler', function () {
           },
         },
       };
-      await description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      await description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
     });
 
     it('should reject invalid versions history keys', async () => {
@@ -138,14 +162,22 @@ describe('Description handler', function () {
           },
         },
       };
-      const setPromise = description.setDescriptionToContract(contract.options.address, descriptionEnvelope, accounts[0]);
+      const setPromise = description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
       expect(setPromise).to.be.rejected;
     });
   });
 
   describe('when working with ENS descriptions', () => {
     it('should be able to set and get unencrypted content for ENS addresses', async () => {
-      await description.setDescriptionToEns(testAddressFoo, { public: sampleDescription }, accounts[0]);
+      await description.setDescriptionToEns(
+        testAddressFoo,
+        { public: sampleDescription },
+        accounts[1],
+      );
       const content = await description.getDescriptionFromEns(testAddressFoo);
       expect(content).to.deep.eq({ public: sampleDescription });
     });
@@ -154,7 +186,11 @@ describe('Description handler', function () {
       const sampleDescriptionSpecialCharacters = {
         public: { ...sampleDescription, name: 'Special Characters !"§$%&/()=?ÜÄÖ' },
       };
-      await description.setDescriptionToEns(testAddressFoo, sampleDescriptionSpecialCharacters, accounts[0]);
+      await description.setDescriptionToEns(
+        testAddressFoo,
+        sampleDescriptionSpecialCharacters,
+        accounts[1],
+      );
       const content = await description.getDescriptionFromEns(testAddressFoo);
       expect(content).to.deep.eq(sampleDescriptionSpecialCharacters);
     });
@@ -166,7 +202,7 @@ describe('Description handler', function () {
       description.keyProvider = keyProvider;
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
-      cryptoConfig.unencrypted = cryptor;
+      (cryptoConfig as any).unencrypted = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
       const secureDescription = {
@@ -175,7 +211,7 @@ describe('Description handler', function () {
           name: 'real name',
         },
       };
-      await description.setDescriptionToEns(testAddressFoo, secureDescription, accounts[0]);
+      await description.setDescriptionToEns(testAddressFoo, secureDescription, accounts[1]);
       const content = await description.getDescriptionFromEns(testAddressFoo);
       expect(content).to.deep.eq(secureDescription);
     });
@@ -191,7 +227,7 @@ describe('Description handler', function () {
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
       const cryptoInfo = cryptor.getCryptoInfo(nameResolver.soliditySha3(contract.options.address));
-      cryptoConfig.unencrypted = cryptor;
+      (cryptoConfig as any).unencrypted = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
       const envelope = {
@@ -218,7 +254,7 @@ describe('Description handler', function () {
       const cryptor = new Unencrypted();
       const cryptoConfig = {};
       const cryptoInfo = cryptor.getCryptoInfo(nameResolver.soliditySha3(contract.options.address));
-      cryptoConfig.unencrypted = cryptor;
+      (cryptoConfig as any).unencrypted = cryptor;
       const cryptoProvider = new CryptoProvider(cryptoConfig);
       description.cryptoProvider = cryptoProvider;
       const envelope = {
@@ -241,15 +277,20 @@ describe('Description handler', function () {
   });
 
   describe('when working with overlapping descriptions (set at ENS and at contract)', () => {
-    const sampleInterfaceDescribed = '[{\"constant\":true,\"inputs\":[],\"name\":\"contractDescription\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_contractDescription\",\"type\":\"bytes32\"}],\"name\":\"setContractDescription\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}]';
-    const sampleInterfaceAbstractENS = '[{\"constant\":true,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"}],\"name\":\"resolver\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"}],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"},{\"name\":\"label\",\"type\":\"bytes32\"},{\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"setSubnodeOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"},{\"name\":\"ttl\",\"type\":\"uint64\"}],\"name\":\"setTTL\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"}],\"name\":\"ttl\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"},{\"name\":\"resolver\",\"type\":\"address\"}],\"name\":\"setResolver\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"},{\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"setOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"node\",\"type\":\"bytes32\"},{\"indexed\":true,\"name\":\"label\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"NewOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"node\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"node\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"resolver\",\"type\":\"address\"}],\"name\":\"NewResolver\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"node\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"ttl\",\"type\":\"uint64\"}],\"name\":\"NewTTL\",\"type\":\"event\"}]';
+    const sampleInterfaceDescribed = '[{"constant":true,"inputs":[],"name":"contractDescription","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_contractDescription","type":"bytes32"}],"name":"setContractDescription","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]';
+    const sampleInterfaceAbstractENS = '[{"constant":true,"inputs":[{"name":"node","type":"bytes32"}],"name":"resolver","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"node","type":"bytes32"}],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"node","type":"bytes32"},{"name":"label","type":"bytes32"},{"name":"owner","type":"address"}],"name":"setSubnodeOwner","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"node","type":"bytes32"},{"name":"ttl","type":"uint64"}],"name":"setTTL","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"node","type":"bytes32"}],"name":"ttl","outputs":[{"name":"","type":"uint64"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"node","type":"bytes32"},{"name":"resolver","type":"address"}],"name":"setResolver","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"node","type":"bytes32"},{"name":"owner","type":"address"}],"name":"setOwner","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"node","type":"bytes32"},{"indexed":true,"name":"label","type":"bytes32"},{"indexed":false,"name":"owner","type":"address"}],"name":"NewOwner","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"node","type":"bytes32"},{"indexed":false,"name":"owner","type":"address"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"node","type":"bytes32"},{"indexed":false,"name":"resolver","type":"address"}],"name":"NewResolver","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"node","type":"bytes32"},{"indexed":false,"name":"ttl","type":"uint64"}],"name":"NewTTL","type":"event"}]';
 
     it('should prefer a smart contracts description over an ENS address description, when getting descriptions', async () => {
       // create a contract with a description
       const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
 
       // link ENS address to it, set description at ENS sddress
-      await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[0], accounts[0]);
+      await nameResolver.setAddress(
+        testAddressFoo,
+        contract.options.address,
+        accounts[1],
+        accounts[1],
+      );
       const ensDescription = {
         public: {
 
@@ -257,10 +298,13 @@ describe('Description handler', function () {
           abis: { own: JSON.parse(sampleInterfaceDescribed) },
         },
       };
-      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
+      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[1]);
 
       // expect it to use the description defined at ENS address
-      expect(await description.getDescription(testAddressFoo, accounts[0])).to.deep.eq(ensDescription);
+      expect(await description.getDescription(
+        testAddressFoo,
+        accounts[0],
+      )).to.deep.eq(ensDescription);
 
       // set different description at contract
       const contractDescription = {
@@ -270,13 +314,23 @@ describe('Description handler', function () {
           abis: { own: JSON.parse(sampleInterfaceAbstractENS) },
         },
       };
-      await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
+      await description.setDescriptionToContract(
+        contract.options.address,
+        contractDescription,
+        accounts[0],
+      );
 
       // expect it to use its own description, when loaded via its contract address
-      expect(await description.getDescription(contract.options.address, accounts[0])).to.deep.eq(contractDescription);
+      expect(await description.getDescription(
+        contract.options.address,
+        accounts[0],
+      )).to.deep.eq(contractDescription);
 
       // load contract via ENS, expect it to (still) use the interface defined at the contract
-      expect(await description.getDescription(testAddressFoo, accounts[0])).to.deep.eq(contractDescription);
+      expect(await description.getDescription(
+        testAddressFoo,
+        accounts[0],
+      )).to.deep.eq(contractDescription);
     });
 
     it('should prefer a smart contracts description over an ENS address description, when loading contract instances', async () => {
@@ -284,7 +338,12 @@ describe('Description handler', function () {
       const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
 
       // link ENS address to it, set description at ENS sddress
-      await nameResolver.setAddress(testAddressFoo, contract.options.address, accounts[0], accounts[0]);
+      await nameResolver.setAddress(
+        testAddressFoo,
+        contract.options.address,
+        accounts[1],
+        accounts[1],
+      );
       const ensDescription = {
         public: {
 
@@ -292,7 +351,7 @@ describe('Description handler', function () {
           abis: { own: JSON.parse(sampleInterfaceDescribed) },
         },
       };
-      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[0]);
+      await description.setDescriptionToEns(testAddressFoo, ensDescription, accounts[1]);
 
       // load contract via ENS address, expect it to use the interface defined at ENS address
       let loadedContract = await description.loadContract(testAddressFoo, accounts[0]);
@@ -307,7 +366,11 @@ describe('Description handler', function () {
           abis: { own: JSON.parse(sampleInterfaceAbstractENS) },
         },
       };
-      await description.setDescriptionToContract(contract.options.address, contractDescription, accounts[0]);
+      await description.setDescriptionToContract(
+        contract.options.address,
+        contractDescription,
+        accounts[0],
+      );
 
       // expect it to use its own interface, when loaded via its contract address
       loadedContract = await description.loadContract(testAddressFoo, accounts[0]);

@@ -19,13 +19,13 @@ import * as IpfsApi from 'ipfs-api';
 import { expect } from 'chai';
 
 import { Ipfs } from './ipfs';
-import { InMemoryCache } from './in-memory-cache';
+import InMemoryCache from './in-memory-cache';
 import { TestUtils } from '../test/test-utils';
 
 
 let ipfs: Ipfs;
 
-describe('IPFS handler', function () {
+describe('IPFS handler', function test() {
   this.timeout(300000);
 
   before(async () => {
@@ -60,10 +60,11 @@ describe('IPFS handler', function () {
     )));
     expect(hashes).not.to.be.undefined;
     let hashesToCheck = randomContents.length;
-    for (const [, hash] of hashes.entries()) {
-      expect(randomContents).to.contain(await ipfs.get(hash));
-      hashesToCheck--;
-    }
+    const hashEntries = Object.values(hashes);
+    await Promise.all(hashEntries.map(async (entry) => {
+      expect(randomContents).to.contain(await ipfs.get(entry));
+      hashesToCheck -= 1;
+    }));
     expect(hashesToCheck).to.eq(0);
   });
 

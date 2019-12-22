@@ -82,7 +82,9 @@ export class SignerInternal extends Logger implements SignerInterface {
               Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
                 // if transaction was finished, call all the callbacks and delete the subscription
                 if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
-                  this.pendingTransactions[transactionHash].forEach((callback) => callback(blockHeader));
+                  this.pendingTransactions[transactionHash].forEach((callback) => {
+                    callback(blockHeader);
+                  });
                   delete this.pendingTransactions[transactionHash];
                 }
               });
@@ -198,7 +200,7 @@ export class SignerInternal extends Logger implements SignerInterface {
 
 
   /**
-   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in fast chains. In this
+   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in chains. In this
    * case, load receipt for received transactionHashes manually and wait until blockHash is set.
    *
    * @param      {Web3}  web3      web3 instance

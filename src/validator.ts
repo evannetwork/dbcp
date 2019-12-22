@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-import * as ajv from 'ajv';
+import * as Ajv from 'ajv';
 import { Logger, LoggerOptions } from './common/logger';
 
 /**
@@ -39,7 +39,7 @@ export class Validator extends Logger {
   constructor(options) {
     super(options);
     this.schema = options.schema;
-    this.ajv = new ajv({ allErrors: true });
+    this.ajv = new Ajv({ allErrors: true });
     this.validator = this.ajv.compile(this.schema);
   }
 

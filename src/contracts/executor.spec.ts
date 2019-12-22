@@ -15,7 +15,8 @@
 */
 
 import 'mocha';
-import { expect, use } from 'chai';
+import * as chai from 'chai';
+import * as spies from 'chai-spies';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { accounts } from '../test/accounts';
@@ -44,13 +45,22 @@ const mockContract = {
   },
 };
 
+const { expect, use } = chai;
+
 use(chaiAsPromised);
+use(spies);
+
+const { spy } = chai;
 
 
 class MockedSigner implements SignerInterface {
   public lastOptions;
 
-  public async createContract(contractName: string, functionArguments: any[], options: any): Promise<any> {
+  public async createContract(
+    contractName: string,
+    functionArguments: any[],
+    options: any,
+  ): Promise<any> {
     this.lastOptions = options;
     return mockContract;
   }
@@ -77,7 +87,7 @@ class MockedSigner implements SignerInterface {
 }
 
 
-describe('Executor handler', function () {
+describe('Executor handler', function test() {
   this.timeout(300000);
   const defaultOptions = {
     gas: 1234567,
@@ -109,16 +119,14 @@ describe('Executor handler', function () {
     expect(executor).not.to.be.undefined;
   });
 
-  it('should be able to set a custom log function', async () => new Promise<void>(async (resolve) => {
-    const logFn = (message) => {
-      if (message === 'test') {
-        resolve();
-      }
-    };
-    const executor = await TestUtils.getExecutor(web3, null, logFn);
+  it('should be able to set a custom log function', async () => {
+    const logFn = (message) => message;
+    const spyHandle = spy(logFn);
+    const executor = await TestUtils.getExecutor(web3, null, spyHandle);
     executor.logLevel = LogLevel.debug;
     executor.log('test');
-  }));
+    expect(spyHandle).to.have.been.called.with('test');
+  });
 
   it('should be able to call a contract method', async () => {
     const executor = await TestUtils.getExecutor(web3);
@@ -158,7 +166,7 @@ describe('Executor handler', function () {
       { from: testUser, gas: 2000000 },
     );
     await expect(contractPromise)
-      .to.be.rejectedWith('Trying to create an instance of an abstract contract');
+      .to.be.rejectedWith('trying to create an instance of abstract contract "AbstractENS"');
   });
 
   it('should throw an error when trying to create a contract in readonly mode', async () => {
@@ -333,8 +341,11 @@ describe('Executor handler', function () {
         interface: '[{"constant":false,"inputs":[],"name":"fireEvent","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"fired","type":"bool"}],"name":"EventFired","type":"event"}]',
         bytecode: '6080604052348015600f57600080fd5b5060c28061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680634185df15146044575b600080fd5b348015604f57600080fd5b5060566058565b005b7fdc08654ff747985731f0a10bd9f24cd18ec81389c8e34195040b16e3aaf21a506001604051808215151515815260200191505060405180910390a15600a165627a7a7230582054ebefb381fda1c30f8359f45e7a8bb81f00a4256f7dc35ac40ea5800bac85030029',
       };
-      (executor.signer as any).contractLoader.contracts.TestContract = eventHub.contractLoader.contracts.TestContract;
-      (executor.signer as any).contractLoader.contracts.TestContractEvent = eventHub.contractLoader.contracts.TestContractEvent;
+
+      const executorLoader = (executor.signer as any).contractLoader.contracts;
+      executorLoader.TestContract = eventHub.contractLoader.contracts.TestContract;
+      executorLoader.TestContractEvent = eventHub.contractLoader.contracts.TestContractEvent;
+
       const testContract = await executor.createContract(
         'TestContractEvent',
         [],
@@ -367,8 +378,9 @@ describe('Executor handler', function () {
         interface: '[{"constant":false,"inputs":[],"name":"fireEvent","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"fired","type":"bool"}],"name":"EventFired","type":"event"}]',
         bytecode: '6080604052348015600f57600080fd5b5060c28061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680634185df15146044575b600080fd5b348015604f57600080fd5b5060566058565b005b7fdc08654ff747985731f0a10bd9f24cd18ec81389c8e34195040b16e3aaf21a506001604051808215151515815260200191505060405180910390a15600a165627a7a7230582054ebefb381fda1c30f8359f45e7a8bb81f00a4256f7dc35ac40ea5800bac85030029',
       };
-      (executor.signer as any).contractLoader.contracts.TestContract = eventHub.contractLoader.contracts.TestContract;
-      (executor.signer as any).contractLoader.contracts.TestContractEvent = eventHub.contractLoader.contracts.TestContractEvent;
+      const executorLoader = (executor.signer as any).contractLoader.contracts;
+      executorLoader.TestContract = eventHub.contractLoader.contracts.TestContract;
+      executorLoader.TestContractEvent = eventHub.contractLoader.contracts.TestContractEvent;
       const eventContract = await executor.createContract(
         'TestContractEvent',
         [],

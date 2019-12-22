@@ -86,7 +86,9 @@ export class ContractLoader extends Logger {
       throw new Error(`description for contract type "${name}" not found, `
         + `supported interfaces are "${Object.keys(this.contracts).join(',')}"`);
     }
-    const contract = new this.web3.eth.Contract(JSON.parse(this.contracts[name].interface), address);
+    const contract = new this.web3.eth.Contract(
+      JSON.parse(this.contracts[name].interface), address,
+    );
 
     // prevent memory leak of web3 beta 55
     if (this.web3.eth.initiatedContracts) {
