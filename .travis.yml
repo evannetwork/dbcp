@@ -47,5 +47,8 @@ before_install:
 install:
   - cd /home/travis/build/evannetwork/dbcp
   - npm install
+  - npm install codecov -g
   - cd ganache-cli && node cli.js --allowUnlimitedContractSize --gasLimit 0xE4E1C0 -p 7545 -f http://localhost:8545 > /dev/null &
   - cd /home/travis/build/evannetwork/dbcp
+after_success:
+  - codecov
