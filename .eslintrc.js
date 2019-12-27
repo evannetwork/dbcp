@@ -20,7 +20,7 @@ module.exports =  {
     '@typescript-eslint/explicit-function-return-type': ['off'],
     '@typescript-eslint/no-explicit-any': ['off'],
     '@typescript-eslint/no-unused-expressions': 0,
-    'chai-friendly/no-unused-expressions': 2,
+    'chai-friendly/no-unused-expressions': ['error']
     // rule additions for airbnb
     'class-methods-use-this': ['off']  // *may* require further adjustments to instance usage
   },
