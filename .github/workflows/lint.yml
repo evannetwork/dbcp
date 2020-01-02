@@ -20,7 +20,7 @@ jobs:
       - run: yarn build
       # Alternative: if you use npm instead of yarn
       # - run: npm ci --no-audit --prefer-offline
-      - uses: hallee/eslint-action@master
+      - uses: S3bb1/eslint-action@master
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
           check-name: eslint # this is the check name from above 👆 where to post annotations
