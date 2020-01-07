@@ -14,12 +14,14 @@
   limitations under the License.
 */
 
-import uuid = require('uuid');
 import { Mutex } from 'async-mutex';
 
 import { ContractLoader } from './contracts/contract-loader';
 import { Logger, LoggerOptions } from './common/logger';
+// eslint-disable-next-line import/no-cycle
 import { NameResolver } from './name-resolver';
+
+import uuid = require('uuid');
 
 /**
  * eventhub instance options
@@ -37,15 +39,25 @@ export interface EventHubOptions extends LoggerOptions {
  */
 export class EventHub extends Logger {
   config: any;
+
   continueBlock = 0;
+
   contractInstances = {};
+
   contractLoader: ContractLoader;
+
   contractSubscriptions = {};
+
   eventEmitter = {};
+
   eventHubContract: any;
+
   eventWeb3: any;
+
   nameResolver: NameResolver;
+
   subscriptionToContractMapping = {};
+
   private mutexes: { [id: string]: Mutex };
 
   constructor(options: EventHubOptions) {
@@ -104,19 +116,19 @@ export class EventHub extends Logger {
         eventName,
         filterFunction,
         (event) => {
+          let innerChain = Promise.resolve();
           if (!alreadyFired) {
             alreadyFired = true;
-            return Promise.resolve()
+            innerChain = innerChain
               .then(() => onEvent(event))
-              .then(() => this.unsubscribe({ subscription }))
-            ;
+              .then(() => this.unsubscribe({ subscription }));
           }
+          return innerChain;
         },
-        fromBlock
+        fromBlock,
       )
       .then((result) => { subscription = result; })
-      .then(() => subscription)
-    ;
+      .then(() => subscription);
   }
 
   /**
@@ -128,8 +140,8 @@ export class EventHub extends Logger {
    * @param      any        Any
    * @param      filterFunction  a function that returns true or a Promise that resolves to true if
    *                             onEvent function should be applied
-   * @param      onEvent         executed when event was fired and the filter matches, gets the event as
-   *                             its parameter
+   * @param      onEvent         executed when event was fired and the filter matches, gets the
+   *                             event as its parameter
    *
    * @return     resolves to {string} event subscription
    */
@@ -146,23 +158,25 @@ export class EventHub extends Logger {
     if (this.eventWeb3) {
       if (contractName === 'EventHub') {
         if (!this.contractLoader.contracts[contractName]) {
-          throw new Error(`abi for contract type "${contractName}" not found, ` +
-            `supported interfaces are "${Object.keys(this.contractLoader.contracts).join(',')}"`);
+          throw new Error(`abi for contract type "${contractName}" not found, `
+            + `supported interfaces are "${Object.keys(this.contractLoader.contracts).join(',')}"`);
         }
         chain = chain.then(() => this.nameResolver
           .getAddress(this.nameResolver.getDomainName(this.config.domains.eventhub)));
       }
-      chain = chain.then(address => {
-        address = address ? address : contractAddress;
-        return this.eventWeb3.eth.contract(JSON.parse(this.contractLoader.contracts[contractName].interface)).at(address);
+      chain = chain.then((addr) => {
+        const address = addr || contractAddress;
+        return this.eventWeb3.eth.contract(
+          JSON.parse(this.contractLoader.contracts[contractName].interface),
+        ).at(address);
       });
     } else {
       if (contractName === 'EventHub') {
         chain = chain.then(() => this.nameResolver
           .getAddress(this.nameResolver.getDomainName(this.config.domains.eventhub)));
       }
-      chain = chain.then(address => {
-        address = address ? address : contractAddress;
+      chain = chain.then((addr) => {
+        const address = addr || contractAddress;
         return this.contractLoader.loadContract(contractName, address);
       });
     }
@@ -185,7 +199,7 @@ export class EventHub extends Logger {
           let innerChain;
           if (event.event === eventName) {
             const filterResult = filterFunction(event);
-            if (filterResult && filterResult.hasOwnProperty('then')) {
+            if (filterResult && Object.prototype.hasOwnProperty.call(filterResult, 'then')) {
               innerChain = filterResult;
             } else {
               innerChain = Promise.resolve(filterResult);
@@ -195,11 +209,11 @@ export class EventHub extends Logger {
                 if (match) {
                   return onEvent(event);
                 }
+                return null;
               })
               .catch((ex) => {
                 this.log(`error occurred while handling contract event; ${ex.message || ex}${ex.stack || ''}`, 'error');
-              })
-            ;
+              });
           } else {
             innerChain = Promise.resolve();
           }
@@ -208,21 +222,21 @@ export class EventHub extends Logger {
         this.subscriptionToContractMapping[subscription] = [contractId, eventName];
         this.ensureSubscription(contractId, eventName, eventTarget, fromBlock);
         return subscription;
-      })
-    ;
+      });
   }
 
   /**
    * unsubscribe an event subscription
    *
-   * @param      toRemove  unsubscribe criteria, supports 'subscription', 'contractId' (can be 'all')
+   * @param      toRemove  unsubscribe criteria supports 'subscription', 'contractId' (can be 'all')
    *
    * @return     Promise, resolved when done
    */
+  // eslint-disable-next-line consistent-return
   public async unsubscribe(toRemove): Promise<void> {
     this.log(`unsubscribing from "${JSON.stringify(toRemove)}"`, 'debug');
-    if (toRemove.hasOwnProperty('subscription') &&
-        this.subscriptionToContractMapping[toRemove.subscription]) {
+    if (Object.prototype.hasOwnProperty.call(toRemove, 'subscription')
+        && this.subscriptionToContractMapping[toRemove.subscription]) {
       // get and remove from reverse lookup
       const [contractId, eventName] = this.subscriptionToContractMapping[toRemove.subscription];
       if (contractId) {
@@ -230,22 +244,23 @@ export class EventHub extends Logger {
         // remove from event subscriptions
         delete this.contractSubscriptions[contractId][eventName][toRemove.subscription];
         // stop event listener if last subscription was removed
+        // eslint-disable-next-line consistent-return
         await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
           if (Object.keys(this.contractSubscriptions[contractId][eventName]).length === 0) {
             // stop listener
             return new Promise((resolve, reject) => {
-              if (this.eventEmitter[contractId][eventName] &&
-                  this.eventEmitter[contractId][eventName].unsubscribe) {
+              if (this.eventEmitter[contractId][eventName]
+                  && this.eventEmitter[contractId][eventName].unsubscribe) {
                 this.eventEmitter[contractId][eventName].unsubscribe((error, success) => {
                   delete this.eventEmitter[contractId][eventName];
                   if (!error && success) {
                     resolve();
                   } else {
-                    reject(`unsubscribing failed; ${error || 'no reason given for failure'}`);
+                    reject(new Error(`unsubscribing failed; ${error || 'no reason given for failure'}`));
                   }
                 });
-              } else if (this.eventEmitter[contractId][eventName] &&
-                this.eventEmitter[contractId][eventName].stopWatching) {
+              } else if (this.eventEmitter[contractId][eventName]
+                && this.eventEmitter[contractId][eventName].stopWatching) {
                 this.eventEmitter[contractId][eventName].stopWatching(() => {
                   delete this.eventEmitter[contractId][eventName];
                   resolve();
@@ -257,31 +272,32 @@ export class EventHub extends Logger {
           }
         });
       }
-    } else if (toRemove.hasOwnProperty('contractId')) {
+    } else if (Object.prototype.hasOwnProperty.call(toRemove, 'contractId')) {
       if (toRemove.contractId === 'all') {
         let chain = Promise.resolve();
         // iterate over all contractIds sequentially
-        for (const contractId of Object.keys(this.contractSubscriptions)) {
-          for (const eventName of Object.keys(this.contractSubscriptions[contractId])) {
-            for (const subscription of Object.keys(this.contractSubscriptions[contractId][eventName])) {
-              chain = chain.then(() => { this.unsubscribe({ subscription }) });
-            }
-          }
-        }
-        return chain;
-      } else {
-        // iterate over all subscriptions for contract sequentially
-        let chain = Promise.resolve();
-        // iterate over all contractIds sequentially
-        for (const eventName of Object.keys(this.contractSubscriptions[toRemove.contractId])) {
-          for (const subscription of Object.keys(this.contractSubscriptions[toRemove.contractId][eventName])) {
-            chain = chain.then(() => { this.unsubscribe({ subscription }) });
-          }
-        }
+        Object.keys(this.contractSubscriptions).forEach((contractId) => {
+          Object.keys(this.contractSubscriptions[contractId]).forEach((eventName) => {
+            const contractSubscriptions = this.contractSubscriptions[contractId][eventName];
+            Object.keys(contractSubscriptions).forEach((subscription) => {
+              chain = chain.then(() => { this.unsubscribe({ subscription }); });
+            });
+          });
+        });
         return chain;
       }
+      // iterate over all subscriptions for contract sequentially
+      let chain = Promise.resolve();
+      // iterate over all contractIds sequentially
+      Object.keys(this.contractSubscriptions[toRemove.contractId]).forEach((eventName) => {
+        const contractSubscriptions = this.contractSubscriptions[toRemove.contractId][eventName];
+        Object.keys(contractSubscriptions).forEach((subscription) => {
+          chain = chain.then(() => { this.unsubscribe({ subscription }); });
+        });
+      });
+      return chain;
     } else {
-      return Promise.reject('unsupported unsubscribe criteria');
+      return Promise.reject(new Error('unsupported unsubscribe criteria'));
     }
   }
 
@@ -304,9 +320,9 @@ export class EventHub extends Logger {
     await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
       if (!this.eventEmitter[contractId][eventName]) {
         this.contractInstances[contractId] = eventTarget;
-        this.eventEmitter[contractId][eventName] = eventTarget.events ?
-          eventTarget.events[eventName]({ fromBlock: fromBlock }) :
-          eventTarget[eventName](null, { fromBlock: fromBlock });
+        this.eventEmitter[contractId][eventName] = eventTarget.events
+          ? eventTarget.events[eventName]({ fromBlock })
+          : eventTarget[eventName](null, { fromBlock });
         if (this.eventEmitter[contractId][eventName].on) {
           this.subscribeWeb3Gte1(contractId, eventName, fromBlock);
         } else {
@@ -336,20 +352,20 @@ export class EventHub extends Logger {
    */
   private resubscribe(newProvider): void {
     // remove existing subscriptions
-    for (const subscription of Object.keys(this.subscriptionToContractMapping)) {
+    Object.keys(this.subscriptionToContractMapping).forEach((subscription) => {
       const [contractId, eventName] = this.subscriptionToContractMapping[subscription];
       delete this.eventEmitter[contractId][eventName];
-    }
+    });
     // set new providers to contract instances
-    for (const contract of Object.keys(this.contractInstances)) {
+    Object.keys(this.contractInstances).forEach((contract) => {
       this.contractInstances[contract].setProvider(newProvider);
-    }
+    });
     // create new subscriptions and re-add event handlers
-    for (const subscription of Object.keys(this.subscriptionToContractMapping)) {
+    Object.keys(this.subscriptionToContractMapping).forEach((subscription) => {
       const [contractId, eventName] = this.subscriptionToContractMapping[subscription];
       const eventTarget = this.contractInstances[contractId];
       this.ensureSubscription(contractId, eventName, eventTarget);
-    }
+    });
   }
 
   /**
@@ -368,11 +384,9 @@ export class EventHub extends Logger {
           return;
         }
         // run onEvents parallel
-        Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName]).map((key) =>
-          this.contractSubscriptions[contractId][eventName][key](event)
-        ));
-      })
-    ;
+        Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName])
+          .map((key) => this.contractSubscriptions[contractId][eventName][key](event)));
+      });
   }
 
   /**
@@ -390,9 +404,8 @@ export class EventHub extends Logger {
         return;
       }
       // run onEvents parallel
-      Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName]).map((key) =>
-        this.contractSubscriptions[contractId][eventName][key](result)
-      ))
+      Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName])
+        .map((key) => this.contractSubscriptions[contractId][eventName][key](result)));
     });
   }
 }

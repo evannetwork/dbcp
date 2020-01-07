@@ -23,6 +23,7 @@ import { Cryptor } from './cryptor';
  *
  * @class      CryptoProvider (name)
  */
+// eslint-disable-next-line import/prefer-default-export
 export class CryptoProvider {
   cryptors: any;
 

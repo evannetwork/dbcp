@@ -57,9 +57,13 @@ export interface LoggerOptions {
  */
 export class Logger {
   logFunction: Function;
+
   logLevel: LogLevel;
+
   logLogLevel: LogLevel;
+
   logLog = [];
+
   static getDefaultLog(): Function {
     return (message, level) => {
       let logFunction;
@@ -74,6 +78,8 @@ export class Logger {
         default:
           logFunction = 'log';
       }
+      // disable rule because this is essential
+      // eslint-disable-next-line no-console
       console[logFunction](`[${level || 'info'}] ${message}`);
     };
   }
@@ -93,9 +99,9 @@ export class Logger {
     this.logLogLevel = (options && typeof options.logLogLevel !== 'undefined') ? options.logLogLevel : LogLevel.error;
     if (options && options.logLevel) {
       this.logLevel = LogLevel[options.logLevel as string];
-    } else  if (typeof global !== 'undefined' &&
-        (global as any).localStorage &&
-        (global as any).localStorage['bc-dev-logs']) {
+    } else if (typeof global !== 'undefined'
+        && (global as any).localStorage
+        && (global as any).localStorage['bc-dev-logs']) {
       // enable dev logs for browserified sources
       this.logLevel = LogLevel[(global as any).localStorage['bc-dev-logs'] as string];
     } else if (process.env.DBCP_LOGLEVEL) {
@@ -116,7 +122,7 @@ export class Logger {
       this.logLog.push({
         timestamp: new Date().getTime(),
         level,
-        message
+        message,
       });
     }
     if (LogLevel[level] >= this.logLevel && LogLevel[level] < LogLevel.technical) {

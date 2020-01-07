@@ -14,7 +14,8 @@
   limitations under the License.
 */
 
-import { EventHub } from './../event-hub';
+// eslint-disable-next-line import/no-cycle
+import { EventHub } from '../event-hub';
 import { Logger, LoggerOptions } from '../common/logger';
 import { SignerInterface } from './signer-interface';
 
@@ -37,9 +38,13 @@ export interface ExecutorOptions extends LoggerOptions {
  */
 export class Executor extends Logger {
   config: any;
+
   defaultOptions: any;
+
   eventHub: EventHub;
+
   signer: SignerInterface;
+
   web3: any;
 
   /**
@@ -74,33 +79,33 @@ export class Executor extends Logger {
    *                                           parameter
    * @return     {Promise<any>}  resolves to: {Object} contract calls result
    */
-  async executeContractCall(contract: any, functionName: string, ...args): Promise<any>  {
+  async executeContractCall(contract: any, functionName: string, ...args): Promise<any> {
     this.log(`starting contract call "${functionName}"`, 'debug');
-    if (!contract.options.address ||
-        contract.options.address === '0x0000000000000000000000000000000000000000') {
-      throw new Error(`trying to execute contract call "${functionName}" ` +
-        'against invalid contract address');
+    if (!contract.options.address
+        || contract.options.address === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`trying to execute contract call "${functionName}" `
+        + 'against invalid contract address');
     }
     if (!contract.methods[functionName]) {
-      throw new Error(`contract does not support method "${functionName}", ` +
-        `supported methods are ${Object.keys(contract.methods)}`);
+      throw new Error(`contract does not support method "${functionName}", `
+        + `supported methods are ${Object.keys(contract.methods)}`);
     }
     if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
     }
     let options;
-    options = this.defaultOptions ? Object.assign({}, this.defaultOptions) : null;
+    options = this.defaultOptions ? ({ ...this.defaultOptions }) : null;
     if (options) {
       this.scrubOptions(options);
     }
     if (args.length && typeof args[args.length - 1] === 'object') {
       options = Object.assign(options || {}, args[args.length - 1]);
       return contract.methods[functionName](...args.slice(0, -1)).call(options);
-    } else if (options) {
-      return contract.methods[functionName](...args).call(options);
-    } else {
-      return contract.methods[functionName](...args).call();
     }
+    if (options) {
+      return contract.methods[functionName](...args).call(options);
+    }
+    return contract.methods[functionName](...args).call();
   }
 
   /**
@@ -118,8 +123,14 @@ export class Executor extends Logger {
    *                             given), the event (if event but no getEventResult was given), the
    *                             value returned by getEventResult(eventObject)
    */
-  async executeContractTransaction(contract: any, functionName: string, inputOptions: any, ...functionArguments: any[]): Promise<any> {
-    // autoGas 1.1 ==> if truthy, enables autoGas 1.1 ==> adds 10% to estimated value capped to current block
+  public async executeContractTransaction(
+    contract: any,
+    functionName: string,
+    inputOptions: any,
+    ...functionArguments: any[]
+  ): Promise<any> {
+    // autoGas 1.1 ==> if truthy, enables
+    // autoGas 1.1 ==> adds 10% to estimated value capped to current block
     // maximum minus 4* the allowed derivation per block - The protocol allows the miner of a block
     // to adjust the block gas limit by a factor of 1/1024 (0.0976%) in either direction.
     // (http://hudsonjameson.com/2017-06-27-accounts-transactions-gas-ethereum/) makes it
@@ -129,24 +140,24 @@ export class Executor extends Logger {
       throw new Error('signer is undefined');
     }
     if (!contract.methods[functionName]) {
-      throw new Error(`contract does not support method "${functionName}", ` +
-        `supported methods are ${Object.keys(contract.methods)}`);
+      throw new Error(`contract does not support method "${functionName}", `
+        + `supported methods are ${Object.keys(contract.methods)}`);
     }
     if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
     }
-    if (!contract.options.address ||
-        contract.options.address === '0x0000000000000000000000000000000000000000') {
-      throw new Error(`trying to execute contract transaction "${functionName}" ` +
-        'against invalid contract address');
+    if (!contract.options.address
+        || contract.options.address === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`trying to execute contract transaction "${functionName}" `
+        + 'against invalid contract address');
     }
 
     // every argument beyond the third is an argument for the contract function
-    const options = Object.assign(
-      { timeout: 300000 },
-      this.defaultOptions || {},
-      inputOptions,
-    );
+    const options = {
+      timeout: 300000,
+      ...this.defaultOptions || {},
+      ...inputOptions,
+    };
 
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
@@ -167,6 +178,7 @@ export class Executor extends Logger {
     const logGas = (extraParams) => {
       const staticEntries = {
         arguments: initialArguments,
+        // eslint-disable-next-line no-underscore-dangle
         contract: contract.address || contract._address,
         from: inputOptions.from,
         gasEstimated: null,
@@ -178,8 +190,8 @@ export class Executor extends Logger {
       };
       const level = 'gasLog';
       this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), level);
-    }
-    return new Promise(async (resolve, reject) => {
+    };
+    return new Promise((resolve, reject) => {
       // keep track of the promise state via variable as we may run into a timeout
       let isPending = true;
       let transactionHash;
@@ -187,31 +199,28 @@ export class Executor extends Logger {
 
       // timeout and event listener with this
       let subscription;
-      const stopWatching = async (isError?) => {
-        return new Promise((resolveStop) => {
-          setTimeout(() => {
-            if (inputOptions.event && subscription) {
-              if (this.eventHub) {
-                this.eventHub
-                  .unsubscribe({ subscription})
-                  .then(() => { resolveStop(); })
-                  .catch((ex) => {
-                    this.log(`error occurred while unsubscribing from transaction event; ` +
-                      `${ex.message || ex}, ${ex.stack || ''}`, 'error');
-                  })
-                  .then(() => { isPending = false; })
-                ;
-              } else {
-                isPending = false;
-                reject('passed an event to a transaction but no event hub registered');
-              }
+      const stopWatching = async (isError?) => new Promise((resolveStop) => {
+        setTimeout(() => {
+          if (inputOptions.event && subscription) {
+            if (this.eventHub) {
+              this.eventHub
+                .unsubscribe({ subscription })
+                .then(() => { resolveStop(); })
+                .catch((ex) => {
+                  this.log('error occurred while unsubscribing from transaction event; '
+                      + `${ex.message || ex}, ${ex.stack || ''}`, 'error');
+                })
+                .then(() => { isPending = false; });
             } else {
               isPending = false;
-              resolveStop();
+              reject(new Error('passed an event to a transaction but no event hub registered'));
             }
-          }, isError ? 1000 : 0);
-        });
-      }
+          } else {
+            isPending = false;
+            resolveStop();
+          }
+        }, isError ? 1000 : 0);
+      });
 
       try {
         // timeout rejects promise if not already done so
@@ -245,13 +254,12 @@ export class Executor extends Logger {
                     // hold the evenTransaction and trigger resolve within execution callback
                     eventResults[event.transactionHash] = event;
                   }
-                }
+                },
               )
               .then((result) => { subscription = result; })
               .catch((ex) => {
                 this.log(`error occurred while subscribing to transaction event; ${ex.message || ex}${ex.stack || ''}`, 'error');
-              })
-            ;
+              });
           } else {
             throw new Error('passed an event to a transaction but no event hub registered');
           }
@@ -263,14 +271,16 @@ export class Executor extends Logger {
         let gasEstimated;
         const executeCallback = async (err, receipt) => {
           if (err) {
-            return reject(`${functionName} failed: ${err}`);
+            reject(new Error(`${functionName} failed: ${err}`));
           }
           try {
             // keep transaction hash for checking agains it in event
             transactionHash = receipt && receipt.transactionHash ? receipt.transactionHash : '';
             if (err) {
               this.log(`${functionName} failed: ${err.message || err}`, 'error');
-              logGas({ status: 'error', message: 'transaction submit error', gasEstimated, transactionHash });
+              logGas({
+                status: 'error', message: 'transaction submit error', gasEstimated, transactionHash,
+              });
               reject(err);
             } else {
               let optionsGas;
@@ -280,7 +290,9 @@ export class Executor extends Logger {
                 optionsGas = parseInt(options.gas, 10);
               }
               if (optionsGas !== receipt.gasUsed) {
-                logGas({ status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash });
+                logGas({
+                  status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash,
+                });
                 // log autoGas entry
                 if (autoGas) {
                   logGas({
@@ -300,8 +312,8 @@ export class Executor extends Logger {
                   if (inputOptions.getEventResult) {
                     resolve(inputOptions.getEventResult(
                       eventResults[transactionHash],
-                      eventResults[transactionHash].args ||
-                        eventResults[transactionHash].returnValues
+                      eventResults[transactionHash].args
+                        || eventResults[transactionHash].returnValues,
                     ));
                   } else {
                     resolve(eventResults[transactionHash]);
@@ -334,7 +346,7 @@ export class Executor extends Logger {
               }
             }
           } catch (ex) {
-            return reject(`${functionName} failed: ${ex.message}`);
+            reject(new Error(`${functionName} failed: ${ex.message}`));
           }
         };
 
@@ -343,14 +355,15 @@ export class Executor extends Logger {
           if (error) {
             await stopWatching(true);
             logGas({ status: 'error', message: `could not estimate; ${error}` });
-            reject(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`);
+            reject(new Error(`could not estimate gas usage for ${functionName}: ${error}; ${error.stack}`));
           } else if (inputOptions.estimate) {
             await stopWatching();
             resolve(gasAmount);
-          } else if (!inputOptions.force && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
+          } else if (!inputOptions.force
+            && parseInt(inputOptions.gas, 10) === parseInt(gasAmount, 10)) {
             await stopWatching(true);
             logGas({ status: 'error', message: 'out of gas estimated' });
-            reject(`transaction ${functionName} by ${options.from} would most likely fail`);
+            reject(new Error(`transaction ${functionName} by ${options.from} would most likely fail`));
           } else {
             // execute contract function
             // recover original from, as estimate converts from to lower case
@@ -359,14 +372,15 @@ export class Executor extends Logger {
             if (autoGas) {
               this.web3.eth.getBlock('latest', (blockError, result) => {
                 if (blockError) {
-                  reject(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`);
+                  reject(new Error(`could not get latest block for ${functionName}: ${blockError}; ${blockError.stack}`));
                 } else {
                   const currentLimit = result.gasLimit;
-                  const gas = Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)));
-                  // const gas = Math.max(Math.floor(Math.min(gasEstimated * autoGas, currentLimit * (255 / 256))), 53528);
+                  const gas = Math.floor(
+                    Math.min(gasEstimated * autoGas, currentLimit * (255 / 256)),
+                  );
                   logGas({
                     status: 'autoGas.estimation',
-                    gasEstimated: gasEstimated,
+                    gasEstimated,
                     gasGiven: gas,
                     message: `estimated with ${autoGas}`,
                   });
@@ -374,7 +388,7 @@ export class Executor extends Logger {
                   this.signer.signAndExecuteTransaction(
                     contract,
                     functionName,
-                    functionArguments.slice(0, -1), Object.assign({}, options),
+                    functionArguments.slice(0, -1), { ...options },
                     (...args) => {
                       executeCallback.apply(this, args).catch((ex) => { reject(ex); });
                     },
@@ -385,7 +399,7 @@ export class Executor extends Logger {
               this.signer.signAndExecuteTransaction(
                 contract,
                 functionName,
-                functionArguments.slice(0, -1), Object.assign({}, options),
+                functionArguments.slice(0, -1), { ...options },
                 (...args) => { executeCallback.apply(this, args).catch((ex) => { reject(ex); }); },
               );
             }
@@ -393,15 +407,15 @@ export class Executor extends Logger {
         };
         contract.methods[functionName](...initialArguments)
           .estimateGas(
-            Object.assign({}, options),
+            { ...options },
             (...args) => { estimationCallback.apply(this, args).catch((ex) => { reject(ex); }); },
-          )
-        ;
+          );
       } catch (ex) {
         this.log(`${functionName} failed: ${ex.message}`, 'error');
-        await stopWatching(true);
-        logGas({ status: 'error', message: 'transaction could not be started' });
-        reject(ex);
+        stopWatching(true).then(() => {
+          logGas({ status: 'error', message: 'transaction could not be started' });
+          reject(ex);
+        });
       }
     });
   }
@@ -418,11 +432,11 @@ export class Executor extends Logger {
     if (!this.signer) {
       throw new Error('signer is undefined');
     }
-    const options = Object.assign(
-      { timeout: 300000 },
-      this.defaultOptions || {},
-      inputOptions,
-    );
+    const options = {
+      timeout: 300000,
+      ...this.defaultOptions || {},
+      ...inputOptions,
+    };
 
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
@@ -440,7 +454,7 @@ export class Executor extends Logger {
         transactionHash: null,
       };
       this.log(JSON.stringify(Object.assign(staticEntries, extraParams)), 'gasLog');
-    }
+    };
     return new Promise<void>((resolve, reject) => {
       let isPending = true;
       let transactionHash;
@@ -449,18 +463,20 @@ export class Executor extends Logger {
         setTimeout(() => {
           if (isPending) {
             logGas({ status: 'error', message: 'timeout' });
-            reject(new Error('timeout after ${transactionTimeout}ms during executeSend'));
+            reject(new Error(`timeout after ${transactionTimeout}ms during executeSend`));
           }
         }, transactionTimeout);
         let gasEstimated;
         const executeCallback = (err, receipt) => {
           if (err) {
-            return reject(`executeSend failed: ${err}`);
+            reject(new Error(`executeSend failed: ${err}`));
           }
           try {
             if (err) {
               this.log(`executeSend failed: ${err.message || err}`, 'error');
-              logGas({ status: 'error', message: 'transaction submit error', gasEstimated, transactionHash });
+              logGas({
+                status: 'error', message: 'transaction submit error', gasEstimated, transactionHash,
+              });
               reject(err);
             } else {
               let optionsGas;
@@ -470,7 +486,9 @@ export class Executor extends Logger {
                 optionsGas = parseInt(options.gas, 10);
               }
               if (optionsGas !== receipt.gasUsed) {
-                logGas({ status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash });
+                logGas({
+                  status: 'success', gasUsed: receipt.gasUsed, gasEstimated, transactionHash,
+                });
                 // if no event to watch for was given, resolve promise here
                 isPending = false;
                 resolve();
@@ -489,7 +507,7 @@ export class Executor extends Logger {
               }
             }
           } catch (ex) {
-            return reject(`executeSend failed: ${ex.message}`);
+            reject(new Error(`executeSend failed: ${ex.message}`));
           }
         };
         this.signer.signAndExecuteSend(options, executeCallback);
@@ -513,9 +531,13 @@ export class Executor extends Logger {
    *                                                .gas
    * @return     {Promise<any>}  new contract
    */
-  async createContract(contractName: string, functionArguments: any[], inputOptions: any): Promise<any> {
+  public async createContract(
+    contractName: string,
+    functionArguments: any[],
+    inputOptions: any,
+  ): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
-    const options = Object.assign({}, this.defaultOptions || {}, inputOptions);
+    const options = { ...this.defaultOptions || {}, ...inputOptions };
     this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');
@@ -529,10 +551,11 @@ export class Executor extends Logger {
    * @param      {any}  options  options for web3
    */
   protected scrubOptions(options: any): void {
+    const param = options;
     const validProperties = ['from', 'to', 'gasPrice', 'gas', 'value', 'data', 'nonce'];
-    Object.keys(options).forEach((option) => {
+    Object.keys(param).forEach((option) => {
       if (!validProperties.includes(option)) {
-        delete options[option];
+        delete param[option];
       }
     });
   }

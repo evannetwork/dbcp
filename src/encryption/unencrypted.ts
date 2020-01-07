@@ -24,18 +24,19 @@ import { Logger } from '../common/logger';
  *
  * @class      Unencrypted (name)
  */
+// eslint-disable-next-line import/prefer-default-export
 export class Unencrypted extends Logger implements Cryptor {
   static defaultOptions = {};
+
   options: any;
 
   private readonly encodingUnencrypted = 'utf-8';
+
   private readonly encodingEncrypted = 'hex';
 
   constructor(options?) {
     super(options);
-    this.options = Object.assign({
-      algorithm: 'unencrypted',
-    }, options || {});
+    this.options = { algorithm: 'unencrypted', ...options || {} };
   }
 
   /**
@@ -47,7 +48,7 @@ export class Unencrypted extends Logger implements Cryptor {
   // keep interface compatibility
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getCryptoInfo(originator: string): CryptoInfo {
-    return Object.assign({}, this.options);
+    return { ...this.options };
   }
 
   /**
