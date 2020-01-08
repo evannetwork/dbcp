@@ -2,13 +2,19 @@
 
 ## Next Version
 ### Features
+
+### Fixes
+
+### Deprecations
+
+
+## Version 1.10.0
+### Features
 - add `getPublicKey` to `SignerInterface`
 
 ### Fixes
 - add interfaces used in exported classes to export list
 - update pre-commit hook to use eslint for typescript
-
-### Deprecations
 
 
 ## Version 1.9.0
