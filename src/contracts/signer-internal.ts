@@ -14,14 +14,15 @@
   limitations under the License.
 */
 
-
-import BigNumber = require('bignumber.js');
-import Transaction = require('ethereumjs-tx');
 import { AbiCoder } from 'web3-eth-abi';
 
 import { SignerInterface } from './signer-interface';
 import { Logger, LoggerOptions } from '../common/logger';
 import { KeyStoreInterface } from '../account-store';
+
+import BigNumber = require('bignumber.js');
+import Transaction = require('ethereumjs-tx');
+import crypto = require('crypto-browserify');
 
 const coder: AbiCoder = new AbiCoder();
 const nonces = {};
@@ -38,8 +39,11 @@ export interface SignerInternalOptions extends LoggerOptions {
 
 export class SignerInternal extends Logger implements SignerInterface {
   accountStore: KeyStoreInterface;
+
   config: any;
+
   contractLoader: any;
+
   web3: any;
 
   /**
@@ -47,6 +51,7 @@ export class SignerInternal extends Logger implements SignerInterface {
    * is called, when the block is populated. When callback was called, the transactionhash
    */
   newBlockSubscription: any;
+
   pendingTransactions: any = { };
 
   constructor(options: SignerInternalOptions) {
@@ -77,7 +82,9 @@ export class SignerInternal extends Logger implements SignerInterface {
               Object.keys(this.pendingTransactions).forEach((transactionHash: string) => {
                 // if transaction was finished, call all the callbacks and delete the subscription
                 if (blockDetails.transactions.indexOf(transactionHash) !== -1) {
-                  this.pendingTransactions[transactionHash].forEach(callback => callback(blockHeader));
+                  this.pendingTransactions[transactionHash].forEach((callback) => {
+                    callback(blockHeader);
+                  });
                   delete this.pendingTransactions[transactionHash];
                 }
               });
@@ -99,6 +106,18 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
+   * get public key for given account
+   *
+   * @param      {string}  accountId  account to get public key for
+   */
+  public async getPublicKey(accountId: string): Promise<string> {
+    const ecdh = crypto.createECDH('secp256k1');
+    ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
+
+    return ecdh.getPublicKey().toString('hex');
+  }
+
+  /**
    * patch '0x' prefix to input if not already added, also casts numbers to hex string
    *
    * @param      input  input to prefix with '0x'
@@ -108,7 +127,8 @@ export class SignerInternal extends Logger implements SignerInterface {
   ensureHashWithPrefix(input: string | number) {
     if (typeof input === 'number') {
       return `0x${input.toString(16)}`;
-    } else if (!input.toString().startsWith('0x')) {
+    }
+    if (!input.toString().startsWith('0x')) {
       return `0x${input}`;
     }
     return input;
@@ -120,7 +140,7 @@ export class SignerInternal extends Logger implements SignerInterface {
    *
    * @return     hex string with gas price
    */
-   getGasPrice() {
+  getGasPrice() {
     let chain;
     if (this.config.gasPrice) {
       chain = Promise.resolve(this.config.gasPrice);
@@ -129,17 +149,14 @@ export class SignerInternal extends Logger implements SignerInterface {
         .getGasPrice()
         .then((gp) => {
           if (gp === '0' || gp === 0) {
-            this.log(`returned gas price was 0, using fallback 20GWei`, 'debug');
+            this.log('returned gas price was 0, using fallback 20GWei', 'debug');
             return '200000000000';
-          } else {
-            return gp;
           }
-        })
-      ;
+          return gp;
+        });
     }
     return chain
-      .then(priceWei => this.ensureHashWithPrefix(parseInt(priceWei, 10).toString(16)))
-    ;
+      .then((priceWei) => this.ensureHashWithPrefix(parseInt(priceWei, 10).toString(16)));
   }
 
   /**
@@ -158,8 +175,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         nonces[accountId] = nonce + 1;
         this.log(`current nonce: ${nonce}`, 'debug');
         return nonce;
-      })
-    ;
+      });
   }
 
   /**
@@ -174,19 +190,17 @@ export class SignerInternal extends Logger implements SignerInterface {
   encodeConstructorParams(abi: any[], params: any[]) {
     if (params.length) {
       return abi
-        .filter(json => json.type === 'constructor' && json.inputs.length === params.length)
-        .map(json => json.inputs.map(input => input.type))
-        .map(types => coder.encodeParameters(types, params))
-        .map(encodedParams => encodedParams.replace(/^0x/, ''))[0] || ''
-      ;
-    } else {
-      return '';
+        .filter((json) => json.type === 'constructor' && json.inputs.length === params.length)
+        .map((json) => json.inputs.map((input) => input.type))
+        .map((types) => coder.encodeParameters(types, params))
+        .map((encodedParams) => encodedParams.replace(/^0x/, ''))[0] || '';
     }
+    return '';
   }
 
 
   /**
-   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in fast chains. In this
+   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in chains. In this
    * case, load receipt for received transactionHashes manually and wait until blockHash is set.
    *
    * @param      {Web3}  web3      web3 instance
@@ -194,9 +208,8 @@ export class SignerInternal extends Logger implements SignerInterface {
    */
   private async sendSignedTransaction(signedTx: any): Promise<any> {
     let receipt: any;
-    let subscription: any;
     let txHash: string;
-    let resolved: boolean = false;
+    let resolved = false;
 
     // send the signed transaction and try to recieve an receipt
     await new Promise((resolve, reject) => {
@@ -209,14 +222,14 @@ export class SignerInternal extends Logger implements SignerInterface {
           const newReceipt = await this.web3.eth.getTransactionReceipt(txHash);
 
           // if no receipt event was fired before, use the newly loaded receipt
-          if (!receipt || !receipt.blockHash) { 
+          if (!receipt || !receipt.blockHash) {
             receipt = newReceipt;
           }
 
           // if it's still not a valid receipt, wait for block header
           if (!receipt || !receipt.blockHash) {
             // trigger the reload directly
-            this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [ ];
+            this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [];
             this.pendingTransactions[txHash].push(() => checkReceipt());
           } else if (!resolved) {
             resolved = true;
@@ -259,9 +272,9 @@ export class SignerInternal extends Logger implements SignerInterface {
         const txParams = {
           nonce,
           gasPrice,
-          gasLimit: options.gas || 53000,  // minimum gas cost
+          gasLimit: options.gas || 53000, // minimum gas cost
           to: options.to,
-          value: options.value ? ('0x' + (new BigNumber(options.value, 10)).toString(16)) : 0,
+          value: options.value ? (`0x${(new BigNumber(options.value, 10)).toString(16)}`) : 0,
           chainId: NaN,
         };
 
@@ -280,8 +293,7 @@ export class SignerInternal extends Logger implements SignerInterface {
       .catch((ex) => {
         const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
         handleTxResult(msg);
-      })
-    ;
+      });
   }
 
   /**
@@ -314,7 +326,7 @@ export class SignerInternal extends Logger implements SignerInterface {
           gasPrice,
           gasLimit: this.ensureHashWithPrefix(options.gas),
           to: contract.options.address,
-          value: options.value ? ('0x' + (new BigNumber(options.value, 10)).toString(16)) : 0,
+          value: options.value ? (`0x${(new BigNumber(options.value, 10)).toString(16)}`) : 0,
           data: this.ensureHashWithPrefix(data),
           chainId: NaN,
         };
@@ -334,8 +346,7 @@ export class SignerInternal extends Logger implements SignerInterface {
       .catch((ex) => {
         const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
         handleTxResult(msg);
-      })
-    ;
+      });
   }
 
   /**
@@ -355,6 +366,9 @@ export class SignerInternal extends Logger implements SignerInterface {
     if (!compiledContract) {
       throw new Error(`cannot find contract description for contract "${contractName}"`);
     }
+    if (!compiledContract.bytecode) {
+      throw new Error(`trying to create an instance of abstract contract "${contractName}"`);
+    }
 
     return Promise
       .all([
@@ -370,8 +384,9 @@ export class SignerInternal extends Logger implements SignerInterface {
           gasLimit: this.ensureHashWithPrefix(options.gas),
           value: options.value || 0,
           data: this.ensureHashWithPrefix(
-            `${compiledContract.bytecode}` +
-            `${this.encodeConstructorParams(abi, functionArguments)}`),
+            `${compiledContract.bytecode}`
+            + `${this.encodeConstructorParams(abi, functionArguments)}`,
+          ),
           chainId: NaN,
         };
 
@@ -386,7 +401,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         if (options.gas === receipt.gasUsed) {
           throw new Error('all gas used up');
         } else {
-          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`)
+          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`);
           return new this.web3.eth.Contract(abi, receipt.contractAddress);
         }
       })
@@ -394,8 +409,7 @@ export class SignerInternal extends Logger implements SignerInterface {
         const msg = `could not sign contract creation of "${contractName}"; "${(ex.message || ex)}"`;
         this.log(msg, 'error');
         throw ex;
-      })
-    ;
+      });
   }
 
 
@@ -407,10 +421,8 @@ export class SignerInternal extends Logger implements SignerInterface {
    * @return     {Promise<string>}  signature
    */
   public async signMessage(accountId: string, message: string): Promise<string> {
-    const privateKey =
-      await this.accountStore.getPrivateKey(accountId);
-    const { signature } =
-      await this.web3.eth.accounts.sign(message, `0x${privateKey}`);
+    const privateKey = await this.accountStore.getPrivateKey(accountId);
+    const { signature } = await this.web3.eth.accounts.sign(message, `0x${privateKey}`);
 
     return signature;
   }

@@ -25,8 +25,11 @@ export interface KeyProviderOptions extends LoggerOptions {
 
 export class KeyProvider extends Logger implements KeyProviderInterface {
   currentAccount: any;
+
   currentAccountHash: any;
+
   keys: any;
+
   profile: any;
 
   constructor(options: KeyProviderOptions) {
@@ -36,17 +39,17 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
 
   init(_profile: any) {
     this.profile = _profile;
-  };
+  }
 
   async getKey(info: CryptoInfo): Promise<string> {
-    this.log(JSON.stringify(info), 'debug')
+    this.log(JSON.stringify(info), 'debug');
     if (info.algorithm === 'unencrypted') {
       return Promise.resolve('unencrypted');
     }
     if (this.keys[info.originator]) {
-      this.log(JSON.stringify(obfuscate(this.keys[info.originator])), 'debug')
+      this.log(JSON.stringify(obfuscate(this.keys[info.originator])), 'debug');
       return this.keys[info.originator];
-    } else if (this.profile) {
+    } if (this.profile) {
       let key;
       if (info.originator === this.currentAccountHash) {
         // it' a data key
@@ -58,18 +61,15 @@ export class KeyProvider extends Logger implements KeyProviderInterface {
         this.log(`key lookup: commKey for "${info.originator}", info "${JSON.stringify(info)}"`, 'debug');
         key = await this.profile.getContactKey(info.originator, 'commKey');
         if (!key) {
-          this.log(`no key found for "${JSON.stringify(info)}"; only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
+          this.log(`no key found for "${JSON.stringify(info)}"; `
+            + `only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
           return Promise.resolve(null);
-        } else {
-          this.log(`key found: "${obfuscate(key)}"`, 'debug');
         }
+        this.log(`key found: "${obfuscate(key)}"`, 'debug');
       }
       return key;
-    } else {
-      this.log(`no key found for "${JSON.stringify(info)}"; only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
-      return Promise.resolve(null);
     }
+    this.log(`no key found for "${JSON.stringify(info)}"; only have local keys for ${JSON.stringify(Object.keys(this.keys))}`, 'debug');
+    return Promise.resolve(null);
   }
 }
-
-

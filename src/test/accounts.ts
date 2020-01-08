@@ -24,4 +24,4 @@ const accountMap = {
 };
 const accounts = Object.keys(accountMap);
 
-export { accounts, accountMap }
+export { accounts, accountMap };

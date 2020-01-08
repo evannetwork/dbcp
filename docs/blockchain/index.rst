@@ -7,7 +7,7 @@ Blockchain
     :maxdepth: 1
 
     executor
-    signer
+    signer-internal
     account-store
     event-hub
     name-resolver

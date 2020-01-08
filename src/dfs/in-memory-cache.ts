@@ -23,7 +23,7 @@ import { DfsCacheInterface } from './dfs-interface';
  *
  * @class      InMemoryCache (name)
  */
-export class InMemoryCache implements DfsCacheInterface {
+export default class InMemoryCache implements DfsCacheInterface {
   private cache;
 
   constructor() {

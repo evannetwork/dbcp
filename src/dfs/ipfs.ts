@@ -16,12 +16,12 @@
 
 import * as https from 'https';
 import { setTimeout, clearTimeout } from 'timers';
-import bs58 = require('bs58');
-import prottle = require('prottle');
-import _ = require('lodash');
 
 import { FileToAdd, DfsInterface, DfsCacheInterface } from './dfs-interface';
 import { Logger, LoggerOptions } from '../common/logger';
+
+import bs58 = require('bs58');
+import prottle = require('prottle');
 import utils = require('./../common/utils');
 
 
@@ -29,10 +29,7 @@ const IPFS_TIMEOUT = 120000;
 const runFunctionAsPromise = utils.promisify;
 const requestWindowSize = 10;
 
-let ipfsAPI;
-
-
-/** 
+/**
  * ipfs instance options
  */
 export interface IpfsOptions extends LoggerOptions {
@@ -46,6 +43,7 @@ export interface IpfsOptions extends LoggerOptions {
  */
 export class Ipfs extends Logger implements DfsInterface {
   remoteNode: any;
+
   cache: DfsCacheInterface;
 
   /**
@@ -88,15 +86,11 @@ export class Ipfs extends Logger implements DfsInterface {
     }
   }
 
-  async stop(): Promise<any> {
-    return true;
-  }
-
   /**
-   * @brief      add content to ipfs
+   * add content to ipfs
    *
-   * @param      name  The name
-   * @param      data  The data
+   * @param      {string}  name    The name
+   * @param      {Buffer}  data    The data
    *
    * @return     ipfs hash of the data
    */
@@ -109,9 +103,9 @@ export class Ipfs extends Logger implements DfsInterface {
   }
 
   /**
-   * @brief      add multiple files to ipfs
+   * add multiple files to ipfs
    *
-   * @param      files  array with files to add
+   * @param      {FileToAdd}  files   array with files to add
    *
    * @return     ipfs hash array of the data
    */
@@ -123,48 +117,53 @@ export class Ipfs extends Logger implements DfsInterface {
         throw new Error('no hash was returned');
       }
       remoteFiles = remoteFiles.map((fileHash) => {
-        if (!fileHash.hash) {
-          fileHash.hash = fileHash.Hash;
+        const hashParam = fileHash;
+        if (!hashParam.hash) {
+          hashParam.hash = hashParam.Hash;
         }
-        return fileHash;
+        return hashParam;
       });
     } catch (ex) {
-      let msg = `could not add file to ipfs: ${ex.message || ex}`;
+      const msg = `could not add file to ipfs: ${ex.message || ex}`;
       this.log(msg);
       throw new Error(msg);
     }
     if (this.cache) {
       await Promise.all(remoteFiles.map((remoteFile, i) => {
         this.cache.add(remoteFile.hash, files[i].content);
+        return remoteFile;
       }));
     }
-    await prottle(requestWindowSize, remoteFiles.map((fileHash) => () => this.pinFileHash(fileHash.hash)));
-    return remoteFiles.map(remoteFile => Ipfs.ipfsHashToBytes32(remoteFile.hash));
+    await prottle(
+      requestWindowSize,
+      remoteFiles.map((fileHash) => () => this.pinFileHash(fileHash.hash)),
+    );
+    return remoteFiles.map((remoteFile) => Ipfs.ipfsHashToBytes32(remoteFile.hash));
   }
 
   /**
-   * @brief      pins file hashes on ipfs cluster
+   * pins file hashes on ipfs cluster
    *
-   * @param      hash  filehash of the pinned item
+   * @param      {string}  hash    filehash of the pinned item
    */
   async pinFileHash(hash: string): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const options = {
         hostname: 'ipfs.test.evan.network',
         port: '443',
         path: `/pins/${hash}`,
-        method : 'POST'
+        method: 'POST',
       };
       const req = https.request(options, (res) => {
-        res.setEncoding('utf8')
-        res.on('data', (chunk) => {  })
+        res.setEncoding('utf8');
+        res.on('data', () => { /* ingore returned data */ });
         res.on('end', async () => {
-          resolve()
-        })
-      })
-       req.on('error', (e) => {
-         reject(e);
-       });
+          resolve();
+        });
+      });
+      req.on('error', (e) => {
+        reject(e);
+      });
 
       req.on('timeout', () => {
         this.log(`timeout during pinning of hash "${hash}"`);
@@ -178,10 +177,10 @@ export class Ipfs extends Logger implements DfsInterface {
   }
 
   /**
-   * @brief      get data from ipfs by ipfs hash
+   * get data from ipfs by ipfs hash
    *
-   * @param      hash  ipfs hash of the data
-   * @param      returnBuffer  should the function return the plain buffer (default false)
+   * @param      {string}  hash           ipfs hash of the data
+   * @param      {boolean} returnBuffer  should the function return the plain buffer (default false)
    *
    * @return     data as text
    */
@@ -196,22 +195,21 @@ export class Ipfs extends Logger implements DfsInterface {
     this.log(`Getting IPFS Hash ${ipfsHash}`, 'debug');
 
     if (this.cache) {
-      let buffer = await this.cache.get(ipfsHash);
+      const buffer = await this.cache.get(ipfsHash);
       if (buffer) {
         if (returnBuffer) {
           return Buffer.from(buffer);
-        } else {
-          return Buffer.from(buffer).toString('binary');
         }
+        return Buffer.from(buffer).toString('binary');
       }
     }
 
     const timeout = new Promise((resolve, reject) => {
-      let wait = setTimeout(() => {
+      const wait = setTimeout(() => {
         clearTimeout(wait);
 
-        reject(new Error(`error while getting ipfs hash ${ipfsHash}: rejected after ${ IPFS_TIMEOUT }ms`));
-      }, IPFS_TIMEOUT)
+        reject(new Error(`error while getting ipfs hash ${ipfsHash}: rejected after ${IPFS_TIMEOUT}ms`));
+      }, IPFS_TIMEOUT);
     });
     const getRemoteHash = runFunctionAsPromise(this.remoteNode.files, 'cat', ipfsHash)
       .then((buffer: any) => {
@@ -221,17 +219,30 @@ export class Ipfs extends Logger implements DfsInterface {
         }
         if (returnBuffer) {
           return buffer;
-        } else {
-          return ret;
         }
+        return ret;
       })
-      .catch((ex: any) => {
+      .catch(() => {
         this.log(`error while getting ipfs hash ${ipfsHash}`);
-      })
-    ; 
+      });
     return Promise.race([
       getRemoteHash,
-      timeout
+      timeout,
     ]);
-  };
+  }
+
+  /**
+   * Removes a hash from the DFS.
+   *
+   *   Is not implemented caused by generalized IPFS implementation. File hash
+   *   pinning and unpinning is server structure related and must be implemented for special use
+   *   cases.
+   *
+   * @param      {string}  hash    hash that should be removed
+   */
+  // keep interface compatibility
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async remove(hash: string): Promise<any> {
+    throw new Error('not implemented');
+  }
 }

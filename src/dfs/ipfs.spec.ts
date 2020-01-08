@@ -15,26 +15,21 @@
 */
 
 import 'mocha';
+import * as IpfsApi from 'ipfs-api';
 import { expect } from 'chai';
-import IpfsApi = require('ipfs-api');
 
-import { Ipfs } from './ipfs'
-import { InMemoryCache } from './in-memory-cache'
-import { TestUtils } from '../test/test-utils'
-
+import { Ipfs } from './ipfs';
+import InMemoryCache from './in-memory-cache';
+import { TestUtils } from '../test/test-utils';
 
 
 let ipfs: Ipfs;
 
-describe('IPFS handler', function() {
+describe('IPFS handler', function test() {
   this.timeout(300000);
 
   before(async () => {
     ipfs = await TestUtils.getIpfs();
-  });
-
-  after(async () => {
-    await ipfs.stop();
   });
 
   it('should be able to add a file', async () => {
@@ -60,15 +55,16 @@ describe('IPFS handler', function() {
       Math.random().toString(),
       Math.random().toString(),
     ];
-    const hashes = await ipfs.addMultiple(randomContents.map(content => (
-      { path: content, content: Buffer.from(content, 'utf-8')}
-     )));
+    const hashes = await ipfs.addMultiple(randomContents.map((content) => (
+      { path: content, content: Buffer.from(content, 'utf-8') }
+    )));
     expect(hashes).not.to.be.undefined;
     let hashesToCheck = randomContents.length;
-    for (let [index, hash] of hashes.entries()) {
-      expect(randomContents).to.contain(await ipfs.get(hash));
-      hashesToCheck--;
-    }
+    const hashEntries = Object.values(hashes);
+    await Promise.all(hashEntries.map(async (entry) => {
+      expect(randomContents).to.contain(await ipfs.get(entry));
+      hashesToCheck -= 1;
+    }));
     expect(hashesToCheck).to.eq(0);
   });
 
@@ -91,8 +87,8 @@ describe('IPFS handler', function() {
   });
 
   it('should set the cache when passed via options', async () => {
-    const remoteNode = IpfsApi({host: 'ipfs.test.evan.network', port: '443', protocol: 'https'});
-    const ipfs =  new Ipfs({ remoteNode, cache: new InMemoryCache()});
-    expect(ipfs.cache).to.be.ok;
-  })
+    const remoteNode = IpfsApi({ host: 'ipfs.test.evan.network', port: '443', protocol: 'https' });
+    const cachedIpfs = new Ipfs({ remoteNode, cache: new InMemoryCache() });
+    expect(cachedIpfs.cache).to.be.ok;
+  });
 });

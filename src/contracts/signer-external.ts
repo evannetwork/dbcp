@@ -16,15 +16,24 @@
 
 import { SignerInterface } from './signer-interface';
 
+// eslint-disable-next-line import/prefer-default-export
 export class SignerExternal implements SignerInterface {
-  signAndExecuteSend(options, handleTxResult) {
+  public async createContract(): Promise<string> {
+    throw new Error('not implemented');
+  }
+
+  public async getPublicKey(): Promise<string> {
+    throw new Error('not implemented');
+  }
+
+  public signAndExecuteSend(options, handleTxResult) {
     handleTxResult('not implemented');
   }
 
-  signAndExecuteTransaction = (contract, functionName, functionArguments, options, handleTxResult) => {
-    const execution = contract.methods[functionName]
-      .apply(contract.methods, functionArguments)
-      .send(options);
+  public signAndExecuteTransaction(
+    contract, functionName, functionArguments, options, handleTxResult,
+  ) {
+    const execution = contract.methods[functionName](...functionArguments).send(options);
     execution
       .on('confirmation', (confirmation, receipt) => {
         if (confirmation === 0) {
@@ -34,14 +43,10 @@ export class SignerExternal implements SignerInterface {
           }, 6000);
         }
       })
-      .on('error', (error) => { handleTxResult(error); })
-  };
-
-  createContract(contractName: string, functionArguments: any[], options: any) {
-    throw new Error('not implemented');
+      .on('error', (error) => { handleTxResult(error); });
   }
 
-  signMessage(accountId: string, message: string): Promise<string> {
+  public async signMessage(): Promise<string> {
     throw new Error('not implemented');
   }
 }

@@ -18,24 +18,23 @@ import 'mocha';
 import { expect } from 'chai';
 
 import { Validator } from './validator';
-import { TestUtils } from './test/test-utils';
 
 
-describe('Validation helper', function() {
+describe('Validation helper', () => {
   it('should be able to validate a simple schema', () => {
     const testSchema = {
-      "$id": "testSchema",
-      "type": "object",
-      "properties": {
-        "foo": { "type": "string" },
-        "bar": { "type": "integer" }
-      }
+      $id: 'testSchema',
+      type: 'object',
+      properties: {
+        foo: { type: 'string' },
+        bar: { type: 'integer' },
+      },
     };
-    const validator = new Validator({schema: testSchema});
+    const validator = new Validator({ schema: testSchema });
 
     const result = validator.validate({
-      foo: "test",
-      bar: 1
+      foo: 'test',
+      bar: 1,
     });
 
     expect(result).to.be.true;
@@ -43,18 +42,18 @@ describe('Validation helper', function() {
 
   it('should be able to validate a simple schema as wrong input', () => {
     const testSchema = {
-      "$id": "testSchema",
-      "type": "object",
-      "properties": {
-        "foo": { "type": "string" },
-        "bar": { "type": "integer" }
-      }
+      $id: 'testSchema',
+      type: 'object',
+      properties: {
+        foo: { type: 'string' },
+        bar: { type: 'integer' },
+      },
     };
-    const validator = new Validator({schema: testSchema});
+    const validator = new Validator({ schema: testSchema });
 
     const result = validator.validate({
-      foo: "test",
-      bar: "error"
+      foo: 'test',
+      bar: 'error',
     });
 
     expect(result).not.to.be.true;
@@ -64,19 +63,19 @@ describe('Validation helper', function() {
 
   it('should be return an error if a wrong schema is given', () => {
     const testSchema = {
-      "$id": "testSchema",
-      "type": "object",
-      "properties": {
-        "foo": { "type": "stringaaa" },
-        "bar": { "type": "integer" }
-      }
+      $id: 'testSchema',
+      type: 'object',
+      properties: {
+        foo: { type: 'stringaaa' },
+        bar: { type: 'integer' },
+      },
     };
 
-    try{
-      const validator = new Validator({schema: testSchema});
-    } catch(e) {
+    try {
+      // eslint-disable-next-line no-new
+      new Validator({ schema: testSchema });
+    } catch (e) {
       expect(e).to.be.an('error');
     }
-  });    
-
+  });
 });

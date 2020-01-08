@@ -8,6 +8,33 @@
 ### Deprecations
 
 
+## Version 1.10.0
+### Features
+- add `getPublicKey` to `SignerInterface`
+
+### Fixes
+- add interfaces used in exported classes to export list
+- update pre-commit hook to use eslint for typescript
+
+
+## Version 1.9.0
+### Features
+- add `remove` function to `Dfs` interface
+- add `remove` function to `Ipfs`
+
+### Fixes
+- add tests for parallel transactions to executor
+
+### Deprecations
+- remove `stop` function from `Dfs` interface
+- remove `stop` function from `Ipfs`
+
+
+## Version 1.8.4
+### Fixes
+- fix creation of multiple containers at the same time
+
+
 ## Version 1.8.3
 ### Fixes
 - fix missing blocks, that could not be retrieved after `newBlockHeaders` was triggered

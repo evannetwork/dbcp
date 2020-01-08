@@ -24,18 +24,19 @@ import { Logger } from '../common/logger';
  *
  * @class      Unencrypted (name)
  */
+// eslint-disable-next-line import/prefer-default-export
 export class Unencrypted extends Logger implements Cryptor {
   static defaultOptions = {};
+
   options: any;
 
   private readonly encodingUnencrypted = 'utf-8';
+
   private readonly encodingEncrypted = 'hex';
 
   constructor(options?) {
     super(options);
-    this.options = Object.assign({
-      algorithm: 'unencrypted',
-    }, options || {});
+    this.options = { algorithm: 'unencrypted', ...options || {} };
   }
 
   /**
@@ -44,8 +45,10 @@ export class Unencrypted extends Logger implements Cryptor {
    * @param      {string}      originator  originator or context of the encryption
    * @return     {CryptoInfo}  details about encryption for originator with this cryptor
    */
+  // keep interface compatibility
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getCryptoInfo(originator: string): CryptoInfo {
-    return Object.assign({}, this.options);
+    return { ...this.options };
   }
 
   /**
@@ -61,10 +64,9 @@ export class Unencrypted extends Logger implements Cryptor {
    * 'encrypt' a message (serializes message)
    *
    * @param      {Buffer}  message  The message
-   * @param      {any}     options  cryptor options
    * @return     {Buffer}  encrypted message
    */
-  async encrypt(message: any, options: any): Promise<Buffer> {
+  async encrypt(message: any): Promise<Buffer> {
     return Buffer.from(JSON.stringify(message), this.encodingUnencrypted);
   }
 
@@ -72,10 +74,9 @@ export class Unencrypted extends Logger implements Cryptor {
    * 'decrypt' a message (deserializes message)
    *
    * @param      {Buffer}  message  The message
-   * @param      {any}     options  decryption options
    * @return     {Buffer}  decrypted message
    */
-  async decrypt(message: Buffer, options: any): Promise<any> {
+  async decrypt(message: Buffer): Promise<any> {
     return JSON.parse(message.toString(this.encodingUnencrypted));
   }
 }

@@ -179,6 +179,7 @@ Parameters
     * ``estimate`` - ``boolean`` (optional): Should the amount of gas be estimated for the transaction (overwrites ``gas`` parameter)
     * ``force`` - ``string`` (optional): Forces the transaction to be executed. Ignores estimation errors
     * ``autoGas`` - ``number`` (optional): enables autoGas 1.1 ==> adds 10% to estimated gas costs. value capped to current block.
+    * ``value``- ``number`` (optional): Allows to specify the amount of funds for transfer
 #. ``...functionArguments`` - ``any[]``: optional arguments to pass to contract transaction
 
 -------
@@ -332,7 +333,7 @@ Example
 
 
 .. |source signerInterface| replace:: ``SignerInterface``
-.. _source signerInterface: ../blockchain/signer.html
+.. _source signerInterface: ../blockchain/signer-internal.html
 
 .. |source eventHub| replace:: ``EventHub``
 .. _source eventHub: ../blockchain/event-hub.html
