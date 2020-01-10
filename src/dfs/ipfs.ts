@@ -204,8 +204,9 @@ export class Ipfs extends Logger implements DfsInterface {
       }
     }
 
+    let wait;
     const timeout = new Promise((resolve, reject) => {
-      const wait = setTimeout(() => {
+      wait = setTimeout(() => {
         clearTimeout(wait);
 
         reject(new Error(`error while getting ipfs hash ${ipfsHash}: rejected after ${IPFS_TIMEOUT}ms`));
@@ -213,6 +214,7 @@ export class Ipfs extends Logger implements DfsInterface {
     });
     const getRemoteHash = runFunctionAsPromise(this.remoteNode.files, 'cat', ipfsHash)
       .then((buffer: any) => {
+        clearTimeout(wait);
         const ret = buffer.toString('binary');
         if (this.cache) {
           this.cache.add(ipfsHash, buffer);
@@ -223,6 +225,7 @@ export class Ipfs extends Logger implements DfsInterface {
         return ret;
       })
       .catch(() => {
+        clearTimeout(wait);
         this.log(`error while getting ipfs hash ${ipfsHash}`);
       });
     return Promise.race([
