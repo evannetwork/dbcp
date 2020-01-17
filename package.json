@@ -41,7 +41,7 @@
     "nyc": "^13.1.0",
     "request": "^2.83.0",
     "ts-node": "^8.3.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.7.4"
   },
   "homepage": "https://dbcp.online/",
   "husky": {
