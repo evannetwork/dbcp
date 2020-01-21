@@ -69,4 +69,12 @@ export interface SignerInterface {
    * @return     {Promise<string}  signature
    */
   signMessage(accountId: string, message: string): Promise<string>;
+
+  /**
+   * get gas price (either from config or from api.eth.web3.eth.gasPrice (gas price median of last
+   * blocks) or api.config.eth.gasPrice; unset config value or set it to falsy for median gas price
+   *
+   * @return     {Promise<string>} hex string with gas price
+   */
+  getGasPrice(): Promise<string>;
 }
