@@ -95,26 +95,88 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * @brief      retrieve private key for given account
+   * creates a contract by contstructing creation transaction and signing it with private key of
+   * options.from
    *
-   * @param      {string}  accountId  eth account ID
+   * @param      {any}           contractName       contract name
+   * @param      {any[]}         functionArguments  arguments for contract creation, pass empty
+   *                                                Array if no arguments
+   * @param      {any}           options            transaction arguments, having at
+   *                                                least .from and .gas
    *
-   * @return     Promise that resolves to {string} private key of given account
+   * @return     {Promise<any>}  contract           address
    */
-  public async getPrivateKey(accountId: string) {
-    return this.accountStore.getPrivateKey(accountId);
+  public async createContract(contractName: string, functionArguments: any[], options: any):
+  Promise<any> {
+    this.log('will sign tx for contract creation', 'debug');
+    const compiledContract = this.contractLoader.getCompiledContract(contractName);
+    if (!compiledContract) {
+      throw new Error(`cannot find contract description for contract "${contractName}"`);
+    }
+    if (!compiledContract.bytecode) {
+      throw new Error(`trying to create an instance of abstract contract "${contractName}"`);
+    }
+
+    return Promise
+      .all([
+        this.getPrivateKey(options.from),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
+        this.getNonce(options.from),
+      ])
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
+        const abi = JSON.parse(compiledContract.interface);
+        const txParams = {
+          nonce,
+          gasPrice,
+          gasLimit: this.ensureHashWithPrefix(options.gas),
+          value: options.value || 0,
+          data: this.ensureHashWithPrefix(
+            `${compiledContract.bytecode}`
+            + `${this.encodeConstructorParams(abi, functionArguments)}`,
+          ),
+          chainId: NaN,
+        };
+
+        const txObject = new Transaction(txParams);
+        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+        txObject.sign(privateKeyBuffer);
+        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
+
+        // submit via sendRawTransaction
+        const receipt = await this.sendSignedTransaction(signedTx);
+
+        if (options.gas === receipt.gasUsed) {
+          throw new Error('all gas used up');
+        } else {
+          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`);
+          return new this.web3.eth.Contract(abi, receipt.contractAddress);
+        }
+      })
+      .catch((ex) => {
+        const msg = `could not sign contract creation of "${contractName}"; "${(ex.message || ex)}"`;
+        this.log(msg, 'error');
+        throw ex;
+      });
   }
 
   /**
-   * get public key for given account
+   * Should be called to encode constructor params (taken from
+   * https://github.com/ethereum/web3.js/blob/develop/lib/web3/contract.js)
    *
-   * @param      {string}  accountId  account to get public key for
+   * @param      {any[]}  abi     The abi
+   * @param      {any[]}  params  The parameters
+   *
+   * @return     encoded params
    */
-  public async getPublicKey(accountId: string): Promise<string> {
-    const ecdh = crypto.createECDH('secp256k1');
-    ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
-
-    return ecdh.getPublicKey().toString('hex');
+  public encodeConstructorParams(abi: any[], params: any[]) {
+    if (params.length) {
+      return abi
+        .filter((json) => json.type === 'constructor' && json.inputs.length === params.length)
+        .map((json) => json.inputs.map((input) => input.type))
+        .map((types) => coder.encodeParameters(types, params))
+        .map((encodedParams) => encodedParams.replace(/^0x/, ''))[0] || '';
+    }
+    return '';
   }
 
   /**
@@ -167,7 +229,7 @@ export class SignerInternal extends Logger implements SignerInterface {
    *
    * @return     {Promise<number>}  nonce   of given user
    */
-  public async getNonce(accountId: string) {
+  public async getNonce(accountId: string): Promise<number> {
     return this.web3.eth
       .getTransactionCount(accountId)
       .then((count) => {
@@ -179,90 +241,32 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * Should be called to encode constructor params (taken from
-   * https://github.com/ethereum/web3.js/blob/develop/lib/web3/contract.js)
+   * @brief      retrieve private key for given account
    *
-   * @param      {any[]}  abi     The abi
-   * @param      {any[]}  params  The parameters
+   * @param      {string}  accountId  eth account ID
    *
-   * @return     encoded params
+   * @return     Promise that resolves to {string} private key of given account
    */
-  public encodeConstructorParams(abi: any[], params: any[]) {
-    if (params.length) {
-      return abi
-        .filter((json) => json.type === 'constructor' && json.inputs.length === params.length)
-        .map((json) => json.inputs.map((input) => input.type))
-        .map((types) => coder.encodeParameters(types, params))
-        .map((encodedParams) => encodedParams.replace(/^0x/, ''))[0] || '';
-    }
-    return '';
+  public async getPrivateKey(accountId: string) {
+    return this.accountStore.getPrivateKey(accountId);
   }
 
-
   /**
-   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in chains. In this
-   * case, load receipt for received transactionHashes manually and wait until blockHash is set.
+   * get public key for given account
    *
-   * @param      {Web3}  web3      web3 instance
-   * @param      {any}   signedTx  signed transaction object
+   * @param      {string}  accountId  account to get public key for
    */
-  private async sendSignedTransaction(signedTx: any): Promise<any> {
-    let receipt: any;
-    let txHash: string;
-    let resolved = false;
+  public async getPublicKey(accountId: string): Promise<string> {
+    const ecdh = crypto.createECDH('secp256k1');
+    ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
 
-    // send the signed transaction and try to recieve an receipt
-    await new Promise((resolve, reject) => {
-      // Load last transaction receipt for the current txHash, if no valid receipt could be loaded
-      // before, resolve the callback function, else the original receipt event was received before
-      // and we never should resolve the callback function.
-      const checkReceipt = async () => {
-        if (!receipt || !receipt.blockHash) {
-          // load the receipt for the transaction hash
-          const newReceipt = await this.web3.eth.getTransactionReceipt(txHash);
-
-          // if no receipt event was fired before, use the newly loaded receipt
-          if (!receipt || !receipt.blockHash) {
-            receipt = newReceipt;
-          }
-
-          // if it's still not a valid receipt, wait for block header
-          if (!receipt || !receipt.blockHash) {
-            // trigger the reload directly
-            this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [];
-            this.pendingTransactions[txHash].push(() => checkReceipt());
-          } else if (!resolved) {
-            resolved = true;
-            resolve();
-          }
-        } else if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      };
-
-      this.web3.eth
-        .sendSignedTransaction(signedTx)
-        .on('transactionHash', (transactionHash) => {
-          txHash = transactionHash;
-          checkReceipt();
-        })
-        .on('receipt', (newReceipt) => {
-          if (!receipt || !receipt.blockHash) {
-            receipt = newReceipt;
-            checkReceipt();
-          }
-        })
-        .on('error', (error) => reject(error));
-    });
-
-    return receipt;
+    return ecdh.getPublicKey().toString('hex');
   }
 
   /**
    * { Signs and send the signed transaction }
    *
-   * @param      {any}  options         The options
+   * @param      {any}       options         The options
    * @param      {Function}  handleTxResult  The handle transmit result
    */
   public async signAndExecuteSend(options: any, handleTxResult: Function) {
@@ -357,72 +361,6 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * creates a contract by contstructing creation transaction and signing it with private key of
-   * options.from
-   *
-   * @param      {any}           contractName       contract name
-   * @param      {any[]}         functionArguments  arguments for contract creation, pass empty
-   *                                                Array if no arguments
-   * @param      {any}           options            transaction arguments, having at
-   *                                                least .from and .gas
-   *
-   * @return     {Promise<any>}  contract           address
-   */
-  public async createContract(contractName: string, functionArguments: any[], options: any):
-  Promise<any> {
-    this.log('will sign tx for contract creation', 'debug');
-    const compiledContract = this.contractLoader.getCompiledContract(contractName);
-    if (!compiledContract) {
-      throw new Error(`cannot find contract description for contract "${contractName}"`);
-    }
-    if (!compiledContract.bytecode) {
-      throw new Error(`trying to create an instance of abstract contract "${contractName}"`);
-    }
-
-    return Promise
-      .all([
-        this.getPrivateKey(options.from),
-        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
-        this.getNonce(options.from),
-      ])
-      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
-        const abi = JSON.parse(compiledContract.interface);
-        const txParams = {
-          nonce,
-          gasPrice,
-          gasLimit: this.ensureHashWithPrefix(options.gas),
-          value: options.value || 0,
-          data: this.ensureHashWithPrefix(
-            `${compiledContract.bytecode}`
-            + `${this.encodeConstructorParams(abi, functionArguments)}`,
-          ),
-          chainId: NaN,
-        };
-
-        const txObject = new Transaction(txParams);
-        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
-        txObject.sign(privateKeyBuffer);
-        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
-
-        // submit via sendRawTransaction
-        const receipt = await this.sendSignedTransaction(signedTx);
-
-        if (options.gas === receipt.gasUsed) {
-          throw new Error('all gas used up');
-        } else {
-          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`);
-          return new this.web3.eth.Contract(abi, receipt.contractAddress);
-        }
-      })
-      .catch((ex) => {
-        const msg = `could not sign contract creation of "${contractName}"; "${(ex.message || ex)}"`;
-        this.log(msg, 'error');
-        throw ex;
-      });
-  }
-
-
-  /**
    * sign given message with accounts private key
    *
    * @param      {string}  accountId  accountId to sign with
@@ -434,5 +372,65 @@ export class SignerInternal extends Logger implements SignerInterface {
     const { signature } = await this.web3.eth.accounts.sign(message, `0x${privateKey}`);
 
     return signature;
+  }
+
+  /**
+   * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in chains. In this
+   * case, load receipt for received transactionHashes manually and wait until blockHash is set.
+   *
+   * @param      {Web3}  web3      web3 instance
+   * @param      {any}   signedTx  signed transaction object
+   */
+  private async sendSignedTransaction(signedTx: any): Promise<any> {
+    let receipt: any;
+    let txHash: string;
+    let resolved = false;
+
+    // send the signed transaction and try to recieve an receipt
+    await new Promise((resolve, reject) => {
+      // Load last transaction receipt for the current txHash, if no valid receipt could be loaded
+      // before, resolve the callback function, else the original receipt event was received before
+      // and we never should resolve the callback function.
+      const checkReceipt = async () => {
+        if (!receipt || !receipt.blockHash) {
+          // load the receipt for the transaction hash
+          const newReceipt = await this.web3.eth.getTransactionReceipt(txHash);
+
+          // if no receipt event was fired before, use the newly loaded receipt
+          if (!receipt || !receipt.blockHash) {
+            receipt = newReceipt;
+          }
+
+          // if it's still not a valid receipt, wait for block header
+          if (!receipt || !receipt.blockHash) {
+            // trigger the reload directly
+            this.pendingTransactions[txHash] = this.pendingTransactions[txHash] || [];
+            this.pendingTransactions[txHash].push(() => checkReceipt());
+          } else if (!resolved) {
+            resolved = true;
+            resolve();
+          }
+        } else if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
+
+      this.web3.eth
+        .sendSignedTransaction(signedTx)
+        .on('transactionHash', (transactionHash) => {
+          txHash = transactionHash;
+          checkReceipt();
+        })
+        .on('receipt', (newReceipt) => {
+          if (!receipt || !receipt.blockHash) {
+            receipt = newReceipt;
+            checkReceipt();
+          }
+        })
+        .on('error', (error) => reject(error));
+    });
+
+    return receipt;
   }
 }
