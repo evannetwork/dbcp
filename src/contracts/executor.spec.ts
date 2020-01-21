@@ -84,6 +84,10 @@ class MockedSigner implements SignerInterface {
   public async signMessage(): Promise<string> {
     throw new Error('not implemented');
   }
+
+  public async getGasPrice(): Promise<string> {
+    throw new Error('not implemented');
+  }
 }
 
 

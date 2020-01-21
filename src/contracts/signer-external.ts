@@ -30,6 +30,16 @@ export class SignerExternal implements SignerInterface {
     handleTxResult('not implemented');
   }
 
+  /**
+   * get gas price (either from config or from api.eth.web3.eth.gasPrice (gas price median of last
+   * blocks) or api.config.eth.gasPrice; unset config value or set it to falsy for median gas price
+   *
+   * @return  {Promise<string>}   hex string with gas price
+   */
+  getGasPrice(): Promise<string> {
+    throw new Error('not implemented');
+  }
+
   public signAndExecuteTransaction(
     contract, functionName, functionArguments, options, handleTxResult,
   ) {

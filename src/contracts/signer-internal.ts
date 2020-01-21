@@ -138,9 +138,9 @@ export class SignerInternal extends Logger implements SignerInterface {
    * get gas price (either from config or from api.eth.web3.eth.gasPrice (gas price median of last
    * blocks) or api.config.eth.gasPrice; unset config value or set it to falsy for median gas price
    *
-   * @return     hex string with gas price
+   * @return   {Promise<string>}  hex string with gas price
    */
-  getGasPrice() {
+  getGasPrice(): Promise<string> {
     let chain;
     if (this.config.gasPrice) {
       chain = Promise.resolve(this.config.gasPrice);
