@@ -97,11 +97,11 @@ export class SignerInternal extends Logger implements SignerInterface {
   /**
    * @brief      retrieve private key for given account
    *
-   * @param      accountId  eth account ID
+   * @param      {string}  accountId  eth account ID
    *
    * @return     Promise that resolves to {string} private key of given account
    */
-  getPrivateKey(accountId: string) {
+  public async getPrivateKey(accountId: string) {
     return this.accountStore.getPrivateKey(accountId);
   }
 
@@ -120,11 +120,11 @@ export class SignerInternal extends Logger implements SignerInterface {
   /**
    * patch '0x' prefix to input if not already added, also casts numbers to hex string
    *
-   * @param      input  input to prefix with '0x'
+   * @param      {string}  input to prefix with '0x'
    *
    * @return     patched input
    */
-  ensureHashWithPrefix(input: string | number) {
+  public ensureHashWithPrefix(input: string | number) {
     if (typeof input === 'number') {
       return `0x${input.toString(16)}`;
     }
@@ -140,7 +140,7 @@ export class SignerInternal extends Logger implements SignerInterface {
    *
    * @return   {Promise<string>}  hex string with gas price
    */
-  getGasPrice(): Promise<string> {
+  public async getGasPrice(): Promise<string> {
     let chain;
     if (this.config.gasPrice) {
       chain = Promise.resolve(this.config.gasPrice);
@@ -160,14 +160,14 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * gets nonce for current user, looks into actions submitted by current user in current block for
-   * this as well
+   * gets nonce for current user, looks into actions submitted by current user
+   * in current block for this as well
    *
-   * @param      accountId  Ethereum account ID
+   * @param      {string}  accountId  Ethereum account ID
    *
-   * @return     nonce of given user
+   * @return     {Promise<number>}  nonce   of given user
    */
-  getNonce(accountId: string) {
+  public async getNonce(accountId: string) {
     return this.web3.eth
       .getTransactionCount(accountId)
       .then((count) => {
@@ -182,12 +182,12 @@ export class SignerInternal extends Logger implements SignerInterface {
    * Should be called to encode constructor params (taken from
    * https://github.com/ethereum/web3.js/blob/develop/lib/web3/contract.js)
    *
-   * @param      abi     The abi
-   * @param      params  The parameters
+   * @param      {any[]}  abi     The abi
+   * @param      {any[]}  params  The parameters
    *
    * @return     encoded params
    */
-  encodeConstructorParams(abi: any[], params: any[]) {
+  public encodeConstructorParams(abi: any[], params: any[]) {
     if (params.length) {
       return abi
         .filter((json) => json.type === 'constructor' && json.inputs.length === params.length)
@@ -259,8 +259,13 @@ export class SignerInternal extends Logger implements SignerInterface {
     return receipt;
   }
 
-
-  signAndExecuteSend(options, handleTxResult) {
+  /**
+   * { Signs and send the signed transaction }
+   *
+   * @param      {any}  options         The options
+   * @param      {Function}  handleTxResult  The handle transmit result
+   */
+  public async signAndExecuteSend(options: any, handleTxResult: Function) {
     this.log('will sign tx for eth for transaction', 'debug');
     Promise
       .all([
@@ -297,18 +302,20 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * create, sing and submit a contract transaction with private key of options.from
+   * Create, sign and submit a contract transaction.
    *
-   * @param      contract           contract instance from api.eth.loadContract(...)
-   * @param      functionName       function name
-   * @param      functionArguments  arguments for contract creation, pass empty Array if no
-   *                                arguments
-   * @param      options            transaction arguments, having at least .from and .gas
-   * @param      handleTxResult     callback(error, result)
-   *
-   * @return     Promise, resolved when done or resolves to event result if event given
+   * @param      {any}       contract           contract instance from api.eth.loadContract(...)
+   * @param      {string}    functionName       function name
+   * @param      {any[]}     functionArguments  arguments for contract creation, pass empty Array if
+   *                                            no arguments
+   * @param      {any}       options            transaction arguments, having at least .from and
+   *                                            .gas
+   * @param      {Function}  handleTxResult     callback(error, result)
+   * @return     {Promise<void>}  resolved when done
    */
-  signAndExecuteTransaction(contract, functionName, functionArguments, options, handleTxResult) {
+  public async signAndExecuteTransaction(contract: any, functionName: string,
+    functionArguments: any[],
+    options: any, handleTxResult: Function) {
     this.log(`will sign tx for function "${functionName}"`, 'debug');
     Promise
       .all([
@@ -353,14 +360,16 @@ export class SignerInternal extends Logger implements SignerInterface {
    * creates a contract by contstructing creation transaction and signing it with private key of
    * options.from
    *
-   * @param      contractName       contract name
-   * @param      functionArguments  arguments for contract creation, pass empty Array if no
-   *                                arguments
-   * @param      options            transaction arguments, having at least .from and .gas
+   * @param      {any}           contractName       contract name
+   * @param      {any[]}         functionArguments  arguments for contract creation, pass empty
+   *                                                Array if no arguments
+   * @param      {any}           options            transaction arguments, having at
+   *                                                least .from and .gas
    *
-   * @return     Promise<string>    contract address
+   * @return     {Promise<any>}  contract           address
    */
-  createContract(contractName: string, functionArguments: any[], options: any): Promise<any> {
+  public async createContract(contractName: string, functionArguments: any[], options: any):
+  Promise<any> {
     this.log('will sign tx for contract creation', 'debug');
     const compiledContract = this.contractLoader.getCompiledContract(contractName);
     if (!compiledContract) {
