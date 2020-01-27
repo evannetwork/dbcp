@@ -27,6 +27,14 @@ export interface SignerInterface {
   createContract(contractName: string, functionArguments: any[], options: any): Promise<string>;
 
   /**
+   * get gas price (either from config or from api.eth.web3.eth.gasPrice (gas price median of last
+   * blocks) or api.config.eth.gasPrice; unset config value or set it to falsy for median gas price
+   *
+   * @return     {Promise<string>} hex string with gas price
+   */
+  getGasPrice(): Promise<string>;
+
+  /**
    * get public key for given account
    *
    * @param      {string}  accountId  account to get public key for
