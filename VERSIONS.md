@@ -2,6 +2,7 @@
 
 ## Next Version
 ### Features
+- add `getGasPrice` to `SignerInterface`
 
 ### Fixes
 - use typescript version `3.7.4`
