@@ -134,7 +134,7 @@ Example
 
 ------------------------------------------------------------------------------
 
-.. _signerInternal_getGasPricex:
+.. _signerInternal_getGasPrice:
 
 getGasPrice
 ===================

@@ -22,6 +22,10 @@ export class SignerExternal implements SignerInterface {
     throw new Error('not implemented');
   }
 
+  public async getGasPrice(): Promise<string> {
+    throw new Error('not implemented');
+  }
+
   public async getPublicKey(): Promise<string> {
     throw new Error('not implemented');
   }

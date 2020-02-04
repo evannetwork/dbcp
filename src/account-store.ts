@@ -59,7 +59,11 @@ export class AccountStore extends Logger implements KeyStoreInterface {
    * @param      {string}           accountId  eth accountId
    * @return     {Promise<string>}  private key for this account
    */
-  getPrivateKey(accountId: string): Promise<string> {
-    return Promise.resolve(this.accounts[accountId]);
+  async getPrivateKey(accountId: string): Promise<string> {
+    const privateKey = this.accounts[accountId];
+    if (!privateKey) {
+      throw new Error(`missing private key for accountId "${accountId}"`);
+    }
+    return privateKey;
   }
 }
