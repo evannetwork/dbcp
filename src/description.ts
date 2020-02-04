@@ -353,6 +353,22 @@ export class Description extends Logger {
       schema: descriptionSchemas[combinedDescription.dbcpVersion],
     });
     this.log(`validating DBCP definition with schema version ${combinedDescription.dbcpVersion}`, 'info');
-    return validator.validate(combinedDescription);
+    // early return, when description it self is incorrect
+    const descValidation = validator.validate(combinedDescription);
+    if (descValidation !== true) {
+      return descValidation;
+    }
+
+    // if a dataSchema was attached to the description, check it's integrity, so no wrong types or
+    // configuration values are passed.
+    if (combinedDescription.dataSchema) {
+      const schemaValidation = Validator.isSchemaCorrect(combinedDescription.dataSchema);
+
+      if (schemaValidation !== true) {
+        return schemaValidation;
+      }
+    }
+
+    return descValidation;
   }
 }

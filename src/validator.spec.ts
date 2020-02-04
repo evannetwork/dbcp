@@ -78,4 +78,15 @@ describe('Validation helper', () => {
       expect(e).to.be.an('error');
     }
   });
+
+  it('can get errors of a schema', () => {
+    const testSchema = {
+      $id: 'testSchema',
+      type: 'text',
+    };
+
+    const result = Validator.isSchemaCorrect(testSchema);
+    expect(Array.isArray(result)).to.be.true;
+    expect(result[0].message).to.be.eq('should be equal to one of the allowed values');
+  });
 });

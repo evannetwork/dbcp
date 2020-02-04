@@ -36,6 +36,17 @@ export class Validator extends Logger {
 
   ajv: any;
 
+  /**
+   * Determines whether the specified schema is a correct DBCP schema.
+   *
+   * @param      {any}  schema  DBCP schema definition
+   */
+  static isSchemaCorrect(schema): boolean|Array<Ajv.ErrorObject> {
+    const ajv = new Ajv({ allErrors: true });
+    const isValid = ajv.validateSchema(schema);
+    return isValid ? true : ajv.errors;
+  }
+
   constructor(options) {
     super(options);
     this.schema = options.schema;
@@ -49,7 +60,7 @@ export class Validator extends Logger {
    * @param      {any} data  to be validated data
    * @returns    {any} true if data is valid, array of object if validation is failed
    */
-  validate(data: any) {
+  validate(data: any): boolean|Array<Ajv.ErrorObject> {
     const validationResult = this.validator(data);
     if (!validationResult) {
       return this.validator.errors;
@@ -62,7 +73,7 @@ export class Validator extends Logger {
    *
    * @returns    {string} all previous validation errors concatenated as readable string
    */
-  getErrorsAsText() {
+  getErrorsAsText(): string {
     return this.ajv.errorsText(this.validator.errors);
   }
 }
