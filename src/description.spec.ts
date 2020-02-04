@@ -129,6 +129,16 @@ describe('Description handler', function test() {
         accounts[0],
       );
       await expect(promise).to.be.rejected;
+
+      // invalid dataSchema
+      descriptionEnvelope = { public: { ...sampleDescription } };
+      descriptionEnvelope.public.dataSchema = { type: 'text' };
+      promise = description.setDescriptionToContract(
+        contract.options.address,
+        descriptionEnvelope,
+        accounts[0],
+      );
+      await expect(promise).to.be.rejected;
     });
 
     it('should be able to hold versions history', async () => {

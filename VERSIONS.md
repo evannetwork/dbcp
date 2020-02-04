@@ -7,6 +7,7 @@
 ### Fixes
 - use typescript version `3.7.4`
 - update `AccountStore` to throw if private key is missing
+- check `dataSchema` for incorrect ajv schema when setting description
 
 ### Deprecations
 
