@@ -374,7 +374,7 @@ export class Description extends Logger {
       }
 
       // else, shorthand dataSchema properties are defined. So do not check full dataSchema, instead iterate
-      // through all sub properties to check for entry schema validity, so each entry can use any
+      // through all sub properties to check for entry schema validity. So that each entry can use any
       // name without ajv reserved property restrictions.
       const entries = Object.keys(schema);
       for (let i = 0; i < entries.length; i += 1) {
