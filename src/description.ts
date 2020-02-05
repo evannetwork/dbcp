@@ -362,10 +362,26 @@ export class Description extends Logger {
     // if a dataSchema was attached to the description, check it's integrity, so no wrong types or
     // configuration values are passed.
     if (combinedDescription.dataSchema) {
-      const schemaValidation = Validator.isSchemaCorrect(combinedDescription.dataSchema);
+      const schema = combinedDescription.dataSchema;
 
-      if (schemaValidation !== true) {
-        return schemaValidation;
+      // if type is speecified as string on top level, check the full dataSchema (represents normal
+      // ajv definition)
+      if (typeof schema.type === 'string') {
+        const schemaValidation = Validator.isSchemaCorrect(schema);
+        if (schemaValidation !== true) {
+          return schemaValidation;
+        }
+      }
+
+      // Else, shorthand dataschema properties are define, so do not check full dataSchema. Iterate
+      // through all sub properties to check for entry schema validity, so each entry can use any
+      // name without ajv reservd property restrictions.
+      const entries = Object.keys(schema);
+      for (let i = 0; i < entries.length; i += 1) {
+        const schemaValidation = Validator.isSchemaCorrect(schema[entries[i]]);
+        if (schemaValidation !== true) {
+          return schemaValidation;
+        }
       }
     }
 
