@@ -364,7 +364,7 @@ export class Description extends Logger {
     if (combinedDescription.dataSchema) {
       const schema = combinedDescription.dataSchema;
 
-      // if type is speecified as string on top level, check the full dataSchema (represents normal
+      // if type is specified as string on top level, check the full dataSchema (represents normal
       // ajv definition)
       if (typeof schema.type === 'string') {
         const schemaValidation = Validator.isSchemaCorrect(schema);
