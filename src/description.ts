@@ -359,7 +359,7 @@ export class Description extends Logger {
       return descValidation;
     }
 
-    // if a dataSchema was attached to the description, check it's integrity, so no wrong types or
+    // if a dataSchema was attached to the description, check its integrity, so no wrong types or
     // configuration values are passed.
     if (combinedDescription.dataSchema) {
       const schema = combinedDescription.dataSchema;
