@@ -373,7 +373,7 @@ export class Description extends Logger {
         }
       }
 
-      // Else, shorthand dataschema properties are define, so do not check full dataSchema. Iterate
+      // else, shorthand dataSchema properties are defined. So do not check full dataSchema, instead iterate
       // through all sub properties to check for entry schema validity, so each entry can use any
       // name without ajv reservd property restrictions.
       const entries = Object.keys(schema);
