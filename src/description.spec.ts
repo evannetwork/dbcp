@@ -85,7 +85,7 @@ describe('Description handler', function test() {
       );
     });
 
-    it.only('should reject invalid description', async () => {
+    it('should reject invalid description', async () => {
       const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
       let descriptionEnvelope;
       let promise;
