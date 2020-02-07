@@ -54,9 +54,36 @@ Example
 .. code-block:: typescript
   
   const nameResolver = new Validator({
-      schema
-    });
+    schema
+  });
 
+
+--------------------------------------------------------------------------------
+
+.. _validator_isSchemaCorrect:
+
+isSchemaCorrect
+===================
+
+.. code-block:: javascript
+
+    Validator.isSchemaCorrect(schema);
+
+Checks if the given ajv schema is correct and returns an array of ajv errors, when the schema is invalid.
+
+
+
+----------
+Parameters
+----------
+
+#. ``schema`` - ``any``: schema to be validated
+
+-------
+Returns
+-------
+
+``bool`` | |source ajvError|_:  true if data is valid, array of object if validation is failed
 
 
 --------------------------------------------------------------------------------
@@ -84,7 +111,7 @@ Parameters
 Returns
 -------
 
-``bool | strings[]``:  true if data is valid, array of object if validation is failed
+``bool`` | |source ajvError|_:  true if data is valid, array of object if validation is failed
 
 ------------------------------------------------------------------------------
 
@@ -114,3 +141,6 @@ Returns
 
 .. |source logLogInterface| replace:: ``LogLogInterface``
 .. _source logLogInterface: ../common/logger.html#logloginterface
+
+.. |source ajvError| replace:: ``AjvError``
+.. _source ajvError: https://github.com/epoberezkin/ajv/blob/master/lib/compile/error_classes.js

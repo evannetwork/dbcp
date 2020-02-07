@@ -8,6 +8,16 @@
 ### Deprecations
 
 
+## Version 1.11.0
+### Features
+- add `getGasPrice` to `SignerInterface`
+
+### Fixes
+- use typescript version `3.7.4`
+- update `AccountStore` to throw if private key is missing
+- check `dataSchema` for incorrect ajv schema when setting description
+
+
 ## Version 1.10.0
 ### Features
 - add `getPublicKey` to `SignerInterface`

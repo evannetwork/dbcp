@@ -95,36 +95,98 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * @brief      retrieve private key for given account
+   * creates a contract by contstructing creation transaction and signing it with private key of
+   * options.from
    *
-   * @param      accountId  eth account ID
+   * @param      {any}           contractName       contract name
+   * @param      {any[]}         functionArguments  arguments for contract creation, pass empty
+   *                                                Array if no arguments
+   * @param      {any}           options            transaction arguments, having at
+   *                                                least .from and .gas
    *
-   * @return     Promise that resolves to {string} private key of given account
+   * @return     {Promise<any>}  contract           address
    */
-  getPrivateKey(accountId: string) {
-    return this.accountStore.getPrivateKey(accountId);
+  public async createContract(contractName: string, functionArguments: any[], options: any):
+  Promise<any> {
+    this.log('will sign tx for contract creation', 'debug');
+    const compiledContract = this.contractLoader.getCompiledContract(contractName);
+    if (!compiledContract) {
+      throw new Error(`cannot find contract description for contract "${contractName}"`);
+    }
+    if (!compiledContract.bytecode) {
+      throw new Error(`trying to create an instance of abstract contract "${contractName}"`);
+    }
+
+    return Promise
+      .all([
+        this.getPrivateKey(options.from),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
+        this.getNonce(options.from),
+      ])
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
+        const abi = JSON.parse(compiledContract.interface);
+        const txParams = {
+          nonce,
+          gasPrice,
+          gasLimit: this.ensureHashWithPrefix(options.gas),
+          value: options.value || 0,
+          data: this.ensureHashWithPrefix(
+            `${compiledContract.bytecode}`
+            + `${this.encodeConstructorParams(abi, functionArguments)}`,
+          ),
+          chainId: NaN,
+        };
+
+        const txObject = new Transaction(txParams);
+        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+        txObject.sign(privateKeyBuffer);
+        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
+
+        // submit via sendRawTransaction
+        const receipt = await this.sendSignedTransaction(signedTx);
+
+        if (options.gas === receipt.gasUsed) {
+          throw new Error('all gas used up');
+        } else {
+          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`);
+          return new this.web3.eth.Contract(abi, receipt.contractAddress);
+        }
+      })
+      .catch((ex) => {
+        const msg = `could not sign contract creation of "${contractName}"; "${(ex.message || ex)}"`;
+        this.log(msg, 'error');
+        throw ex;
+      });
   }
 
   /**
-   * get public key for given account
+   * Should be called to encode constructor params (taken from
+   * https://github.com/ethereum/web3.js/blob/develop/lib/web3/contract.js)
    *
-   * @param      {string}  accountId  account to get public key for
+   * @param      {any[]}  abi     The abi
+   * @param      {any[]}  params  The parameters
+   *
+   * @return     encoded params
    */
-  public async getPublicKey(accountId: string): Promise<string> {
-    const ecdh = crypto.createECDH('secp256k1');
-    ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
-
-    return ecdh.getPublicKey().toString('hex');
+  public encodeConstructorParams(abi: any[], params: any[]) {
+    if (params.length) {
+      return abi
+        .filter((json) => json.type === 'constructor' && json.inputs.length === params.length)
+        .map((json) => json.inputs.map((input) => input.type))
+        .map((types) => coder.encodeParameters(types, params))
+        .map((encodedParams) => encodedParams.replace(/^0x/, ''))[0] || '';
+    }
+    return '';
   }
 
   /**
    * patch '0x' prefix to input if not already added, also casts numbers to hex string
    *
-   * @param      input  input to prefix with '0x'
+   * @param      {string}  input to prefix with '0x'
    *
    * @return     patched input
    */
-  ensureHashWithPrefix(input: string | number) {
+  public ensureHashWithPrefix(input: string | number) {
     if (typeof input === 'number') {
       return `0x${input.toString(16)}`;
     }
@@ -138,9 +200,9 @@ export class SignerInternal extends Logger implements SignerInterface {
    * get gas price (either from config or from api.eth.web3.eth.gasPrice (gas price median of last
    * blocks) or api.config.eth.gasPrice; unset config value or set it to falsy for median gas price
    *
-   * @return     hex string with gas price
+   * @return   {Promise<string>}  hex string with gas price
    */
-  getGasPrice() {
+  public async getGasPrice(): Promise<string> {
     let chain;
     if (this.config.gasPrice) {
       chain = Promise.resolve(this.config.gasPrice);
@@ -160,14 +222,14 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * gets nonce for current user, looks into actions submitted by current user in current block for
-   * this as well
+   * gets nonce for current user, looks into actions submitted by current user
+   * in current block for this as well
    *
-   * @param      accountId  Ethereum account ID
+   * @param      {string}  accountId  Ethereum account ID
    *
-   * @return     nonce of given user
+   * @return     {Promise<number>}  nonce   of given user
    */
-  getNonce(accountId: string) {
+  public async getNonce(accountId: string): Promise<number> {
     return this.web3.eth
       .getTransactionCount(accountId)
       .then((count) => {
@@ -179,25 +241,138 @@ export class SignerInternal extends Logger implements SignerInterface {
   }
 
   /**
-   * Should be called to encode constructor params (taken from
-   * https://github.com/ethereum/web3.js/blob/develop/lib/web3/contract.js)
+   * @brief      retrieve private key for given account
    *
-   * @param      abi     The abi
-   * @param      params  The parameters
+   * @param      {string}  accountId  eth account ID
    *
-   * @return     encoded params
+   * @return     Promise that resolves to {string} private key of given account
    */
-  encodeConstructorParams(abi: any[], params: any[]) {
-    if (params.length) {
-      return abi
-        .filter((json) => json.type === 'constructor' && json.inputs.length === params.length)
-        .map((json) => json.inputs.map((input) => input.type))
-        .map((types) => coder.encodeParameters(types, params))
-        .map((encodedParams) => encodedParams.replace(/^0x/, ''))[0] || '';
-    }
-    return '';
+  public async getPrivateKey(accountId: string) {
+    return this.accountStore.getPrivateKey(accountId);
   }
 
+  /**
+   * get public key for given account
+   *
+   * @param      {string}  accountId  account to get public key for
+   */
+  public async getPublicKey(accountId: string): Promise<string> {
+    const ecdh = crypto.createECDH('secp256k1');
+    ecdh.setPrivateKey(await this.getPrivateKey(accountId), 'hex');
+
+    return ecdh.getPublicKey().toString('hex');
+  }
+
+  /**
+   * { Signs and send the signed transaction }
+   *
+   * @param      {any}       options         The options
+   * @param      {Function}  handleTxResult  The handle transmit result
+   */
+  public async signAndExecuteSend(options: any, handleTxResult: Function) {
+    this.log('will sign tx for eth for transaction', 'debug');
+    Promise
+      .all([
+        this.getPrivateKey(options.from),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
+        this.getNonce(options.from),
+      ])
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
+        const txParams = {
+          nonce,
+          gasPrice,
+          gasLimit: options.gas || 53000, // minimum gas cost
+          to: options.to,
+          value: options.value ? (`0x${(new BigNumber(options.value, 10)).toString(16)}`) : 0,
+          chainId: NaN,
+        };
+
+        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+        const txObject = new Transaction(txParams);
+        txObject.sign(privateKeyBuffer);
+        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
+
+        // submit via sendRawTransaction
+        try {
+          handleTxResult(null, await this.sendSignedTransaction(signedTx));
+        } catch (ex) {
+          handleTxResult(ex);
+        }
+      })
+      .catch((ex) => {
+        const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
+        handleTxResult(msg);
+      });
+  }
+
+  /**
+   * Create, sign and submit a contract transaction.
+   *
+   * @param      {any}       contract           contract instance from api.eth.loadContract(...)
+   * @param      {string}    functionName       function name
+   * @param      {any[]}     functionArguments  arguments for contract creation, pass empty Array if
+   *                                            no arguments
+   * @param      {any}       options            transaction arguments, having at least .from and
+   *                                            .gas
+   * @param      {Function}  handleTxResult     callback(error, result)
+   * @return     {Promise<void>}  resolved when done
+   */
+  public async signAndExecuteTransaction(contract: any, functionName: string,
+    functionArguments: any[],
+    options: any, handleTxResult: Function) {
+    this.log(`will sign tx for function "${functionName}"`, 'debug');
+    Promise
+      .all([
+        this.getPrivateKey(options.from),
+        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
+        this.getNonce(options.from),
+      ])
+      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
+        this.log(`using gas price of ${gasPrice} Wei`, 'debug');
+        /* eslint-disable no-underscore-dangle */
+        const data = contract.methods[functionName](...functionArguments).encodeABI();
+        /* eslint-enable no-underscore-dangle */
+        const txParams = {
+          nonce,
+          gasPrice,
+          gasLimit: this.ensureHashWithPrefix(options.gas),
+          to: contract.options.address,
+          value: options.value ? (`0x${(new BigNumber(options.value, 10)).toString(16)}`) : 0,
+          data: this.ensureHashWithPrefix(data),
+          chainId: NaN,
+        };
+
+        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+        const txObject = new Transaction(txParams);
+        txObject.sign(privateKeyBuffer);
+        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
+
+        // submit via sendRawTransaction
+        try {
+          handleTxResult(null, await this.sendSignedTransaction(signedTx));
+        } catch (ex) {
+          handleTxResult(ex);
+        }
+      })
+      .catch((ex) => {
+        const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
+        handleTxResult(msg);
+      });
+  }
+
+  /**
+   * sign given message with accounts private key
+   *
+   * @param      {string}  accountId  accountId to sign with
+   * @param      {string}  message    message to sign
+   * @return     {Promise<string>}  signature
+   */
+  public async signMessage(accountId: string, message: string): Promise<string> {
+    const privateKey = await this.accountStore.getPrivateKey(accountId);
+    const { signature } = await this.web3.eth.accounts.sign(message, `0x${privateKey}`);
+
+    return signature;
+  }
 
   /**
    * Wraps `web3.eth.sendSignedTransaction` function to handle missing events in chains. In this
@@ -257,173 +432,5 @@ export class SignerInternal extends Logger implements SignerInterface {
     });
 
     return receipt;
-  }
-
-
-  signAndExecuteSend(options, handleTxResult) {
-    this.log('will sign tx for eth for transaction', 'debug');
-    Promise
-      .all([
-        this.getPrivateKey(options.from),
-        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
-        this.getNonce(options.from),
-      ])
-      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
-        const txParams = {
-          nonce,
-          gasPrice,
-          gasLimit: options.gas || 53000, // minimum gas cost
-          to: options.to,
-          value: options.value ? (`0x${(new BigNumber(options.value, 10)).toString(16)}`) : 0,
-          chainId: NaN,
-        };
-
-        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
-        const txObject = new Transaction(txParams);
-        txObject.sign(privateKeyBuffer);
-        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
-
-        // submit via sendRawTransaction
-        try {
-          handleTxResult(null, await this.sendSignedTransaction(signedTx));
-        } catch (ex) {
-          handleTxResult(ex);
-        }
-      })
-      .catch((ex) => {
-        const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
-        handleTxResult(msg);
-      });
-  }
-
-  /**
-   * create, sing and submit a contract transaction with private key of options.from
-   *
-   * @param      contract           contract instance from api.eth.loadContract(...)
-   * @param      functionName       function name
-   * @param      functionArguments  arguments for contract creation, pass empty Array if no
-   *                                arguments
-   * @param      options            transaction arguments, having at least .from and .gas
-   * @param      handleTxResult     callback(error, result)
-   *
-   * @return     Promise, resolved when done or resolves to event result if event given
-   */
-  signAndExecuteTransaction(contract, functionName, functionArguments, options, handleTxResult) {
-    this.log(`will sign tx for function "${functionName}"`, 'debug');
-    Promise
-      .all([
-        this.getPrivateKey(options.from),
-        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
-        this.getNonce(options.from),
-      ])
-      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
-        this.log(`using gas price of ${gasPrice} Wei`, 'debug');
-        /* eslint-disable no-underscore-dangle */
-        const data = contract.methods[functionName](...functionArguments).encodeABI();
-        /* eslint-enable no-underscore-dangle */
-        const txParams = {
-          nonce,
-          gasPrice,
-          gasLimit: this.ensureHashWithPrefix(options.gas),
-          to: contract.options.address,
-          value: options.value ? (`0x${(new BigNumber(options.value, 10)).toString(16)}`) : 0,
-          data: this.ensureHashWithPrefix(data),
-          chainId: NaN,
-        };
-
-        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
-        const txObject = new Transaction(txParams);
-        txObject.sign(privateKeyBuffer);
-        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
-
-        // submit via sendRawTransaction
-        try {
-          handleTxResult(null, await this.sendSignedTransaction(signedTx));
-        } catch (ex) {
-          handleTxResult(ex);
-        }
-      })
-      .catch((ex) => {
-        const msg = `could not sign transaction; "${(ex.message || ex)}${ex.stack ? ex.stack : ''}"`;
-        handleTxResult(msg);
-      });
-  }
-
-  /**
-   * creates a contract by contstructing creation transaction and signing it with private key of
-   * options.from
-   *
-   * @param      contractName       contract name
-   * @param      functionArguments  arguments for contract creation, pass empty Array if no
-   *                                arguments
-   * @param      options            transaction arguments, having at least .from and .gas
-   *
-   * @return     Promise<string>    contract address
-   */
-  createContract(contractName: string, functionArguments: any[], options: any): Promise<any> {
-    this.log('will sign tx for contract creation', 'debug');
-    const compiledContract = this.contractLoader.getCompiledContract(contractName);
-    if (!compiledContract) {
-      throw new Error(`cannot find contract description for contract "${contractName}"`);
-    }
-    if (!compiledContract.bytecode) {
-      throw new Error(`trying to create an instance of abstract contract "${contractName}"`);
-    }
-
-    return Promise
-      .all([
-        this.getPrivateKey(options.from),
-        typeof options.gasPrice !== 'undefined' ? options.gasPrice : this.getGasPrice(),
-        this.getNonce(options.from),
-      ])
-      .then(async ([privateKey, gasPrice, nonce]: [string, number, number]) => {
-        const abi = JSON.parse(compiledContract.interface);
-        const txParams = {
-          nonce,
-          gasPrice,
-          gasLimit: this.ensureHashWithPrefix(options.gas),
-          value: options.value || 0,
-          data: this.ensureHashWithPrefix(
-            `${compiledContract.bytecode}`
-            + `${this.encodeConstructorParams(abi, functionArguments)}`,
-          ),
-          chainId: NaN,
-        };
-
-        const txObject = new Transaction(txParams);
-        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
-        txObject.sign(privateKeyBuffer);
-        const signedTx = this.ensureHashWithPrefix(txObject.serialize().toString('hex'));
-
-        // submit via sendRawTransaction
-        const receipt = await this.sendSignedTransaction(signedTx);
-
-        if (options.gas === receipt.gasUsed) {
-          throw new Error('all gas used up');
-        } else {
-          this.log(`contract creation of "${contractName}" used ${receipt.gasUsed} gas`);
-          return new this.web3.eth.Contract(abi, receipt.contractAddress);
-        }
-      })
-      .catch((ex) => {
-        const msg = `could not sign contract creation of "${contractName}"; "${(ex.message || ex)}"`;
-        this.log(msg, 'error');
-        throw ex;
-      });
-  }
-
-
-  /**
-   * sign given message with accounts private key
-   *
-   * @param      {string}  accountId  accountId to sign with
-   * @param      {string}  message    message to sign
-   * @return     {Promise<string>}  signature
-   */
-  public async signMessage(accountId: string, message: string): Promise<string> {
-    const privateKey = await this.accountStore.getPrivateKey(accountId);
-    const { signature } = await this.web3.eth.accounts.sign(message, `0x${privateKey}`);
-
-    return signature;
   }
 }
