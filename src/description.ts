@@ -58,11 +58,11 @@ export class Description extends Logger {
 
   web3: any;
 
-  protected readonly encodingUnencrypted = 'binary';
+  protected readonly encodingUnencrypted = 'utf8';
 
   protected readonly encodingEncrypted = 'hex';
 
-  protected readonly encodingEnvelope = 'binary';
+  protected readonly encodingEnvelope = 'utf8';
 
   constructor(options: DescriptionOptions) {
     super(options);
