@@ -46,6 +46,14 @@ export class Ipfs extends Logger implements DfsInterface {
 
   cache: DfsCacheInterface;
 
+  constructor(options) {
+    super(options);
+    this.remoteNode = options.remoteNode;
+    if (options.cache) {
+      this.cache = options.cache;
+    }
+  }
+
   /**
    * convert IPFS hash to bytes 32 see
    * https://www.reddit.com/r/ethdev/comments/6lbmhy/a_practical_guide_to_cheap_ipfs_hash_storage_in
@@ -76,14 +84,6 @@ export class Ipfs extends Logger implements DfsInterface {
     const bytes = Buffer.from(`1220${remove0x}`, 'hex');
     const hash = bs58.encode(bytes);
     return hash;
-  }
-
-  constructor(options) {
-    super(options);
-    this.remoteNode = options.remoteNode;
-    if (options.cache) {
-      this.cache = options.cache;
-    }
   }
 
   /**

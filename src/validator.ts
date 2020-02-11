@@ -36,6 +36,13 @@ export class Validator extends Logger {
 
   ajv: any;
 
+  constructor(options) {
+    super(options);
+    this.schema = options.schema;
+    this.ajv = new Ajv({ allErrors: true });
+    this.validator = this.ajv.compile(this.schema);
+  }
+
   /**
    * Determines whether the specified schema is a correct DBCP schema.
    *
@@ -45,13 +52,6 @@ export class Validator extends Logger {
     const ajv = new Ajv({ allErrors: true });
     const isValid = ajv.validateSchema(schema);
     return isValid ? true : ajv.errors;
-  }
-
-  constructor(options) {
-    super(options);
-    this.schema = options.schema;
-    this.ajv = new Ajv({ allErrors: true });
-    this.validator = this.ajv.compile(this.schema);
   }
 
   /**
