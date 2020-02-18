@@ -138,18 +138,19 @@ export class Executor extends Logger {
     this.log(`starting contract transaction "${functionName}"`, 'debug');
     if (!this.signer) {
       throw new Error('signer is undefined');
-    }
-    if (!contract.methods[functionName]) {
+    } if (!contract.methods[functionName]) {
       throw new Error(`contract does not support method "${functionName}", `
         + `supported methods are ${Object.keys(contract.methods)}`);
-    }
-    if (!contract || !contract.options || !contract.options.address) {
+    } if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
-    }
-    if (!contract.options.address
+    } if (!contract.options.address
         || contract.options.address === '0x0000000000000000000000000000000000000000') {
       throw new Error(`trying to execute contract transaction "${functionName}" `
         + 'against invalid contract address');
+    } if (!inputOptions.from) {
+      throw Error('No sender address provided. Please provide a sender address using the \'from\' property');
+    } if (!inputOptions.gas) {
+      throw Error('No gas amount provided. Please provide a gas amount using the \'gas\' property');
     }
 
     // every argument beyond the third is an argument for the contract function
@@ -541,6 +542,10 @@ export class Executor extends Logger {
     this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');
+    } if (!options.from) {
+      throw Error('No sender address provided. Please provide a sender address using the \'options.from\' property');
+    } if (!options.gas) {
+      throw Error('No gas amount provided. Please provide a gas amount using the \'options.gas\' property');
     }
     return this.signer.createContract(contractName, functionArguments, options);
   }
