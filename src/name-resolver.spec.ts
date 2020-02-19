@@ -14,13 +14,15 @@
   limitations under the License.
 */
 
+import * as chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 
 import { accounts } from './test/accounts';
 import { config } from './config';
 import { TestUtils } from './test/test-utils';
 
+use(chaiAsPromised);
 
 const testAddressValue = '0x0000000000000000000000000000000000000123';
 const emptyAddressValue = '0x0000000000000000000000000000000000000000';
@@ -77,5 +79,16 @@ describe('NameResolver class', function test() {
     await nameResolver.setAddress(testAddress2, emptyAddressValue, accounts[1], accounts[1]);
     address = await nameResolver.getAddress(testAddress2);
     expect(address).to.eq(emptyAddressValue);
+  });
+
+  it('should throw an error when resolving ENS name undefined', async () => {
+    const nameResolver = await TestUtils.getNameResolver(web3);
+    const name = '';
+    const address = nameResolver.getAddress(name);
+    const contents = nameResolver.getContent(name);
+    const addressOrContents = nameResolver.getAddressOrContent(name, 'address');
+    await (expect(address).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan'));
+    await (expect(contents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan'));
+    await (expect(addressOrContents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan'));
   });
 });
