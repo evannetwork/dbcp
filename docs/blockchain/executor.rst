@@ -2,7 +2,7 @@
 Executor
 ================================================================================
 
-.. list-table:: 
+.. list-table::
    :widths: auto
    :stub-columns: 1
 
@@ -69,7 +69,7 @@ Example
 -------
 
 .. code-block:: typescript
-  
+
   const executor = new Executor({
       config,
       eventHub,
@@ -90,7 +90,7 @@ init
 
     executor.init(name);
 
-initialize executor
+Initialize executor.
 
 ----------
 Parameters
@@ -124,7 +124,7 @@ executeContractCall
 
     executor.executeContractCall(contract, functionName, ...args);
 
-run the given call from contract
+Eun the given call from contract.
 
 ----------
 Parameters
@@ -162,7 +162,7 @@ executeContractTransaction
 
     executor.executeContractTransaction(contract, functionName, inputOptions, ...functionArguments);
 
-execute a transaction against the blockchain, handle gas exceeded and return values from contract function
+Execute a transaction against the blockchain, handle gas exceeded and return values from contract function.
 
 ----------
 Parameters
@@ -171,7 +171,7 @@ Parameters
 #. ``contract`` - ``any``: contract instance
 #. ``functionName`` - ``string``: name of the contract function to call
 #. ``inputOptions`` - ``any``: options object
-    * ``from`` - ``string`` (optional): The address the call "transaction" should be made from.
+    * ``from`` - ``string`` (mandatory): The address the call "transaction" should be made from.
     * ``gas`` - ``number`` (optional): The amount of gas provided with the transaction.
     * ``event`` - ``any`` (optional): object with two properties ``target`` (contract name) and ``eventName``
     * ``getEventResult`` - ``function`` (optional): callback function which will be called when the event is triggered. First argument is the full event info, second argument is an options with the event arguments.
@@ -256,7 +256,7 @@ executeSend
 
     executor.executeSend(options);
 
-send EVEs to target account
+Send EVEs to target account.
 
 ----------
 Parameters
@@ -297,7 +297,7 @@ createContract
 
     executor.createContract(contractName, functionArguments, options);
 
-creates a contract by contstructing creation transaction and signing it with private key of options.from
+Creates a contract by contstructing creation transaction and signing it with private key of options.from.
 
 ----------
 Parameters
