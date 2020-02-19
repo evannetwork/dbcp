@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- add check for passing undefined to `getAddress`, `getContents`, `getAddressOrContents`
 - fix buffer-to-string conversion, try to decode to `utf8`, if this fails, decode it to `binary`
 - add `member-ordering` rule to eslint config
 
