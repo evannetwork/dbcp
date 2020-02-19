@@ -124,7 +124,7 @@ executeContractCall
 
     executor.executeContractCall(contract, functionName, ...args);
 
-Eun the given call from contract.
+Run the given call from contract.
 
 ----------
 Parameters
