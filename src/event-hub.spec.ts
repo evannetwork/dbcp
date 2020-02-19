@@ -44,7 +44,7 @@ describe('EventHub class', function test() {
     );
 
     // fire events
-    const numberOfEvents = 100000;
+    const numberOfEvents = 10;
     await Promise.all([...Array(numberOfEvents)].map(() => executor.executeContractTransaction(
       testContract,
       'fireEvent',
