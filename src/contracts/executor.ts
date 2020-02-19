@@ -147,18 +147,14 @@ export class Executor extends Logger {
         || contract.options.address === '0x0000000000000000000000000000000000000000') {
       throw new Error(`trying to execute contract transaction "${functionName}" `
         + 'against invalid contract address');
-    } if (!inputOptions.from) {
-      throw Error('No sender address provided. Please provide a sender address using the \'from\' property');
-    } if (!inputOptions.gas) {
-      throw Error('No gas amount provided. Please provide a gas amount using the \'gas\' property');
     }
-
     // every argument beyond the third is an argument for the contract function
     const options = {
       timeout: 300000,
       ...this.defaultOptions || {},
       ...inputOptions,
     };
+    this.ensureMandatoryParameters(options, ['from']);
 
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
@@ -438,7 +434,7 @@ export class Executor extends Logger {
       ...this.defaultOptions || {},
       ...inputOptions,
     };
-
+    this.ensureMandatoryParameters(options, ['from', 'to', 'value']);
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
 
@@ -539,13 +535,10 @@ export class Executor extends Logger {
   ): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
     const options = { ...this.defaultOptions || {}, ...inputOptions };
+    this.ensureMandatoryParameters(options, ['from', 'gas']);
     this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');
-    } if (!options.from) {
-      throw Error('No sender address provided. Please provide a sender address using the \'options.from\' property');
-    } if (!options.gas) {
-      throw Error('No gas amount provided. Please provide a gas amount using the \'options.gas\' property');
     }
     return this.signer.createContract(contractName, functionArguments, options);
   }
@@ -561,6 +554,16 @@ export class Executor extends Logger {
     Object.keys(param).forEach((option) => {
       if (!validProperties.includes(option)) {
         delete param[option];
+      }
+    });
+  }
+
+  private ensureMandatoryParameters(options: any, mandatoryParameters: string[]): void {
+    mandatoryParameters.forEach((param) => {
+      if (options[param] === null || options[param] === undefined) {
+        throw Error(
+          `No '${param}' property given. Please provide an options object including the '${param}' property`,
+        );
       }
     });
   }
