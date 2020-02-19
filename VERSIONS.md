@@ -6,6 +6,7 @@
 ### Fixes
 - fix buffer-to-string conversion, try to decode to `utf8`, if this fails, decode it to `binary`
 - add `member-ordering` rule to eslint config
+- updated `dfs-interface.get` return value to be more precise (`Promise<string | Buffer>`)
 
 ### Deprecations
 
