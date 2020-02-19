@@ -37,7 +37,7 @@ describe('EventHub class', function test() {
     executor.eventHub.contractLoader.contracts.TestContractEvent = testContractEvent;
   });
 
-  it.only('should resolve multiple parallel transactions with listening to the same event on the same contract ', async () => {
+  it('should resolve multiple parallel transactions with listening to the same event on the same contract ', async () => {
     // create a contract that is able to trigger events
     const testContract = await executor.createContract(
       'TestContractEvent', [], { from: accounts[0], gas: 1000000 },
