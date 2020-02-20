@@ -267,6 +267,7 @@ export class EventHub extends Logger {
                 });
               } else {
                 this.log(`all events already removed for "${JSON.stringify(toRemove)}"`, 'debug');
+                resolve();
               }
             });
           }
