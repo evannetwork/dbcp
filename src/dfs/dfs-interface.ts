@@ -51,7 +51,7 @@ export interface DfsInterface {
    *                                        depending on the type of DFS
    * @return     {Promise<Buffer>}  file content as buffer
    */
-  get(hash: string): Promise<Buffer>;
+  get(hash: string, returnBuffer?: boolean): Promise<string | Buffer>;
 
   /**
    * removes a file hash from the DFS
