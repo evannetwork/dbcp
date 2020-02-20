@@ -138,26 +138,23 @@ export class Executor extends Logger {
     this.log(`starting contract transaction "${functionName}"`, 'debug');
     if (!this.signer) {
       throw new Error('signer is undefined');
-    }
-    if (!contract.methods[functionName]) {
+    } if (!contract.methods[functionName]) {
       throw new Error(`contract does not support method "${functionName}", `
         + `supported methods are ${Object.keys(contract.methods)}`);
-    }
-    if (!contract || !contract.options || !contract.options.address) {
+    } if (!contract || !contract.options || !contract.options.address) {
       throw new Error('contract undefined or contract has no address');
-    }
-    if (!contract.options.address
+    } if (!contract.options.address
         || contract.options.address === '0x0000000000000000000000000000000000000000') {
       throw new Error(`trying to execute contract transaction "${functionName}" `
         + 'against invalid contract address');
     }
-
     // every argument beyond the third is an argument for the contract function
     const options = {
       timeout: 300000,
       ...this.defaultOptions || {},
       ...inputOptions,
     };
+    this.ensureMandatoryParameters(options, ['from']);
 
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
@@ -437,7 +434,7 @@ export class Executor extends Logger {
       ...this.defaultOptions || {},
       ...inputOptions,
     };
-
+    this.ensureMandatoryParameters(options, ['from', 'to', 'value']);
     // keep timeout before deletion
     const transactionTimeout = options.eventTimeout || options.timeout;
 
@@ -538,6 +535,7 @@ export class Executor extends Logger {
   ): Promise<any> {
     this.log(`starting contract creation transaction for "${contractName}"`, 'debug');
     const options = { ...this.defaultOptions || {}, ...inputOptions };
+    this.ensureMandatoryParameters(options, ['from', 'gas']);
     this.scrubOptions(options);
     if (!this.signer) {
       throw new Error('signer is undefined');
@@ -556,6 +554,16 @@ export class Executor extends Logger {
     Object.keys(param).forEach((option) => {
       if (!validProperties.includes(option)) {
         delete param[option];
+      }
+    });
+  }
+
+  private ensureMandatoryParameters(options: any, mandatoryParameters: string[]): void {
+    mandatoryParameters.forEach((param) => {
+      if (options[param] === null || options[param] === undefined) {
+        throw Error(
+          `No '${param}' property given. Please provide an options object including the '${param}' property`,
+        );
       }
     });
   }

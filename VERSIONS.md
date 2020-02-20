@@ -7,6 +7,8 @@
 - fix buffer-to-string conversion, try to decode to `utf8`, if this fails, decode it to `binary`
 - add `member-ordering` rule to eslint config
 - updated `dfs-interface.get` return value to be more precise (`Promise<string | Buffer>`)
+- fix missing resolve on event-hub when event already removed
+- Omitting mandatory parameters when using `executor` methods now results in meaningful error messages
 
 ### Deprecations
 
