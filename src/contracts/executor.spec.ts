@@ -215,15 +215,13 @@ describe('Executor handler', function test() {
 
     // try to transfer ownership with read only executor
     const executorReadOnly = await TestUtils.getExecutor(web3, true);
-    try {
-      await executorReadOnly.executeContractTransaction(
-        contract,
-        'transferOwnership',
-        { from: testUser, gas: 2000000 },
-        fakeUser,
-      );
-    } catch (err) { return; }
-    throw new Error('Should have thrown an error');
+
+    await expect(executorReadOnly.executeContractTransaction(
+      contract,
+      'transferOwnership',
+      { from: testUser, gas: 2000000 },
+      fakeUser,
+    )).to.be.eventually.rejected;
   });
 
   describe('when creating contracts', async () => {
@@ -241,6 +239,27 @@ describe('Executor handler', function test() {
       await mockedExecutor.createContract('Owned', [], { from: accounts[0], gas: 100000 });
       expect(mockedSigner.lastOptions.gas).to.eq(100000);
       expect(mockedSigner.lastOptions.gasPrice).to.eq(defaultOptions.gasPrice);
+    });
+
+    it('should throw an error if mandatory option params are missing', async () => {
+      const optionlessExecutor = new Executor({
+        ...mockedExecutor,
+        defaultOptions: {},
+      });
+
+      const promiseMissingFrom = optionlessExecutor.createContract(
+        'Owned',
+        [],
+        {},
+      );
+      await expect(promiseMissingFrom).to.be.eventually.rejectedWith('No \'from\' property given');
+
+      const promiseMissingGas = optionlessExecutor.createContract(
+        'Owned',
+        [],
+        { from: accounts[0] },
+      );
+      await expect(promiseMissingGas).to.be.eventually.rejectedWith('No \'gas\' property given');
     });
   });
 
@@ -312,13 +331,29 @@ describe('Executor handler', function test() {
       const ownedContract = contractLoader.loadContract('Owned', '0x0000000000000000000000000000000000000000');
       expect(mockedExecutor.executeContractTransaction(ownedContract, 'owner', { from: accounts[0] })).to.be.rejected;
     });
-  });
 
+    it('should throw an error if mandatory option params are missing', async () => {
+      const optionlessExecutor = new Executor({
+        ...mockedExecutor,
+        defaultOptions: {},
+      });
+      const ownedContract = await optionlessExecutor.createContract('Owned', [], { from: accounts[0], gas: 500000 });
+      mockedSigner.lastOptions = {};
+      mockContract.lastOptions = {};
+
+      const promiseMissingFrom = optionlessExecutor.executeContractTransaction(
+        ownedContract,
+        'owner',
+        {},
+      );
+      await expect(promiseMissingFrom).to.be.eventually.rejectedWith('No \'from\' property given');
+    });
+  });
   describe('when sending funds', async () => {
     it('should use defaultOptions', async () => {
       mockedSigner.lastOptions = {};
       mockContract.lastOptions = {};
-      await mockedExecutor.executeSend({ from: accounts[0], to: accounts[1] });
+      await mockedExecutor.executeSend({ from: accounts[0], to: accounts[1], value: 1 });
       expect(mockedSigner.lastOptions.gas).to.eq(defaultOptions.gas);
       expect(mockedSigner.lastOptions.gasPrice).to.eq(defaultOptions.gasPrice);
     });
@@ -326,9 +361,33 @@ describe('Executor handler', function test() {
     it('should prefer passed options over default options', async () => {
       mockedSigner.lastOptions = {};
       mockContract.lastOptions = {};
-      await mockedExecutor.executeSend({ from: accounts[0], to: accounts[1], gas: 100000 });
+      await mockedExecutor.executeSend({
+        from: accounts[0], to: accounts[1], gas: 100000, value: 1,
+      });
       expect(mockedSigner.lastOptions.gas).to.eq(100000);
       expect(mockedSigner.lastOptions.gasPrice).to.eq(defaultOptions.gasPrice);
+    });
+
+    it('should throw an error if mandatory option params are missing', async () => {
+      const optionlessExecutor = new Executor({
+        ...mockedExecutor,
+        defaultOptions: {},
+      });
+
+      const promiseMissingFrom = optionlessExecutor.executeSend(
+        { to: accounts[1], value: 1 },
+      );
+      await expect(promiseMissingFrom).to.be.eventually.rejectedWith('No \'from\' property given');
+
+      const promiseMissingValue = optionlessExecutor.executeSend(
+        { from: accounts[0], to: accounts[1] },
+      );
+      await expect(promiseMissingValue).to.be.eventually.rejectedWith('No \'value\' property given');
+
+      const promiseMissingTo = optionlessExecutor.executeSend(
+        { from: accounts[0], value: 1 },
+      );
+      await expect(promiseMissingTo).to.be.eventually.rejectedWith('No \'to\' property given');
     });
   });
 
