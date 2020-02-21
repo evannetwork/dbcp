@@ -47,11 +47,14 @@ export interface DfsInterface {
   /**
    * get a file from the dfs
    *
-   * @param      {string}           hash    reference to the file in the DFS, format may differ
-   *                                        depending on the type of DFS
-   * @return     {Promise<Buffer>}  file content as buffer
+   * @param      {string}           hash          reference to the file in the DFS, format may
+   *                                              differ depending on the type of DFS
+   * @param      {boolean}          returnBuffer  Determines whether a string or a Buffer
+   *                                              should be returned.
+   *                                              If omitted, a default value will be used.
+   * @return     {Promise<string | Buffer>}  file content as buffer or string
    */
-  get(hash: string): Promise<Buffer>;
+  get(hash: string, returnBuffer?: boolean): Promise<string | Buffer>;
 
   /**
    * removes a file hash from the DFS
