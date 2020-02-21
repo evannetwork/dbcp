@@ -189,7 +189,6 @@ describe('EventHub class', function test() {
       setTimeout(() => resolve(), 2000);
     });
 
-    // wait for the async event processing to complete
 
 
     // event listener two should have been registered and triggered
