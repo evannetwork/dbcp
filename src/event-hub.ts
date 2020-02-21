@@ -160,9 +160,13 @@ export class EventHub extends Logger {
       );
     }
     const address = eventTargetContractAddress || contractAddress;
-    const eventTargetContract = this.contractLoader.loadContract(contractName, address);
+    const eventTargetContract = await this.contractLoader.loadContract(contractName, address);
 
     const contractId = eventTargetContract.address || eventTargetContract.options.address;
+    if (!contractId) {
+      throw Error('Unable to find contract');
+    }
+
     const subscription = uuid.v4();
 
     // store function that is executed when event is fired
@@ -237,7 +241,6 @@ export class EventHub extends Logger {
         // remove from latest subscriptions if necessary
         this.subsribedToLatest[contractId][eventName] = this
           .subsribedToLatest[contractId][eventName].filter((sub) => sub !== toRemove.subscription);
-        console.log(`New: ${this.subsribedToLatest[contractId][eventName]}`);
         // stop event listener if last subscription was removed
         // eslint-disable-next-line consistent-return
         await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
