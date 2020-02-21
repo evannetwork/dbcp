@@ -80,8 +80,8 @@ describe('EventHub class', function test() {
     await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { eventOneTriggered += 1; },
+      async () => true,
+      async () => { eventOneTriggered += 1; },
       `${currBlock - 1}`);
 
     // wait for the async event processing to complete
@@ -93,8 +93,8 @@ describe('EventHub class', function test() {
     await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { /* do nothing */ },
+      async () => true,
+      async () => { /* do nothing */ },
       `${currBlock - 1}`);
 
     // wait for the async event processing to complete
@@ -127,15 +127,15 @@ describe('EventHub class', function test() {
     await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { /* do nothing */ },
+      async () => true,
+      async () => { /* do nothing */ },
       'latest');
 
     await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { eventTwoTriggered += 1; },
+      async () => true,
+      async () => { eventTwoTriggered += 1; },
       `${currBlock - 1}`);
 
     // wait for the async event processing to complete
@@ -167,8 +167,8 @@ describe('EventHub class', function test() {
     await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { eventOneTriggered += 1; },
+      async () => true,
+      async () => { eventOneTriggered += 1; },
       `${currBlock - 1}`);
 
     // wait for the async event processing to complete
@@ -180,15 +180,14 @@ describe('EventHub class', function test() {
     await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { eventTwoTriggered += 1; },
+      async () => true,
+      async () => { eventTwoTriggered += 1; },
       `${currBlock - 1}`);
 
     // wait for the async event processing to complete
     await new Promise((resolve) => {
       setTimeout(() => resolve(), 2000);
     });
-
 
 
     // event listener two should have been registered and triggered
@@ -202,8 +201,8 @@ describe('EventHub class', function test() {
     const subscription = await executor.eventHub.subscribe('TestContractEvent',
       testContract.options.address,
       'EventFired',
-      async (event) => true,
-      async (event) => { eventTriggered += 1; },
+      async () => true,
+      async () => { eventTriggered += 1; },
       'latest');
 
     await executor.eventHub.unsubscribe({ subscription });
