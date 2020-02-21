@@ -55,7 +55,7 @@ export class EventHub extends Logger {
 
   subscriptionToContractMapping = {};
 
-  subsribedToLatest = {};
+  subscribedToLatest = {};
 
   private mutexes: { [id: string]: Mutex };
 
@@ -182,11 +182,11 @@ export class EventHub extends Logger {
     if (!this.eventEmitter[contractId][eventName]) {
       this.eventEmitter[contractId][eventName] = {};
     }
-    if (!this.subsribedToLatest[contractId]) {
-      this.subsribedToLatest[contractId] = {};
+    if (!this.subscribedToLatest[contractId]) {
+      this.subscribedToLatest[contractId] = {};
     }
-    if (!this.subsribedToLatest[contractId][eventName]) {
-      this.subsribedToLatest[contractId][eventName] = [];
+    if (!this.subscribedToLatest[contractId][eventName]) {
+      this.subscribedToLatest[contractId][eventName] = [];
     }
 
     const eventHandlingFunction = async (event) => {
@@ -205,7 +205,7 @@ export class EventHub extends Logger {
     };
     this.contractSubscriptions[contractId][eventName][subscription] = eventHandlingFunction;
     if (fromBlock === 'latest') {
-      this.subsribedToLatest[contractId][eventName].push(subscription);
+      this.subscribedToLatest[contractId][eventName].push(subscription);
     }
     this.subscriptionToContractMapping[subscription] = [contractId, eventName];
     await this.ensureSubscription(
@@ -239,8 +239,8 @@ export class EventHub extends Logger {
         // remove from event subscriptions
         delete this.contractSubscriptions[contractId][eventName][toRemove.subscription];
         // remove from latest subscriptions if necessary
-        this.subsribedToLatest[contractId][eventName] = this
-          .subsribedToLatest[contractId][eventName].filter((sub) => sub !== toRemove.subscription);
+        this.subscribedToLatest[contractId][eventName] = this
+          .subscribedToLatest[contractId][eventName].filter((sub) => sub !== toRemove.subscription);
         // stop event listener if last subscription was removed
         // eslint-disable-next-line consistent-return
         await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
@@ -332,7 +332,7 @@ export class EventHub extends Logger {
         this.eventEmitter[contractId][eventName][key].on('data', (event) => {
           this.continueBlock = Math.max(event.blockNumber, this.continueBlock);
           if (key === 'latest') {
-            this.subsribedToLatest[contractId][eventName].forEach((sub) => {
+            this.subscribedToLatest[contractId][eventName].forEach((sub) => {
               this.contractSubscriptions[contractId][eventName][sub](event);
             });
           } else {
