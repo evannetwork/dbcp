@@ -30,7 +30,6 @@ export interface EventHubOptions extends LoggerOptions {
   config: any;
   contractLoader: any;
   nameResolver: any;
-  eventWeb3?: any;
 }
 
 /**
@@ -52,11 +51,11 @@ export class EventHub extends Logger {
 
   eventHubContract: any;
 
-  eventWeb3: any;
-
   nameResolver: NameResolver;
 
   subscriptionToContractMapping = {};
+
+  subscribedToLatest = {};
 
   private mutexes: { [id: string]: Mutex };
 
@@ -65,7 +64,6 @@ export class EventHub extends Logger {
     this.config = options.config;
     this.contractLoader = options.contractLoader;
     this.nameResolver = options.nameResolver;
-    this.eventWeb3 = options.eventWeb3;
     this.mutexes = {};
   }
 
@@ -132,20 +130,20 @@ export class EventHub extends Logger {
   }
 
   /**
-   * subscribe to a contract event or a global EventHub event
+   * Subscribe to a contract event or a global EventHub event
    *
    * @param      contractName     target contract name
    * @param      contractAddress  target contract address
-   * @param      eventName  name of the event to subscribe to
-   * @param      any        Any
+   * @param      eventName       name of the event to subscribe to
    * @param      filterFunction  a function that returns true or a Promise that resolves to true if
    *                             onEvent function should be applied
    * @param      onEvent         executed when event was fired and the filter matches, gets the
    *                             event as its parameter
+   * @param      fromBlock       Block to start crawling Events from
    *
-   * @return     resolves to {string} event subscription
+   * @return     returns event subscription ID
    */
-  public subscribe(
+  public async subscribe(
     contractName: string | any,
     contractAddress: string,
     eventName: string,
@@ -154,75 +152,70 @@ export class EventHub extends Logger {
     fromBlock = 'latest',
   ): Promise<string> {
     this.log(`subscribing to event "${eventName}" at event hub initializer`, 'debug');
-    let chain: Promise<any> = Promise.resolve();
-    if (this.eventWeb3) {
-      if (contractName === 'EventHub') {
-        if (!this.contractLoader.contracts[contractName]) {
-          throw new Error(`abi for contract type "${contractName}" not found, `
-            + `supported interfaces are "${Object.keys(this.contractLoader.contracts).join(',')}"`);
-        }
-        chain = chain.then(() => this.nameResolver
-          .getAddress(this.nameResolver.getDomainName(this.config.domains.eventhub)));
-      }
-      chain = chain.then((addr) => {
-        const address = addr || contractAddress;
-        return this.eventWeb3.eth.contract(
-          JSON.parse(this.contractLoader.contracts[contractName].interface),
-        ).at(address);
-      });
-    } else {
-      if (contractName === 'EventHub') {
-        chain = chain.then(() => this.nameResolver
-          .getAddress(this.nameResolver.getDomainName(this.config.domains.eventhub)));
-      }
-      chain = chain.then((addr) => {
-        const address = addr || contractAddress;
-        return this.contractLoader.loadContract(contractName, address);
-      });
+    // Fetch contract
+    let eventTargetContractAddress: string;
+    if (contractName === 'EventHub') {
+      eventTargetContractAddress = await this.nameResolver.getAddress(
+        this.nameResolver.getDomainName(this.config.domains.eventhub),
+      );
+    }
+    const address = eventTargetContractAddress || contractAddress;
+    const eventTargetContract = await this.contractLoader.loadContract(contractName, address);
+
+    const contractId = eventTargetContract.address || eventTargetContract.options.address;
+    if (!contractId) {
+      throw Error('Unable to find contract');
     }
 
-    return chain
-      .then((eventTarget) => {
-        const contractId = eventTarget.address || eventTarget.options.address;
-        const subscription = uuid.v4();
-        // store function that is executed when event is fired
-        if (!this.contractSubscriptions[contractId]) {
-          this.contractSubscriptions[contractId] = {};
-        }
-        if (!this.contractSubscriptions[contractId][eventName]) {
-          this.contractSubscriptions[contractId][eventName] = {};
-        }
-        if (!this.eventEmitter[contractId]) {
-          this.eventEmitter[contractId] = {};
-        }
-        this.contractSubscriptions[contractId][eventName][subscription] = (event) => {
-          let innerChain;
-          if (event.event === eventName) {
-            const filterResult = filterFunction(event);
-            if (filterResult && Object.prototype.hasOwnProperty.call(filterResult, 'then')) {
-              innerChain = filterResult;
-            } else {
-              innerChain = Promise.resolve(filterResult);
-            }
-            innerChain = innerChain
-              .then((match) => {
-                if (match) {
-                  return onEvent(event);
-                }
-                return null;
-              })
-              .catch((ex) => {
-                this.log(`error occurred while handling contract event; ${ex.message || ex}${ex.stack || ''}`, 'error');
-              });
-          } else {
-            innerChain = Promise.resolve();
+    const subscription = uuid.v4();
+
+    // store function that is executed when event is fired
+    if (!this.contractSubscriptions[contractId]) {
+      this.contractSubscriptions[contractId] = {};
+    }
+    if (!this.contractSubscriptions[contractId][eventName]) {
+      this.contractSubscriptions[contractId][eventName] = {};
+    }
+    if (!this.eventEmitter[contractId]) {
+      this.eventEmitter[contractId] = {};
+    }
+    if (!this.eventEmitter[contractId][eventName]) {
+      this.eventEmitter[contractId][eventName] = {};
+    }
+    if (!this.subscribedToLatest[contractId]) {
+      this.subscribedToLatest[contractId] = {};
+    }
+    if (!this.subscribedToLatest[contractId][eventName]) {
+      this.subscribedToLatest[contractId][eventName] = [];
+    }
+
+    const eventHandlingFunction = async (event) => {
+      try {
+        if (event.event === eventName) {
+          const matches = await filterFunction(event);
+          if (matches) {
+            return onEvent(event);
           }
-          return innerChain;
-        };
-        this.subscriptionToContractMapping[subscription] = [contractId, eventName];
-        this.ensureSubscription(contractId, eventName, eventTarget, fromBlock);
-        return subscription;
-      });
+        }
+        return null;
+      } catch (ex) {
+        this.log(`error occurred while handling contract event; ${ex.message || ex}${ex.stack || ''}`, 'error');
+        return null;
+      }
+    };
+    this.contractSubscriptions[contractId][eventName][subscription] = eventHandlingFunction;
+    if (fromBlock === 'latest') {
+      this.subscribedToLatest[contractId][eventName].push(subscription);
+    }
+    this.subscriptionToContractMapping[subscription] = [contractId, eventName];
+    await this.ensureSubscription(
+      contractId,
+      eventName,
+      eventTargetContract,
+      subscription,
+      fromBlock,
+    );
+    return subscription;
   }
 
   /**
@@ -235,6 +228,8 @@ export class EventHub extends Logger {
   // eslint-disable-next-line consistent-return
   public async unsubscribe(toRemove): Promise<void> {
     this.log(`unsubscribing from "${JSON.stringify(toRemove)}"`, 'debug');
+
+    // Remove subscription
     if (Object.prototype.hasOwnProperty.call(toRemove, 'subscription')
         && this.subscriptionToContractMapping[toRemove.subscription]) {
       // get and remove from reverse lookup
@@ -243,6 +238,9 @@ export class EventHub extends Logger {
         delete this.subscriptionToContractMapping[toRemove.subscription];
         // remove from event subscriptions
         delete this.contractSubscriptions[contractId][eventName][toRemove.subscription];
+        // remove from latest subscriptions if necessary
+        this.subscribedToLatest[contractId][eventName] = this
+          .subscribedToLatest[contractId][eventName].filter((sub) => sub !== toRemove.subscription);
         // stop event listener if last subscription was removed
         // eslint-disable-next-line consistent-return
         await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
@@ -273,6 +271,7 @@ export class EventHub extends Logger {
           }
         });
       }
+    // Remove contractId
     } else if (Object.prototype.hasOwnProperty.call(toRemove, 'contractId')) {
       if (toRemove.contractId === 'all') {
         let chain = Promise.resolve();
@@ -284,6 +283,7 @@ export class EventHub extends Logger {
               chain = chain.then(() => { this.unsubscribe({ subscription }); });
             });
           });
+          this.contractSubscriptions[contractId] = [];
         });
         return chain;
       }
@@ -292,6 +292,7 @@ export class EventHub extends Logger {
       // iterate over all contractIds sequentially
       Object.keys(this.contractSubscriptions[toRemove.contractId]).forEach((eventName) => {
         const contractSubscriptions = this.contractSubscriptions[toRemove.contractId][eventName];
+        this.contractSubscriptions[toRemove.contractId] = [];
         Object.keys(contractSubscriptions).forEach((subscription) => {
           chain = chain.then(() => { this.unsubscribe({ subscription }); });
         });
@@ -308,6 +309,7 @@ export class EventHub extends Logger {
    * @param      {string}         contractId   contractId to create event listener for
    * @param      {string}         eventName    event to listen for
    * @param      {object}         eventTarget  web3 contract instance to create event listener on
+   * @param      {string}         subscription subscription ID to ensure subscription of
    * @param      {string|number}  fromBlock    start block (number) or 'latest'
    * @return     {Promise<void>}   resolved when done
    */
@@ -315,20 +317,28 @@ export class EventHub extends Logger {
     contractId: string,
     eventName: string,
     eventTarget: any,
-    fromBlock: string|number = this.continueBlock + 1,
+    subscription: string,
+    fromBlock: number | string = this.continueBlock + 1,
   ): Promise<void> {
     // register blockchain event listener if required
     await this.getMutex(`${contractId.toLowerCase()},${eventName}`).runExclusive(async () => {
-      if (!this.eventEmitter[contractId][eventName]) {
-        this.contractInstances[contractId] = eventTarget;
-        this.eventEmitter[contractId][eventName] = eventTarget.events
-          ? eventTarget.events[eventName]({ fromBlock })
-          : eventTarget[eventName](null, { fromBlock });
-        if (this.eventEmitter[contractId][eventName].on) {
-          this.subscribeWeb3Gte1(contractId, eventName, fromBlock);
-        } else {
-          this.subscribeWeb3Lt1(contractId, eventName, fromBlock);
-        }
+      const key = fromBlock === 'latest' ? fromBlock : subscription;
+      this.contractInstances[contractId] = eventTarget;
+      // Registering new event emitter, if there is none registered yet (only relevant for 'latest')
+      if (!this.eventEmitter[contractId][eventName][key]) {
+        this.eventEmitter[contractId][eventName][key] = eventTarget.events[eventName](
+          { fromBlock },
+        );
+        this.eventEmitter[contractId][eventName][key].on('data', (event) => {
+          this.continueBlock = Math.max(event.blockNumber, this.continueBlock);
+          if (key === 'latest') {
+            this.subscribedToLatest[contractId][eventName].forEach((sub) => {
+              this.contractSubscriptions[contractId][eventName][sub](event);
+            });
+          } else {
+            this.contractSubscriptions[contractId][eventName][key](event);
+          }
+        });
       }
     });
   }
@@ -365,48 +375,7 @@ export class EventHub extends Logger {
     Object.keys(this.subscriptionToContractMapping).forEach((subscription) => {
       const [contractId, eventName] = this.subscriptionToContractMapping[subscription];
       const eventTarget = this.contractInstances[contractId];
-      this.ensureSubscription(contractId, eventName, eventTarget);
-    });
-  }
-
-  /**
-   * subscribe to web3 version >= 1.0 events
-   *
-   * @param      {string}         contractId  contractId to create event listener for
-   * @param      {string}         eventName   event to listen for
-   * @param      {string|number}  fromBlock   start block (number) or 'latest'
-   */
-  private subscribeWeb3Gte1(contractId: any, eventName: string, fromBlock: string|number): void {
-    this.eventEmitter[contractId][eventName]
-      .on('data', (event) => {
-        this.continueBlock = Math.max(event.blockNumber, this.continueBlock);
-        if (typeof fromBlock === 'number' && event.blockNumber < fromBlock) {
-          // ignore old events
-          return;
-        }
-        // run onEvents parallel
-        Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName])
-          .map((key) => this.contractSubscriptions[contractId][eventName][key](event)));
-      });
-  }
-
-  /**
-   * subscribe to web3 version < 1.0 events
-   *
-   * @param      {string}         contractId  contractId to create event listener for
-   * @param      {string}         eventName   event to listen for
-   * @param      {string|number}  fromBlock   start block (number) or 'latest'
-   */
-  private subscribeWeb3Lt1(contractId: any, eventName: string, fromBlock: string|number): void {
-    this.eventEmitter[contractId][eventName].watch((error, result) => {
-      this.continueBlock = Math.max(result.blockNumber, this.continueBlock);
-      if (typeof fromBlock === 'number' && result.blockNumber < fromBlock) {
-        // ignore old events
-        return;
-      }
-      // run onEvents parallel
-      Promise.all(Object.keys(this.contractSubscriptions[contractId][eventName])
-        .map((key) => this.contractSubscriptions[contractId][eventName][key](result)));
+      this.ensureSubscription(contractId, eventName, eventTarget, subscription);
     });
   }
 }
