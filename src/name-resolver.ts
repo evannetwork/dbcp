@@ -73,7 +73,7 @@ export class NameResolver extends Logger {
   public async getAddressOrContent(name: string, type: string): Promise<string> {
     this.log(`looking up ENS name "${name}"`, 'debug');
     if (!name) {
-      throw new Error('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
+      throw new Error('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
     }
     // decide which setter to use
     let getter;
@@ -100,7 +100,7 @@ export class NameResolver extends Logger {
    */
   public async getAddress(name: string) {
     if (!name) {
-      throw new Error('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
+      throw new Error('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
     }
     return this.getAddressOrContent(name, 'address');
   }
@@ -114,7 +114,7 @@ export class NameResolver extends Logger {
    */
   public async getContent(name: string) {
     if (!name) {
-      throw new Error('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
+      throw new Error('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
     }
     return this.getAddressOrContent(name, 'content');
   }

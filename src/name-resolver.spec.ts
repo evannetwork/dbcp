@@ -87,8 +87,8 @@ describe('NameResolver class', function test() {
     const address = nameResolver.getAddress(name);
     const contents = nameResolver.getContent(name);
     const addressOrContents = nameResolver.getAddressOrContent(name, 'address');
-    await (expect(address).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan'));
-    await (expect(contents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan'));
-    await (expect(addressOrContents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan'));
+    await expect(address).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
+    await expect(contents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
+    await expect(addressOrContents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
   });
 });
