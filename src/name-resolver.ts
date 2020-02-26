@@ -99,9 +99,6 @@ export class NameResolver extends Logger {
    * @return     Promise, that resolves to {string} address
    */
   public async getAddress(name: string) {
-    if (!name) {
-      throw new Error('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
-    }
     return this.getAddressOrContent(name, 'address');
   }
 
@@ -113,9 +110,6 @@ export class NameResolver extends Logger {
    * @return     Promise, that resolves to {string} address
    */
   public async getContent(name: string) {
-    if (!name) {
-      throw new Error('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
-    }
     return this.getAddressOrContent(name, 'content');
   }
 
