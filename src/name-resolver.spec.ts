@@ -81,14 +81,14 @@ describe('NameResolver class', function test() {
     expect(address).to.eq(emptyAddressValue);
   });
 
-  it('should throw an error when resolving ENS name undefined', async () => {
+  it.only('should throw an error when resolving ENS name undefined', async () => {
     const nameResolver = await TestUtils.getNameResolver(web3);
     const name = '';
     const address = nameResolver.getAddress(name);
     const contents = nameResolver.getContent(name);
     const addressOrContents = nameResolver.getAddressOrContent(name, 'address');
-    await expect(address).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
-    await expect(contents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
-    await expect(addressOrContents).to.be.rejectedWith('ens name is undefined. Provide valid ens name. example ens name: xyz.evan');
+    await expect(address).to.be.rejectedWith('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
+    await expect(contents).to.be.rejectedWith('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
+    await expect(addressOrContents).to.be.rejectedWith('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
   });
 });
