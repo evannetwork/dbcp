@@ -81,7 +81,7 @@ describe('NameResolver class', function test() {
     expect(address).to.eq(emptyAddressValue);
   });
 
-  it.only('should throw an error when resolving ENS name undefined', async () => {
+  it('should throw an error when resolving ENS name undefined', async () => {
     const nameResolver = await TestUtils.getNameResolver(web3);
     const name = '';
     const address = nameResolver.getAddress(name);
