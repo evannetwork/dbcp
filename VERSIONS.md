@@ -4,6 +4,12 @@
 ### Features
 
 ### Fixes
+
+### Deprecations
+
+
+## Version 1.11.1
+### Fixes
 - add check for passing undefined to `getAddress`, `getContents`, `getAddressOrContents`
 - fix buffer-to-string conversion, try to decode to `utf8`, if this fails, decode it to `binary`
 - add `member-ordering` rule to eslint config
@@ -11,8 +17,6 @@
 - fix missing resolve on event-hub when event already removed
 - Omitting mandatory parameters when using `executor` methods now results in meaningful error messages
 - The `EventHub` now allows to subscribe to the same event multiple times using different listeners 
-
-### Deprecations
 
 
 ## Version 1.11.0
