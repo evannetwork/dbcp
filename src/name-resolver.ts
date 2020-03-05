@@ -72,6 +72,9 @@ export class NameResolver extends Logger {
    */
   public async getAddressOrContent(name: string, type: string): Promise<string> {
     this.log(`looking up ENS name "${name}"`, 'debug');
+    if (!name) {
+      throw new Error('ENS name is undefined. Please provide a valid ENS name. Example ENS name: xyz.evan');
+    }
     // decide which setter to use
     let getter;
     switch (type) {

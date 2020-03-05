@@ -64,26 +64,6 @@ export class Logger {
 
   logLog = [];
 
-  static getDefaultLog(): Function {
-    return (message, level) => {
-      let logFunction;
-      switch (level) {
-        case 'debug':
-        case 'info':
-        case 'error':
-          logFunction = level; break;
-        case 'warning':
-          logFunction = 'warn'; break;
-        case 'notice':
-        default:
-          logFunction = 'log';
-      }
-      // disable rule because this is essential
-      // eslint-disable-next-line no-console
-      console[logFunction](`[${level || 'info'}] ${message}`);
-    };
-  }
-
   /**
    * create new logger
    * all logs withs a level bigger than the set level will be logged;
@@ -109,6 +89,26 @@ export class Logger {
     } else {
       this.logLevel = LogLevel.error;
     }
+  }
+
+  static getDefaultLog(): Function {
+    return (message, level) => {
+      let logFunction;
+      switch (level) {
+        case 'debug':
+        case 'info':
+        case 'error':
+          logFunction = level; break;
+        case 'warning':
+          logFunction = 'warn'; break;
+        case 'notice':
+        default:
+          logFunction = 'log';
+      }
+      // disable rule because this is essential
+      // eslint-disable-next-line no-console
+      console[logFunction](`[${level || 'info'}] ${message}`);
+    };
   }
 
   /**

@@ -40,15 +40,6 @@ describe('IPFS handler', function test() {
     expect(fileContent).to.eq(randomContent);
   });
 
-  it('should be able to add a file with special characters', async () => {
-    const content = 'öäüßÖÄÜ';
-    const encoding = 'binary';
-    const hash = await ipfs.add('test', Buffer.from(content, encoding));
-    expect(hash).not.to.be.undefined;
-    const fileContent = await ipfs.get(hash);
-    expect(fileContent.toString(encoding)).to.eq(content);
-  });
-
   it('should be able to add multiple files', async () => {
     const randomContents = [
       Math.random().toString(),
@@ -90,5 +81,45 @@ describe('IPFS handler', function test() {
     const remoteNode = IpfsApi({ host: 'ipfs.test.evan.network', port: '443', protocol: 'https' });
     const cachedIpfs = new Ipfs({ remoteNode, cache: new InMemoryCache() });
     expect(cachedIpfs.cache).to.be.ok;
+  });
+
+  describe('when dealing with special characters', () => {
+    it('should be able to add a file with umlauts, that have been encoded as binary', async () => {
+      const content = 'öäüßÖÄÜ';
+      const encoding = 'binary';
+      const hash = await ipfs.add('test', Buffer.from(content, encoding));
+      expect(hash).not.to.be.undefined;
+      const fileContent = await ipfs.get(hash);
+      expect(fileContent.toString(encoding)).to.eq(content);
+    });
+
+    it('should be able to add a file with umlauts, that have been encoded as utf8', async () => {
+      const content = 'öäüßÖÄÜ';
+      const encoding = 'utf8';
+      const hash = await ipfs.add('test', Buffer.from(content, encoding));
+      expect(hash).not.to.be.undefined;
+      const fileContent = await ipfs.get(hash);
+      expect(fileContent.toString(encoding)).to.eq(content);
+    });
+
+    it('should not be able to add a file with extended unicodes (properly), that have been encoded as binary', async () => {
+      const content = '🌂';
+      const encoding = 'binary';
+      const broken = Buffer.from('🌂', encoding).toString(encoding);
+      expect(broken).to.not.eq(content); // Buffer.from binary breaks characters
+      const hash = await ipfs.add('test', Buffer.from(content, encoding));
+      expect(hash).not.to.be.undefined;
+      const fileContent = await ipfs.get(hash);
+      expect(fileContent.toString(encoding)).to.eq(broken);
+    });
+
+    it('should be able to add a file with extended unicodes, that have been encoded as utf8', async () => {
+      const content = '🌂';
+      const encoding = 'utf8';
+      const hash = await ipfs.add('test', Buffer.from(content, encoding));
+      expect(hash).not.to.be.undefined;
+      const fileContent = await ipfs.get(hash);
+      expect(fileContent.toString(encoding)).to.eq(content);
+    });
   });
 });
