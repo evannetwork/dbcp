@@ -82,7 +82,8 @@ export class Description extends Logger {
    *
    * @param      {string}    address    The ens address or contract address where the description is
    *                                    stored
-   * @param      {string}    accountId  Account id to load the contract address for
+   * @param      {string}    accountId  ID of the identity or the account that encrypted
+   *                                    the description
    * @return     {Envelope}  description as an Envelope
    */
   public async getDescription(address: string, accountId: string): Promise<Envelope> {
@@ -124,7 +125,8 @@ export class Description extends Logger {
    * loads description envelope from contract
    *
    * @param      {string}    contractAddress  The ens address where the description is stored
-   * @param      {string}    accountId        account, that is used for descrypting private content
+   * @param      {string}    accountId        ID of the identity or the account that encrypted
+   *                                          the description
    * @return     {Envelope}  description as an Envelope
    */
   public async getDescriptionFromContract(
@@ -181,7 +183,7 @@ export class Description extends Logger {
    * load contract from dbcp description by using the abi stored at the description
    *
    * @param      {string}        address    smart contract address
-   * @param      {string}        accountId  account id, required if abi is private
+   * @param      {string}        accountId  account or identity id, required if abi is private
    * @return     {Promise<any>}  web3 contract instance
    */
   public async loadContract(address: string, accountId: string): Promise<any> {
@@ -219,7 +221,8 @@ export class Description extends Logger {
    *
    * @param      {string}           address    contract address or ENS address
    * @param      {Envelope|string}  envelope   description as an envelope
-   * @param      {string}           accountId  ETH account id
+   * @param      {string}           accountId  ID of the account or identity supposed to encrypt
+   *                                           the description
    * @return     {Promise}          resolved when done
    */
   public async setDescription(
@@ -242,7 +245,8 @@ export class Description extends Logger {
    *                                                 stored
    * @param      {Envelope|string}  envelope         description as an envelope
    *                                                 or a presaved description hash
-   * @param      {string}           accountId        ETH account id
+   * @param      {string}           accountId        ID of either an account or an identity supposed
+   *                                                 to encrypt the description
    * @return     {Promise}          resolved when done
    */
   public async setDescriptionToContract(
@@ -286,7 +290,8 @@ export class Description extends Logger {
    *
    * @param      {string}           ensAddress  The ens address where description will be stored
    * @param      {Envelope|string}  envelope    description as an envelope
-   * @param      {string}           accountId   ETH account id
+   * @param      {string}           accountId   ID of the account or identity supposed to encrypt
+   *                                            the description
    * @return     {Promise}          resolved when done
    */
   public async setDescriptionToEns(
