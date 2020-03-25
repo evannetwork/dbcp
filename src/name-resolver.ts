@@ -115,7 +115,7 @@ export class NameResolver extends Logger {
    *
    * @param      name           domain name to set (plain text)
    * @param      value          ethereum address
-   * @param      accountId      owner of the parent domain
+   * @param      parentDomainOwner owner of the parent domain
    * @param      domainOwnerId  owner of the address to set
    * @param      type           content type to set
    *
@@ -124,7 +124,7 @@ export class NameResolver extends Logger {
   public async setAddressOrContent(
     name: string,
     value: string,
-    accountId: string,
+    parentDomainOwner: string,
     domainOwnerId: string,
     type: string,
   ): Promise<void> {
@@ -137,21 +137,21 @@ export class NameResolver extends Logger {
     }
     const split = name.split('.');
     const parentName = split.slice(1).join('.');
-    const getOptions = () => ({ from: accountId, gas: 200000 });
-    const finalNodeOwner = domainOwnerId || accountId;
+    const getOptions = () => ({ from: parentDomainOwner, gas: 200000 });
+    const finalNodeOwner = domainOwnerId || parentDomainOwner;
     let nodeNotDirectlyOwned;
 
     // ensure ownership of node or its parent
     let nameOwner = await this.executor.executeContractCall(
       this.ensContract, 'owner', this.namehash(name),
     );
-    if (nameOwner !== accountId) {
+    if (nameOwner !== parentDomainOwner) {
       // currently not owner of node; check parent node
       const parentOwner = await this.executor.executeContractCall(
         this.ensContract, 'owner', this.namehash(parentName),
       );
-      if (parentOwner !== accountId) {
-        const msg = `cannot set ens value neither node "${name}" nor its parent owned by "${accountId}"`;
+      if (parentOwner !== parentDomainOwner) {
+        const msg = `cannot set ens value neither node "${name}" nor its parent owned by "${parentDomainOwner}"`;
         this.log(msg, 'error');
         throw new Error(msg);
       }
@@ -163,10 +163,10 @@ export class NameResolver extends Logger {
           getOptions(),
           this.namehash(parentName),
           this.sha3(name.substr(0, name.indexOf('.'))),
-          accountId,
+          parentDomainOwner,
         );
         // keep track of changed ownership
-        nameOwner = accountId;
+        nameOwner = parentDomainOwner;
       }
       nodeNotDirectlyOwned = true;
     }
@@ -233,15 +233,15 @@ export class NameResolver extends Logger {
    *
    * @param      name           domain name to set (plain text)
    * @param      address        ethereum address
-   * @param      accountId      owner of the parent domain
+   * @param      ownerAddress   owner of the parent domain
    * @param      domainOwnerId  owner of the address to set
    * @param      type           The type
    *
    * @return     Promise, resolves to {string} address
    */
-  public setAddress(name: string, address: string, accountId: string, domainOwnerId = null) {
+  public setAddress(name: string, address: string, ownerAddress: string, domainOwnerId = null) {
     this.log(`setting address "${address}" to name "${name}"`, 'info');
-    return this.setAddressOrContent(name, address, accountId, domainOwnerId, 'address');
+    return this.setAddressOrContent(name, address, ownerAddress, domainOwnerId, 'address');
   }
 
   /**
@@ -250,15 +250,20 @@ export class NameResolver extends Logger {
    *
    * @param      name           domain name to set (plain text)
    * @param      content        bytes32 value
-   * @param      accountId      owner of the parent domain
+   * @param      parentDomainOwner  owner of the parent domain
    * @param      domainOwnerId  owner of the address to set
    * @param      type           The type
    *
    * @return     Promise, that resolves to {string} address
    */
-  public setContent(name: string, content: string, accountId: string, domainOwnerId = null) {
+  public setContent(
+    name: string,
+    content: string,
+    parentDomainOwner: string,
+    domainOwnerId = null,
+  ) {
     this.log(`setting content "${content}" to name "${name}"`, 'info');
-    return this.setAddressOrContent(name, content, accountId, domainOwnerId, 'content');
+    return this.setAddressOrContent(name, content, parentDomainOwner, domainOwnerId, 'content');
   }
 
   /**
