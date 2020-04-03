@@ -5,7 +5,7 @@ sudo: required
 matrix:
   include:
   - name: "tests"
-    node_js: "11"
+    node_js: "13"
     env:
       - TESTSPECS='src/**/*.spec.ts'
       - CHAIN_ENDPOINT='ws://localhost:7545'
