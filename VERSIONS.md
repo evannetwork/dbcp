@@ -4,6 +4,7 @@
 ### Features
 
 ### Fixes
+- check Node.js 13 compatibility
 
 ### Deprecations
 
@@ -16,7 +17,7 @@
 - updated `dfs-interface.get` return value to be more precise (`Promise<string | Buffer>`)
 - fix missing resolve on event-hub when event already removed
 - Omitting mandatory parameters when using `executor` methods now results in meaningful error messages
-- The `EventHub` now allows to subscribe to the same event multiple times using different listeners 
+- The `EventHub` now allows to subscribe to the same event multiple times using different listeners
 
 
 ## Version 1.11.0
