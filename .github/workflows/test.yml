@@ -1,0 +1,32 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-16.04
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    name: Specs
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 13.12.0
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+      - run: |
+            docker run -d -p 8546:8546 -p 8545:8545 -u root evannetwork/testcore-snapshot --chain evantestcore --jsonrpc-interface all --unsafe-expose
+            npm i -g ganache-cli
+            npm i
+            ganache-cli --allowUnlimitedContractSize --gasLimit 0xE4E1C0 -p 7545 -f http://localhost:8545 > /dev/null &
+      - run: npm run testunitcoverage
+        env:
+          TESTSPECS: 'src/**/*.spec.ts'
+          CHAIN_ENDPOINT: 'ws://localhost:7545'
+      - run: bash <(curl -s https://codecov.io/bash) -cF javascript
