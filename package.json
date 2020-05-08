@@ -35,10 +35,9 @@
     "eslint-config-airbnb-typescript": "^6.3.1",
     "eslint-plugin-chai-friendly": "^0.5.0",
     "eslint-plugin-import": "^2.19.1",
-    "gulp": "^3.9.1",
     "husky": "^2.2.0",
     "mocha": "^6.2.0",
-    "nyc": "^13.1.0",
+    "nyc": "^15.0.1",
     "request": "^2.83.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.7.4"
@@ -76,5 +75,5 @@
     "testunitcoverage": "npm run build && nyc -r lcov -e .ts -x \"**/*.spec.ts\" -x \"lib\" mocha --exit -r ts-node/register $TESTSPECS && nyc report --reporter=json > coverage/coverage.json"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.11.1"
+  "version": "1.11.2"
 }
