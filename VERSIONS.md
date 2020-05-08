@@ -4,9 +4,13 @@
 ### Features
 
 ### Fixes
-- check Node.js 13 compatibility
 
 ### Deprecations
+
+
+## Version 1.11.2
+### Fixes
+- check Node.js 13 compatibility
 
 
 ## Version 1.11.1
