@@ -53,6 +53,8 @@ Parameters
     * ``logLevel`` - |source logLevel|_ (optional): messages with this level will be logged with ``log``
     * ``logLog`` - |source logLogInterface|_ (optional): container for collecting log messages
     * ``logLogLevel`` - |source logLevel|_ (optional): messages with this level will be pushed to ``logLog``
+#. ``config`` - ``DescriptionConnfig``: custom configuation for Description instance
+    * ``autoRemoveHashes`` - ``boolean`` (optional): automatically remove old hashes upon update and new hashes upon failed set attempt
 
 -------
 Returns

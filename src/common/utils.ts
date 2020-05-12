@@ -13,6 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+/** 0 address (empty 20B value) */
+export const nullAddress = '0x0000000000000000000000000000000000000000';
+/** 0 (empty) 32B value */
+export const nullBytes32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 /**
  * create a simple function to log exceptions

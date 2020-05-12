@@ -414,4 +414,124 @@ describe('Description handler', function test() {
       expect(loadedContract.methods.contractDescription).not.to.be.ok;
     });
   });
+
+  describe('when removing old hashes upon updates', async () => {
+    let oldAutoRemove;
+    let oldRemove;
+    let removeCount = 0;
+
+    before(async () => {
+      oldRemove = description.dfs.remove;
+      description.dfs.remove = async () => {
+        removeCount += 1;
+      };
+      oldAutoRemove = description.config.autoRemoveHashes;
+      description.config.autoRemoveHashes = true;
+    });
+
+    after(async () => {
+      description.config.autoRemoveHashes = oldAutoRemove;
+      description.dfs.remove = oldRemove;
+    });
+
+    describe('when updating contract descriptions', async () => {
+      it('should not remove old hashes when initially setting contract descriptions', async () => {
+        const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
+        const oldRemoveCount = removeCount;
+        const descriptionEnvelope = { public: { ...sampleDescription } };
+        await description.setDescriptionToContract(
+          contract.options.address,
+          descriptionEnvelope,
+          accounts[0],
+        );
+        expect(removeCount).to.eq(oldRemoveCount);
+      });
+
+      it('should remove old hashes when updating contract descriptions', async () => {
+        const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
+
+        let oldRemoveCount = removeCount;
+        let descriptionEnvelope = { public: { ...sampleDescription } };
+        await description.setDescriptionToContract(
+          contract.options.address,
+          descriptionEnvelope,
+          accounts[0],
+        );
+        expect(removeCount).to.eq(oldRemoveCount);
+
+        const updatedSampleDescription = {
+          ...sampleDescription,
+          name: `updated ${Math.random()}`,
+        };
+        descriptionEnvelope = { public: { ...updatedSampleDescription } };
+        oldRemoveCount = removeCount;
+        await description.setDescriptionToContract(
+          contract.options.address,
+          descriptionEnvelope,
+          accounts[0],
+        );
+        expect(removeCount).to.eq(oldRemoveCount + 1);
+      });
+
+      it('should not remove old hashes when setting description to same value', async () => {
+        const contract = await executor.createContract('Described', [], { from: accounts[0], gas: 1000000 });
+
+        let oldRemoveCount = removeCount;
+        const descriptionEnvelope = { public: { ...sampleDescription } };
+        await description.setDescriptionToContract(
+          contract.options.address,
+          descriptionEnvelope,
+          accounts[0],
+        );
+        expect(removeCount).to.eq(oldRemoveCount);
+
+        oldRemoveCount = removeCount;
+        await description.setDescriptionToContract(
+          contract.options.address,
+          descriptionEnvelope,
+          accounts[0],
+        );
+        expect(removeCount).to.eq(oldRemoveCount);
+      });
+    });
+
+    describe('when updating ENS descriptions', async () => {
+      it('should remove old hashes when updating ENS descriptions', async () => {
+        const oldRemoveCount = removeCount;
+        const updatedSampleDescription = {
+          ...sampleDescription,
+          name: `updated ${Math.random()}`,
+        };
+        await description.setDescriptionToEns(
+          testAddressFoo,
+          { public: updatedSampleDescription },
+          accounts[1],
+        );
+        expect(removeCount).to.eq(oldRemoveCount + 1);
+      });
+
+      it('should not remove old hashes when setting description to same value', async () => {
+        let oldRemoveCount = removeCount;
+
+        const updatedSampleDescription = {
+          ...sampleDescription,
+          name: `updated ${Math.random()}`,
+        };
+        await description.setDescriptionToEns(
+          testAddressFoo,
+          { public: updatedSampleDescription },
+          accounts[1],
+        );
+        expect(removeCount).to.eq(oldRemoveCount + 1);
+
+        oldRemoveCount = removeCount;
+        await description.setDescriptionToEns(
+          testAddressFoo,
+          { public: updatedSampleDescription },
+          accounts[1],
+        );
+        expect(removeCount).to.eq(oldRemoveCount);
+      });
+    });
+  });
 });

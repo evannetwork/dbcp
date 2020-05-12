@@ -2,6 +2,7 @@
 
 ## Next Version
 ### Features
+- add option for `Description` to automatically remove unused hashes
 
 ### Fixes
 

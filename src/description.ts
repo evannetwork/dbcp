@@ -24,6 +24,7 @@ import { KeyProviderInterface } from './encryption/key-provider-interface';
 import { Logger, LoggerOptions } from './common/logger';
 import { NameResolver } from './name-resolver';
 import { Validator } from './validator';
+import { nullBytes32 } from './common/utils';
 
 /**
  * options for Description module
@@ -39,6 +40,14 @@ export interface DescriptionOptions extends LoggerOptions {
 }
 
 /**
+ * custom configuation for Description instance
+ */
+export interface DescriptionConfig {
+  /** automatically remove old hashes upon update and new hashes upon failed set attempt */
+  autoRemoveHashes?: boolean;
+}
+
+/**
  * DBCP description helper module
  *
  * @class      Description (name)
@@ -47,6 +56,8 @@ export class Description extends Logger {
   contractLoader: ContractLoader;
 
   cryptoProvider: CryptoProvider;
+
+  config: DescriptionConfig;
 
   dfs: DfsInterface;
 
@@ -64,7 +75,7 @@ export class Description extends Logger {
 
   protected readonly encodingEnvelope = 'utf8';
 
-  constructor(options: DescriptionOptions) {
+  constructor(options: DescriptionOptions, config: DescriptionConfig = {}) {
     super(options);
     this.contractLoader = options.contractLoader;
     this.cryptoProvider = options.cryptoProvider;
@@ -73,6 +84,7 @@ export class Description extends Logger {
     this.keyProvider = options.keyProvider;
     this.nameResolver = options.nameResolver;
     this.web3 = options.web3;
+    this.config = config;
   }
 
   /**
@@ -277,8 +289,21 @@ export class Description extends Logger {
         'description', Buffer.from(JSON.stringify(content), this.encodingEnvelope),
       );
     }
+
     const contract = this.contractLoader.loadContract('Described', contractAddress);
-    await this.executor.executeContractTransaction(contract, 'setContractDescription', { from: accountId, gas: 200000 }, hash);
+    await this.handleDfsHashUpdate(
+      `setting of new description for contract "${contractAddress}"`,
+      hash,
+      async () => this.executor.executeContractCall(contract, 'contractDescription'),
+      async () => {
+        await this.executor.executeContractTransaction(
+          contract,
+          'setContractDescription',
+          { from: accountId, gas: 200000 },
+          hash,
+        );
+      },
+    );
   }
 
   /**
@@ -332,7 +357,14 @@ export class Description extends Logger {
       finalNodeOwner = currentOwner;
     }
 
-    await this.nameResolver.setContent(ensAddress, hash, accountId, finalNodeOwner);
+    await this.handleDfsHashUpdate(
+      `setting of new description for ens address "${ensAddress}"`,
+      hash,
+      async () => this.nameResolver.getContent(ensAddress),
+      async () => {
+        await this.nameResolver.setContent(ensAddress, hash, accountId, finalNodeOwner);
+      },
+    );
   }
 
   /**
@@ -386,5 +418,44 @@ export class Description extends Logger {
     }
 
     return descValidation;
+  }
+
+  /**
+   * Tries to update `hash` with `setNewHash`. Will unpin old hashes and failed new hashes if
+   * `this.config.autoRemoveHashes` is enabled.
+   *
+   * @param      {string}                 task        name of the update, e.g. setting of new
+   *                                                  description for ens address "${ensAddress}"
+   * @param      {string}                 newHash     new 32B hash to set
+   * @param      {() => Promise<string>}  getOldHash  function to get old hash with
+   * @param      {() => Promise<void>}  setNewHash  function to set new hash with
+   */
+  private async handleDfsHashUpdate(
+    task: string,
+    newHash: string,
+    getOldHash: () => Promise<string>,
+    setNewHash: () => Promise<void>,
+  ) {
+    let oldHash = nullBytes32;
+    let updated = false;
+    try {
+      oldHash = await getOldHash();
+      // skip setting and removing if hash is the same
+      if (oldHash !== newHash) {
+        await setNewHash();
+        updated = true;
+      }
+    } catch (ex) {
+      if (oldHash !== newHash && this.config.autoRemoveHashes) {
+        // if we tried to update the hash, remove new hash on failed attempt
+        this.log(`${task} failed, remvoving removing new hash ${newHash}; ${ex}`, 'error');
+        await this.dfs.remove(newHash);
+      }
+    }
+    if (updated && oldHash !== nullBytes32 && this.config.autoRemoveHashes) {
+      // if update was successful, remove old hash
+      this.log(`${task} succeeded, remvoving removing old hash ${oldHash}`, 'debug');
+      await this.dfs.remove(oldHash);
+    }
   }
 }
